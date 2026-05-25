@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useAuth } from '@/hooks/use-auth';
 import { getDeviceBinding } from '@/config/device-binding';
@@ -45,7 +45,7 @@ export function TopBar() {
           <Text style={styles.logoText}>A</Text>
         </View>
         <View>
-          <Text style={styles.brandTitle}>APEX POS</Text>
+          <Text style={styles.brandTitle}>JNJ POS</Text>
           <Text style={styles.brandSub}>C-BROS</Text>
         </View>
       </View>

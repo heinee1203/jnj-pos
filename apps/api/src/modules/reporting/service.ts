@@ -1,4 +1,4 @@
-import { db } from "@apex/database";
+﻿import { db } from "@jnj/database";
 import { sql } from "drizzle-orm";
 
 // ── Phase 8: Service Performance & Business Intelligence ──

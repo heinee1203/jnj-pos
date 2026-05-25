@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Add 4 missing March 4, 2026 CHARGE transactions for Lass Automotive.
  * Run: npx tsx apps/api/scripts/add-lass-mar4-transactions.ts
  */
@@ -10,8 +10,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 dotenv.config({ path: resolve(__dirname, "../../../.env") });
 
-import { db } from "@apex/database";
-import { customers, customerTransactions } from "@apex/database/schema";
+import { db } from "@jnj/database";
+import { customers, customerTransactions } from "@jnj/database/schema";
 import { eq, and, sql, asc } from "drizzle-orm";
 
 const ORG_ID = "556e350a-7180-4ec9-9e1e-ea0ca1937f40";

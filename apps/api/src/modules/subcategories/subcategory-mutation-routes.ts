@@ -1,5 +1,5 @@
-import type { FastifyInstance } from "fastify";
-import { createSubcategorySchema, updateSubcategorySchema } from "@apex/types";
+﻿import type { FastifyInstance } from "fastify";
+import { createSubcategorySchema, updateSubcategorySchema } from "@jnj/types";
 import {
   canManageSubcategories,
   sendSubcategoryManageRequired,

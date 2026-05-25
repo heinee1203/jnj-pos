@@ -1,6 +1,6 @@
-import type { FastifyInstance } from "fastify";
-import { db } from "@apex/database";
-import { inventory, productSubcategories, products } from "@apex/database/schema";
+﻿import type { FastifyInstance } from "fastify";
+import { db } from "@jnj/database";
+import { inventory, productSubcategories, products } from "@jnj/database/schema";
 import { and, eq, inArray, sql } from "drizzle-orm";
 
 import { logAction } from "./product-audit-service";

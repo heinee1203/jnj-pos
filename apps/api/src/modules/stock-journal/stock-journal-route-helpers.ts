@@ -1,4 +1,4 @@
-import { UserRole } from "@apex/types";
+﻿import { UserRole } from "@jnj/types";
 
 export type StockJournalQuery = Record<string, string | undefined>;
 

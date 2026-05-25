@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { Minus, Plus, Printer } from "lucide-react";
@@ -7,7 +7,7 @@ import {
   encodeCostMnemonic,
   SHELF_LABEL_PRESETS,
   type ShelfLabelSizeId,
-} from "@apex/types";
+} from "@jnj/types";
 import { getProductDisplayName } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { ProductRow } from "@/hooks/use-products";

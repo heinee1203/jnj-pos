@@ -1,4 +1,4 @@
-# Transfer Order: Full-Page Creation + CSV Import + Edit Implementation Plan
+﻿# Transfer Order: Full-Page Creation + CSV Import + Edit Implementation Plan
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
@@ -191,7 +191,7 @@ import {
   updateTransferSchema,
   addTransferItemSchema,
   updateTransferItemSchema,
-} from "@apex/types";
+} from "@JNJ/types";
 ```
 
 Add to service imports (line 13-25):
@@ -301,8 +301,8 @@ Add these routes inside the plugin function, after the `POST /transfers` route (
 **Step 4: Rebuild types and verify**
 
 ```bash
-cd C:/Users/Admin/Downloads/CLAUDE/APEX_POS/packages/types && pnpm build
-cd C:/Users/Admin/Downloads/CLAUDE/APEX_POS/apps/api && npx tsc --noEmit 2>&1 | grep "error TS"
+cd C:/Users/Admin/Downloads/CLAUDE/JNJ_POS/packages/types && pnpm build
+cd C:/Users/Admin/Downloads/CLAUDE/JNJ_POS/apps/api && npx tsc --noEmit 2>&1 | grep "error TS"
 ```
 
 **Step 5: Commit**
@@ -528,7 +528,7 @@ export default function NewTransferPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "apex-transfer-import-template.csv";
+    a.download = "JNJ-transfer-import-template.csv";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -1029,7 +1029,7 @@ export default function NewTransferPage() {
 **Step 2: Verify build**
 
 ```bash
-cd C:/Users/Admin/Downloads/CLAUDE/APEX_POS/apps/web && npx next build 2>&1 | tail -10
+cd C:/Users/Admin/Downloads/CLAUDE/JNJ_POS/apps/web && npx next build 2>&1 | tail -10
 ```
 
 **Step 3: Commit**
@@ -1148,7 +1148,7 @@ In the file `apps/web/src/app/procurement/transfer-orders/page.tsx`:
 **Step 2: Verify and commit**
 
 ```bash
-cd C:/Users/Admin/Downloads/CLAUDE/APEX_POS/apps/web && npx next build 2>&1 | tail -10
+cd C:/Users/Admin/Downloads/CLAUDE/JNJ_POS/apps/web && npx next build 2>&1 | tail -10
 git add apps/web/src/app/procurement/transfer-orders/page.tsx
 git commit -m "feat(web): enhance transfer list page with new button, status filter, summary counts"
 ```
@@ -1440,7 +1440,7 @@ Inside component: `const queryClient = useQueryClient();`
 **Step 5: Verify and commit**
 
 ```bash
-cd C:/Users/Admin/Downloads/CLAUDE/APEX_POS/apps/web && npx next build 2>&1 | tail -10
+cd C:/Users/Admin/Downloads/CLAUDE/JNJ_POS/apps/web && npx next build 2>&1 | tail -10
 git add apps/web/src/app/procurement/transfer-orders/[transferNo]/page.tsx
 git commit -m "feat(web): add inline edit mode for DRAFT transfers on detail page"
 ```
@@ -1452,7 +1452,7 @@ git commit -m "feat(web): add inline edit mode for DRAFT transfers on detail pag
 **Step 1: Full builds**
 
 ```bash
-cd C:/Users/Admin/Downloads/CLAUDE/APEX_POS
+cd C:/Users/Admin/Downloads/CLAUDE/JNJ_POS
 cd packages/types && pnpm build
 cd ../../apps/api && npx tsc --noEmit 2>&1 | grep "error TS"
 cd ../web && npx next build 2>&1 | tail -10

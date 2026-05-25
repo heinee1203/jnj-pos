@@ -1,10 +1,10 @@
-import { db } from "@apex/database";
+﻿import { db } from "@jnj/database";
 import {
   productOptionTypes,
   productOptionValues,
   productVariantOptions,
   products,
-} from "@apex/database/schema";
+} from "@jnj/database/schema";
 import { eq, and, sql } from "drizzle-orm";
 
 export interface OptionValueRow {

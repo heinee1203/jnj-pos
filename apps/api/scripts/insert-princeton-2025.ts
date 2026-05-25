@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Insert 13 backdated CHARGE rows + 1 CREDIT_NOTE (CM-3027) for
  * Princeton Marketing (AR-0039) covering Aug 15 – Dec 30, 2025.
  *
@@ -25,7 +25,7 @@ import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 dotenv.config({ path: resolve(dirname(fileURLToPath(import.meta.url)), "../../../.env") });
 
-import { db } from "@apex/database";
+import { db } from "@jnj/database";
 import { sql } from "drizzle-orm";
 
 const APPLY = process.argv.includes("--apply");
@@ -119,10 +119,10 @@ async function main() {
 
   // ── Guard 4: resolve admin user ──
   const [admin] = (await db.execute(sql`
-    SELECT id, email FROM users WHERE email = 'admin@apex.com' LIMIT 1
+    SELECT id, email FROM users WHERE email = 'admin@jnj.com' LIMIT 1
   `)) as any[];
   if (!admin) {
-    console.error("ABORT: admin@apex.com user not found");
+    console.error("ABORT: admin@jnj.com user not found");
     process.exit(1);
   }
   console.log(`admin user: ${admin.email}  (${admin.id})\n`);

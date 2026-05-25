@@ -1,4 +1,4 @@
-import { db, type DbOrTx } from "@apex/database";
+﻿import { db, type DbOrTx } from "@jnj/database";
 import {
   productSuppliers,
   suppliers,
@@ -6,7 +6,7 @@ import {
   purchaseOrders,
   poLines,
   supplierMetrics,
-} from "@apex/database/schema";
+} from "@jnj/database/schema";
 import { eq, and, sql, asc, ne, gt, gte, lt } from "drizzle-orm";
 
 // ── Backfill product_suppliers from PO history ──

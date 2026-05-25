@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Add CM-3024 to SOA-2026-0149 line items.
  * Run: npx tsx apps/api/scripts/fix-soa149-add-cm.ts
  */
@@ -8,7 +8,7 @@ import dotenv from "dotenv";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 dotenv.config({ path: resolve(__dirname, "../../../.env") });
-import { db } from "@apex/database";
+import { db } from "@jnj/database";
 import { sql } from "drizzle-orm";
 
 async function main() {

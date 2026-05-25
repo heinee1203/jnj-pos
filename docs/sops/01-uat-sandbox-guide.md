@@ -1,4 +1,4 @@
-# APEX POS — UAT Sandbox Guide
+﻿# JNJ POS — UAT Sandbox Guide
 
 **Document:** SOP-UAT-001
 **Version:** 1.0
@@ -9,11 +9,11 @@
 
 ## Purpose
 
-This guide provides step-by-step testing scripts for the three critical business workflows in APEX POS. Each workflow must be completed successfully by the assigned tester before the system is approved for Go-Live.
+This guide provides step-by-step testing scripts for the three critical business workflows in JNJ POS. Each workflow must be completed successfully by the assigned tester before the system is approved for Go-Live.
 
 **Testing Environment:** UAT Sandbox (separate database seeded with test data)
 **Login URL:** `http://<uat-server>:3000`
-**Test Admin Credentials:** `admin@apex.com` / `admin12345`
+**Test Admin Credentials:** `admin@jnj.com` / `admin12345`
 
 ---
 
@@ -22,7 +22,7 @@ This guide provides step-by-step testing scripts for the three critical business
 Before beginning any test scenario:
 
 1. Confirm the UAT database has been freshly seeded (`pnpm db:seed`)
-2. Log in to the APEX POS web application
+2. Log in to the JNJ POS web application
 3. Select a **RETAIL_STORE** location from the location selector (not WAREHOUSE or TRANSIT_BUFFER)
 4. Confirm the location header displays correctly in the top navigation bar
 5. Open a separate browser tab for each tester (sessions are independent)

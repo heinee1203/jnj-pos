@@ -1,4 +1,4 @@
-/**
+﻿/**
  * End-to-end verification that recomputeSOAStatusForCharges works after the
  * IN-list fix. Runs inside a transaction that is always rolled back — nothing
  * is persisted — so it's safe to run against live data.
@@ -13,7 +13,7 @@ import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 dotenv.config({ path: resolve(dirname(fileURLToPath(import.meta.url)), "../../../.env") });
 
-import { db } from "@apex/database";
+import { db } from "@jnj/database";
 import { sql } from "drizzle-orm";
 import { recomputeSOAStatusForCharges } from "../src/modules/customers/service";
 

@@ -1,10 +1,10 @@
-import { db } from "@apex/database";
+﻿import { db } from "@jnj/database";
 import {
   tags,
   productTags,
   products,
   categories,
-} from "@apex/database/schema";
+} from "@jnj/database/schema";
 import { eq, and, or, sql, ilike, gt, type SQL, inArray } from "drizzle-orm";
 
 // ─── Tag CRUD ────────────────────────────────────────────────────────

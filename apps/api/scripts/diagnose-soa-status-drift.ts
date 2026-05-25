@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Diagnostic sweep: find SOAs whose `status` / `paid_amount` disagrees
  * with the actual sum of ar_payment_allocations on the SOA's line items.
  *
@@ -15,7 +15,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 dotenv.config({ path: resolve(__dirname, "../../../.env") });
 
-import { db } from "@apex/database";
+import { db } from "@jnj/database";
 import { sql } from "drizzle-orm";
 
 type Row = {

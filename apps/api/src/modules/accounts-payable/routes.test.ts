@@ -1,4 +1,4 @@
-import assert from "node:assert/strict";
+﻿import assert from "node:assert/strict";
 import test from "node:test";
 
 type RegisteredRoute = {
@@ -56,7 +56,7 @@ function createReply() {
 }
 
 test("accounts payable route registration keeps extracted AP route groups first", async () => {
-  process.env.DATABASE_URL ??= "postgres://apex:apex@localhost:5432/apex_test";
+  process.env.DATABASE_URL ??= "postgres://jnj:jnj@localhost:5432/jnj_test";
   const { accountsPayableRoutes } = await import("./routes");
   const { app, routes } = createRouteRecorder();
 
@@ -120,7 +120,7 @@ test("accounts payable route registration keeps extracted AP route groups first"
 });
 
 test("accounts payable route registration preserves static-before-dynamic AP paths", async () => {
-  process.env.DATABASE_URL ??= "postgres://apex:apex@localhost:5432/apex_test";
+  process.env.DATABASE_URL ??= "postgres://jnj:jnj@localhost:5432/jnj_test";
   const { accountsPayableRoutes } = await import("./routes");
   const { app, routes } = createRouteRecorder();
 
@@ -162,7 +162,7 @@ test("accounts payable route registration preserves static-before-dynamic AP pat
 });
 
 test("supplier verify-bank and merge routes guard AP role and malformed merge input", async () => {
-  process.env.DATABASE_URL ??= "postgres://apex:apex@localhost:5432/apex_test";
+  process.env.DATABASE_URL ??= "postgres://jnj:jnj@localhost:5432/jnj_test";
   const { accountsPayableRoutes } = await import("./routes");
   const { app, handlers } = createRouteRecorder();
 

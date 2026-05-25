@@ -1,4 +1,4 @@
-import { db } from "@apex/database";
+﻿import { db } from "@jnj/database";
 import { sql } from "drizzle-orm";
 
 export async function assertDatabaseConnected() {

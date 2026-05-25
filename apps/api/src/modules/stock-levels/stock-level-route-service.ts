@@ -1,5 +1,5 @@
-import { db } from "@apex/database";
-import { inventory, products } from "@apex/database/schema";
+﻿import { db } from "@jnj/database";
+import { inventory, products } from "@jnj/database/schema";
 import { and, eq } from "drizzle-orm";
 
 export {

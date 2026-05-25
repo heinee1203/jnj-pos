@@ -1,12 +1,12 @@
-import { db, type DbOrTx } from "@apex/database";
-import { auditLogs, customers, customerTransactions, customerTiers, arPaymentAllocations } from "@apex/database/schema";
+﻿import { db, type DbOrTx } from "@jnj/database";
+import { auditLogs, customers, customerTransactions, customerTiers, arPaymentAllocations } from "@jnj/database/schema";
 import { eq, and, or, sql, desc, asc, ilike, gt, lt, gte, lte, type SQL } from "drizzle-orm";
 import type {
   CreateCustomerInput,
   UpdateCustomerInput,
   RecordPaymentInput,
   CustomerAdjustmentInput,
-} from "@apex/types";
+} from "@jnj/types";
 import { verifyAuthorizationCredential, verifyPin } from "../auth/service";
 import {
   buildAgingReportResponse,

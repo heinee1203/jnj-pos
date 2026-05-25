@@ -1,5 +1,5 @@
-import { db } from "@apex/database";
-import { printers } from "@apex/database/schema";
+﻿import { db } from "@jnj/database";
+import { printers } from "@jnj/database/schema";
 import { and, eq } from "drizzle-orm";
 
 export type PrinterCreateInput = {

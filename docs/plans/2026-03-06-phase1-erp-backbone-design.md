@@ -1,4 +1,4 @@
-# Phase 1: ERP Backbone — Approved Design
+﻿# Phase 1: ERP Backbone — Approved Design
 
 **Date:** 2026-03-06
 **Status:** Approved (with Project Lead additions)
@@ -20,7 +20,7 @@ Cloud-native, multi-store ERP backend for automotive retail. pnpm monorepo with 
 ## Workspace Structure
 
 ```
-apex-pos/
+jnj-pos/
 ├── pnpm-workspace.yaml
 ├── package.json                 # Root scripts, shared devDeps
 ├── tsconfig.base.json

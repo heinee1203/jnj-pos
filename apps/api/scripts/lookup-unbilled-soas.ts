@@ -1,9 +1,9 @@
-import { resolve, dirname } from "path";
+﻿import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 dotenv.config({ path: resolve(dirname(fileURLToPath(import.meta.url)), "../../../.env") });
 
-import { db } from "@apex/database";
+import { db } from "@jnj/database";
 import { sql } from "drizzle-orm";
 
 const custId = "730a74fc-47ae-4b61-ad7d-237f4b0aa70a"; // Lucky Se7en, INC

@@ -1,4 +1,4 @@
-# APEX POS — Render Deployment Guide
+﻿# JNJ POS — Render Deployment Guide
 
 **Document:** SOP-DEPLOY-001
 **Version:** 1.0
@@ -34,10 +34,10 @@ Before starting, confirm these are complete:
 | 3 | Click **Git Providers** in the left sidebar | Git provider connections |
 | 4 | Under **GitHub**, click **Connect** | GitHub OAuth authorization page |
 | 5 | Select your GitHub account or organization | Repository permission request |
-| 6 | Grant access to the **APEX_POS** repository (select specific repo, not "All repositories") | Authorization confirmed |
+| 6 | Grant access to the **JNJ_POS** repository (select specific repo, not "All repositories") | Authorization confirmed |
 | 7 | You are redirected back to Render Dashboard | GitHub shows as "Connected" with your username |
 
-> **Security Note:** Grant access to only the APEX_POS repository. Never grant blanket "All repositories" access for a business-critical deployment.
+> **Security Note:** Grant access to only the JNJ_POS repository. Never grant blanket "All repositories" access for a business-critical deployment.
 
 ---
 
@@ -49,19 +49,19 @@ Render Blueprints read a YAML file from your repository and provision all servic
 |---|------------|-----------------|
 | 1 | From the Dashboard, click **Blueprints** in the left sidebar | Blueprints page (may be empty) |
 | 2 | Click **New Blueprint Instance** | "Create a new Blueprint Instance" form |
-| 3 | Under **Repository**, select your **APEX_POS** repo from the dropdown | Repository selected |
+| 3 | Under **Repository**, select your **JNJ_POS** repo from the dropdown | Repository selected |
 | 4 | Under **Branch**, type `staging` and select it | Branch set to `staging` |
 | 5 | Under **Blueprint file path**, change from `render.yaml` to `render-uat.yaml` | File path updated |
-| 6 | Under **Blueprint Name**, enter: `APEX POS — UAT Sandbox` | Name set |
+| 6 | Under **Blueprint Name**, enter: `JNJ POS — UAT Sandbox` | Name set |
 | 7 | Click **Apply** | Blueprint parsing begins |
 
 Render will now parse `render-uat.yaml` and show you a preview of all resources it will create:
 
 ```
 Resources to create:
-  ☐ Database:    apex-uat-db     (basic-1gb, Singapore)
-  ☐ Web Service: apex-uat-api   (starter, Singapore)
-  ☐ Web Service: apex-uat-web   (starter, Singapore)
+  ☐ Database:    JNJ-uat-db     (basic-1gb, Singapore)
+  ☐ Web Service: JNJ-uat-api   (starter, Singapore)
+  ☐ Web Service: JNJ-uat-web   (starter, Singapore)
 ```
 
 | # | Click Path | What You'll See |
@@ -78,14 +78,14 @@ Resources to create:
 | # | Click Path | What You'll See |
 |---|------------|-----------------|
 | 1 | You are taken to the Blueprint status page | All 3 resources show as "Creating..." |
-| 2 | Click on **apex-uat-db** | Database dashboard — status progresses: Creating → Available |
+| 2 | Click on **JNJ-uat-db** | Database dashboard — status progresses: Creating → Available |
 | 3 | Wait for status to show **Available** with a green indicator | Database is ready |
-| 4 | Go back. Click on **apex-uat-api** | Build logs streaming in real-time |
+| 4 | Go back. Click on **JNJ-uat-api** | Build logs streaming in real-time |
 | 5 | Watch for build output: `pnpm install --frozen-lockfile && pnpm build` | Dependencies install, TypeScript compiles |
 | 6 | Watch for: `==> Build successful` followed by `==> Starting service` | Build succeeded |
-| 7 | Watch for: `Apex API running on http://0.0.0.0:3000` | API server started |
+| 7 | Watch for: `JNJ API running on http://0.0.0.0:3000` | API server started |
 | 8 | Render runs the health check: `GET /health` | Health check passes → status turns **green** |
-| 9 | Go back. Click on **apex-uat-web** | Build logs for Next.js |
+| 9 | Go back. Click on **JNJ-uat-web** | Build logs for Next.js |
 | 10 | Watch for: `pnpm install --frozen-lockfile && pnpm web:build` | Next.js builds |
 | 11 | Watch for: `✓ Compiled successfully` and `==> Starting service` | Frontend started |
 
@@ -97,13 +97,13 @@ The Next.js frontend needs to know where the Fastify API lives. This is a `NEXT_
 
 | # | Click Path | What You'll See |
 |---|------------|-----------------|
-| 1 | Click on **apex-uat-api** in the Render Dashboard | API service page |
-| 2 | Copy the service URL from the top of the page — it looks like: `https://apex-uat-api.onrender.com` | URL copied to clipboard |
-| 3 | Navigate to **apex-uat-web** service | Web frontend service page |
+| 1 | Click on **JNJ-uat-api** in the Render Dashboard | API service page |
+| 2 | Copy the service URL from the top of the page — it looks like: `https://JNJ-uat-api.onrender.com` | URL copied to clipboard |
+| 3 | Navigate to **JNJ-uat-web** service | Web frontend service page |
 | 4 | Click **Environment** in the left sidebar | Environment variables list |
 | 5 | Find `NEXT_PUBLIC_API_URL` (it will show as empty) | Variable exists but is blank |
 | 6 | Click **Edit** (pencil icon) next to it | Edit field opens |
-| 7 | Paste: `https://apex-uat-api.onrender.com` (the URL from step 2, **no trailing slash**) | Value set |
+| 7 | Paste: `https://JNJ-uat-api.onrender.com` (the URL from step 2, **no trailing slash**) | Value set |
 | 8 | Click **Save Changes** | Variable saved |
 | 9 | A banner appears: "Environment changed. Trigger a new deploy?" — Click **Yes, deploy** | Rebuild triggers |
 | 10 | Wait for the rebuild to complete (~5 minutes) | Frontend rebuilds with the API URL baked in |
@@ -118,14 +118,14 @@ The database is empty — it needs the Drizzle schema migrations applied.
 
 | # | Action | Command / Click Path |
 |---|--------|---------------------|
-| 1 | Click on **apex-uat-db** in Render Dashboard | Database page |
+| 1 | Click on **JNJ-uat-db** in Render Dashboard | Database page |
 | 2 | Click **Connect** in the top-right | Connection details panel |
-| 3 | Copy the **External Connection URL** (starts with `postgresql://apex:...@...singapore-postgres.render.com:5432/apex_uat`) | URL copied |
+| 3 | Copy the **External Connection URL** (starts with `postgresql://JNJ:...@...singapore-postgres.render.com:5432/JNJ_uat`) | URL copied |
 | 4 | On your **local machine**, set this temporarily: | |
 
 ```bash
 # Terminal on your local machine — NOT on Render
-export DATABASE_URL="postgresql://apex:PASSWORD@HOST:5432/apex_uat"
+export DATABASE_URL="postgresql://JNJ:PASSWORD@HOST:5432/JNJ_uat"
 ```
 
 | # | Action | Command |
@@ -133,7 +133,7 @@ export DATABASE_URL="postgresql://apex:PASSWORD@HOST:5432/apex_uat"
 | 5 | Run Drizzle migrations: | |
 
 ```bash
-cd /path/to/APEX_POS
+cd /path/to/JNJ_POS
 pnpm db:migrate
 ```
 
@@ -170,10 +170,10 @@ unset DATABASE_URL
 
 | # | Action | Expected Result | ✓ |
 |---|--------|-----------------|---|
-| 1 | Open `https://apex-uat-api.onrender.com/health` in your browser | `{"status":"ok"}` JSON response | ☐ |
-| 2 | Open `https://apex-uat-web.onrender.com` in your browser | APEX POS login page renders | ☐ |
-| 3 | Register an admin user via: `POST https://apex-uat-api.onrender.com/auth/register` with body `{"email":"admin@apex.com","password":"admin12345","orgName":"Apex Auto Parts"}` | 201 response with JWT token | ☐ |
-| 4 | Log into the web app with `admin@apex.com` / `admin12345` | Dashboard loads, location selector appears | ☐ |
+| 1 | Open `https://JNJ-uat-api.onrender.com/health` in your browser | `{"status":"ok"}` JSON response | ☐ |
+| 2 | Open `https://JNJ-uat-web.onrender.com` in your browser | JNJ POS login page renders | ☐ |
+| 3 | Register an admin user via: `POST https://JNJ-uat-api.onrender.com/auth/register` with body `{"email":"admin@jnj.com","password":"admin12345","orgName":"JNJ Trading"}` | 201 response with JWT token | ☐ |
+| 4 | Log into the web app with `admin@jnj.com` / `admin12345` | Dashboard loads, location selector appears | ☐ |
 | 5 | Select a location, navigate to **POS** page | Product search works, 50k products searchable | ☐ |
 | 6 | Search for a product by name (e.g., "brake") | Products appear with prices and stock levels | ☐ |
 
@@ -202,11 +202,11 @@ unset DATABASE_URL
 │         ▼                                                            │
 │  ┌─────────────────────┐                                             │
 │  │  Service Runtime     │─── injected as process.env.JWT_SECRET      │
-│  │  (apex-uat-api)      │    never written to disk, never in logs    │
+│  │  (JNJ-uat-api)      │    never written to disk, never in logs    │
 │  └─────────────────────┘                                             │
 │                                                                      │
 │  ┌─────────────┐                                                     │
-│  │  render.yaml │─── declares: DATABASE_URL: fromDatabase: apex-db   │
+│  │  render.yaml │─── declares: DATABASE_URL: fromDatabase: JNJ-db   │
 │  └──────┬──────┘                                                     │
 │         │                                                            │
 │         ▼                                                            │
@@ -218,7 +218,7 @@ unset DATABASE_URL
 │         ▼                                                            │
 │  ┌─────────────────────┐                                             │
 │  │  Service Runtime     │─── injected as process.env.DATABASE_URL    │
-│  │  (apex-uat-api)      │    traffic stays on Render's private net   │
+│  │  (JNJ-uat-api)      │    traffic stays on Render's private net   │
 │  └─────────────────────┘                                             │
 │                                                                      │
 │  WHAT IS NEVER EXPOSED:                                              │
@@ -245,9 +245,9 @@ unset DATABASE_URL
 
 | # | Click Path | What You'll See |
 |---|------------|-----------------|
-| 1 | Click on any service (e.g., `apex-uat-api`) | Service overview page |
+| 1 | Click on any service (e.g., `JNJ-uat-api`) | Service overview page |
 | 2 | Click **Environment** in the left sidebar | List of all environment variables |
-| 3 | `DATABASE_URL` — shows as "From apex-uat-db" (linked reference, not the raw value) | Connection string is hidden; Render resolves it at runtime |
+| 3 | `DATABASE_URL` — shows as "From JNJ-uat-db" (linked reference, not the raw value) | Connection string is hidden; Render resolves it at runtime |
 | 4 | `JWT_SECRET` — shows as "Generated" with a masked value (`••••••••`) | Click the eye icon to reveal temporarily |
 | 5 | To edit a value: click the pencil icon → modify → Save Changes | Triggers a redeploy prompt |
 
@@ -272,19 +272,19 @@ unset DATABASE_URL
 |---|------------|-----------------|
 | 1 | From Render Dashboard, click **Blueprints** in the left sidebar | Blueprints page (UAT blueprint already listed) |
 | 2 | Click **New Blueprint Instance** | "Create a new Blueprint Instance" form |
-| 3 | Under **Repository**, select your **APEX_POS** repo | Repository selected |
+| 3 | Under **Repository**, select your **JNJ_POS** repo | Repository selected |
 | 4 | Under **Branch**, type `main` and select it | Branch set to `main` |
 | 5 | Under **Blueprint file path**, keep the default: `render.yaml` | Production blueprint uses the default filename |
-| 6 | Under **Blueprint Name**, enter: `APEX POS — Production` | Name set |
+| 6 | Under **Blueprint Name**, enter: `JNJ POS — Production` | Name set |
 | 7 | Click **Apply** | Blueprint parsing begins |
 
 Render will show the resource preview:
 
 ```
 Resources to create:
-  ☐ Database:    apex-db      (pro-4gb, Singapore, HA: enabled)
-  ☐ Web Service: apex-api     (standard, Singapore)
-  ☐ Web Service: apex-web     (standard, Singapore)
+  ☐ Database:    JNJ-db      (pro-4gb, Singapore, HA: enabled)
+  ☐ Web Service: JNJ-api     (standard, Singapore)
+  ☐ Web Service: JNJ-web     (standard, Singapore)
 ```
 
 | # | Click Path | What You'll See |
@@ -302,13 +302,13 @@ Resources to create:
 
 | # | Action | Details |
 |---|--------|---------|
-| 1 | Wait for `apex-db` status to show **Available** | Green indicator on Database page |
+| 1 | Wait for `JNJ-db` status to show **Available** | Green indicator on Database page |
 | 2 | Verify **High Availability** is shown as **Enabled** in the database settings | Critical safety check |
 | 3 | Click **Connect** → copy the **External Connection URL** | For running migrations from your local machine |
 
 ```bash
 # On your local machine — temporary
-export DATABASE_URL="postgresql://apex:PASSWORD@HOST:5432/apex_prod"
+export DATABASE_URL="postgresql://JNJ:PASSWORD@HOST:5432/JNJ_prod"
 
 # Run Drizzle migrations
 pnpm db:migrate
@@ -333,12 +333,12 @@ unset DATABASE_URL
 
 | # | Click Path | What You'll See |
 |---|------------|-----------------|
-| 1 | Click on **apex-api** in Render Dashboard | Production API service page |
-| 2 | Copy the service URL: `https://apex-api.onrender.com` | URL copied |
-| 3 | Navigate to **apex-web** service | Production web frontend |
+| 1 | Click on **JNJ-api** in Render Dashboard | Production API service page |
+| 2 | Copy the service URL: `https://JNJ-api.onrender.com` | URL copied |
+| 3 | Navigate to **JNJ-web** service | Production web frontend |
 | 4 | Click **Environment** in the left sidebar | Environment variables |
 | 5 | Find `NEXT_PUBLIC_API_URL` → click Edit | Edit field opens |
-| 6 | Paste: `https://apex-api.onrender.com` (**no trailing slash**) | Value set |
+| 6 | Paste: `https://JNJ-api.onrender.com` (**no trailing slash**) | Value set |
 | 7 | Click **Save Changes** → **Yes, deploy** when prompted | Frontend rebuilds with production API URL |
 
 ---
@@ -347,13 +347,13 @@ unset DATABASE_URL
 
 | # | Action | Command |
 |---|--------|---------|
-| 1 | Once `apex-api` shows healthy (green), register the admin account: | |
+| 1 | Once `JNJ-api` shows healthy (green), register the admin account: | |
 
 ```bash
-curl -X POST https://apex-api.onrender.com/auth/register \
+curl -X POST https://JNJ-api.onrender.com/auth/register \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "admin@apex.com",
+    "email": "admin@jnj.com",
     "password": "USE_A_STRONG_PASSWORD_HERE",
     "orgName": "Your Real Company Name"
   }'
@@ -372,11 +372,11 @@ This follows SOP-CUTOVER-001, Phase 3. The steps here are infrastructure-specifi
 
 | # | Action | Details |
 |---|--------|---------|
-| 1 | Copy the `apex-db` **External Connection URL** from Render Dashboard | For the ETL runner |
+| 1 | Copy the `JNJ-db` **External Connection URL** from Render Dashboard | For the ETL runner |
 | 2 | On the migration machine, set the connection: | |
 
 ```bash
-export DATABASE_URL="postgresql://apex:PASSWORD@HOST:5432/apex_prod"
+export DATABASE_URL="postgresql://JNJ:PASSWORD@HOST:5432/JNJ_prod"
 export ORG_ID="the-org-id-from-registration-step"
 ```
 
@@ -409,13 +409,13 @@ After the admin is registered and data is migrated, create accounts for each sta
 
 ```bash
 # Log in as admin to get a JWT token
-TOKEN=$(curl -s -X POST https://apex-api.onrender.com/auth/login \
+TOKEN=$(curl -s -X POST https://JNJ-api.onrender.com/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin@apex.com","password":"YOUR_PASSWORD"}' \
+  -d '{"email":"admin@jnj.com","password":"YOUR_PASSWORD"}' \
   | jq -r '.token')
 
 # Create a Manager account
-curl -X POST https://apex-api.onrender.com/auth/register \
+curl -X POST https://JNJ-api.onrender.com/auth/register \
   -H "Content-Type: application/json" \
   -d '{
     "email": "manager@yourcompany.com",
@@ -434,16 +434,16 @@ curl -X POST https://apex-api.onrender.com/auth/register \
 
 | # | Action | Expected Result | ✓ |
 |---|--------|-----------------|---|
-| 1 | `GET https://apex-api.onrender.com/health` | `{"status":"ok"}` | ☐ |
-| 2 | Open `https://apex-web.onrender.com` | Login page renders | ☐ |
+| 1 | `GET https://JNJ-api.onrender.com/health` | `{"status":"ok"}` | ☐ |
+| 2 | Open `https://JNJ-web.onrender.com` | Login page renders | ☐ |
 | 3 | Log in as admin | Dashboard loads | ☐ |
 | 4 | Select a location | Location header updates | ☐ |
 | 5 | Navigate to POS → search for a migrated product by SKU | Product found with correct price | ☐ |
 | 6 | Navigate to Inventory → verify stock level matches `balances.csv` | Stock level correct | ☐ |
 | 7 | Create and complete a test sale (1 product, qty 1) | Sale completes, stock deducted | ☐ |
 | 8 | Navigate to Reports → verify KPIs populate | Revenue, job count visible | ☐ |
-| 9 | Check Render Dashboard → `apex-db` → **High Availability: Enabled** | HA confirmed active | ☐ |
-| 10 | Check Render Dashboard → `apex-db` → **Recovery** tab → PITR available | PITR retention shows 7 days | ☐ |
+| 9 | Check Render Dashboard → `JNJ-db` → **High Availability: Enabled** | HA confirmed active | ☐ |
+| 10 | Check Render Dashboard → `JNJ-db` → **Recovery** tab → PITR available | PITR retention shows 7 days | ☐ |
 
 ---
 
@@ -451,14 +451,14 @@ curl -X POST https://apex-api.onrender.com/auth/register \
 
 | Environment | Service | URL |
 |-------------|---------|-----|
-| **UAT** | Frontend | `https://apex-uat-web.onrender.com` |
-| **UAT** | API | `https://apex-uat-api.onrender.com` |
-| **UAT** | API Health | `https://apex-uat-api.onrender.com/health` |
-| **Production** | Frontend | `https://apex-web.onrender.com` |
-| **Production** | API | `https://apex-api.onrender.com` |
-| **Production** | API Health | `https://apex-api.onrender.com/health` |
+| **UAT** | Frontend | `https://JNJ-uat-web.onrender.com` |
+| **UAT** | API | `https://JNJ-uat-api.onrender.com` |
+| **UAT** | API Health | `https://JNJ-uat-api.onrender.com/health` |
+| **Production** | Frontend | `https://JNJ-web.onrender.com` |
+| **Production** | API | `https://JNJ-api.onrender.com` |
+| **Production** | API Health | `https://JNJ-api.onrender.com/health` |
 
-> **Note:** Actual Render URLs may include a random suffix (e.g., `apex-api-abc1.onrender.com`). The above are illustrative. Use the real URLs shown in your Render Dashboard.
+> **Note:** Actual Render URLs may include a random suffix (e.g., `JNJ-api-abc1.onrender.com`). The above are illustrative. Use the real URLs shown in your Render Dashboard.
 
 ---
 
@@ -469,9 +469,9 @@ curl -X POST https://apex-api.onrender.com/auth/register \
 | # | Action |
 |---|--------|
 | 1 | Merge the fix PR into `main` on GitHub |
-| 2 | Open Render Dashboard → `apex-api` → **Manual Deploy** → select **Deploy latest commit** |
+| 2 | Open Render Dashboard → `JNJ-api` → **Manual Deploy** → select **Deploy latest commit** |
 | 3 | Wait for build + health check to pass |
-| 4 | If the fix includes frontend changes: repeat for `apex-web` |
+| 4 | If the fix includes frontend changes: repeat for `JNJ-web` |
 
 ### Deploying a Code Fix to UAT
 
@@ -485,20 +485,20 @@ curl -X POST https://apex-api.onrender.com/auth/register \
 
 | # | Action |
 |---|--------|
-| 1 | Open Render Dashboard → `apex-api` → **Events** tab |
+| 1 | Open Render Dashboard → `JNJ-api` → **Events** tab |
 | 2 | Find the **previous successful deploy** in the event list |
 | 3 | Click the **three-dot menu** (⋮) next to it → **Rollback to this deploy** |
 | 4 | Service redeploys the previous build instantly (no rebuild required) |
-| 5 | Repeat for `apex-web` if needed |
+| 5 | Repeat for `JNJ-web` if needed |
 
 ### Checking Database Recovery (PITR)
 
 | # | Action |
 |---|--------|
-| 1 | Open Render Dashboard → `apex-db` → **Recovery** tab |
+| 1 | Open Render Dashboard → `JNJ-db` → **Recovery** tab |
 | 2 | Select a target timestamp within the 7-day retention window |
 | 3 | Click **Recover** — Render provisions a **new** database instance with the restored data |
-| 4 | Update `apex-api` environment's `DATABASE_URL` to point to the recovered instance |
+| 4 | Update `JNJ-api` environment's `DATABASE_URL` to point to the recovered instance |
 | 5 | Trigger a manual deploy to pick up the new connection string |
 
 ---

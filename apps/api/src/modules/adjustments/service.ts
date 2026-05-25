@@ -1,7 +1,7 @@
-import { db, type DbOrTx } from "@apex/database";
-import { inventory, stockJournal, locations, products } from "@apex/database/schema";
+﻿import { db, type DbOrTx } from "@jnj/database";
+import { inventory, stockJournal, locations, products } from "@jnj/database/schema";
 import { eq, and, desc, inArray, sql } from "drizzle-orm";
-import type { CreateAdjustmentInput } from "@apex/types";
+import type { CreateAdjustmentInput } from "@jnj/types";
 import {
   checkAndNotifyStockout,
   checkAndNotifyLowStock,
@@ -12,7 +12,7 @@ import {
   isReasonCodeValidForDirection,
   RESTRICTED_REASON_CODES,
   UserRole,
-} from "@apex/types";
+} from "@jnj/types";
 
 const ADJUSTMENT_REFERENCE_TYPES = [
   "ADJUSTMENT",

@@ -1,5 +1,5 @@
-import type { FastifyInstance } from "fastify";
-import { updateCustomerSchema } from "@apex/types";
+﻿import type { FastifyInstance } from "fastify";
+import { updateCustomerSchema } from "@jnj/types";
 import {
   checkCustomerCredit,
   getCustomer,

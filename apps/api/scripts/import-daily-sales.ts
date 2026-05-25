@@ -1,4 +1,4 @@
-/**
+﻿/**
  * One-time import of the legacy SALES_CBROS Excel workbook into the
  * daily_sales_summary analytics table.
  *
@@ -32,7 +32,7 @@ import dotenv from "dotenv";
 dotenv.config({ path: resolve(dirname(fileURLToPath(import.meta.url)), "../../../.env") });
 
 import * as XLSX from "xlsx";
-import { db } from "@apex/database";
+import { db } from "@jnj/database";
 import { sql } from "drizzle-orm";
 
 // ── Args ──

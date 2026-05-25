@@ -1,4 +1,4 @@
-import { AR_ROLES } from "@apex/types";
+﻿import { AR_ROLES } from "@jnj/types";
 
 export function assertArRole(role: string) {
   if (!AR_ROLES.includes(role as any)) {

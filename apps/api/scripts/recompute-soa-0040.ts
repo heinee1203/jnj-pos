@@ -1,4 +1,4 @@
-/**
+﻿/**
  * One-off: recompute SOA-2026-0040 status after the recomputeSOAStatus
  * coverage-logic change.
  *
@@ -18,7 +18,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 dotenv.config({ path: resolve(__dirname, "../../../.env") });
 
-import { db } from "@apex/database";
+import { db } from "@jnj/database";
 import { sql } from "drizzle-orm";
 import { recomputeSOAStatus } from "../src/modules/customers/service";
 

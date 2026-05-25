@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Recompute SOA status for the two charges touched by the PAY-2026-0025
  * backfill (Q2503 in SOA-2026-0041 and Q3045 in SOA-2026-0040).
  *
@@ -16,7 +16,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 dotenv.config({ path: resolve(__dirname, "../../../.env") });
 
-import { db } from "@apex/database";
+import { db } from "@jnj/database";
 import { sql } from "drizzle-orm";
 import { recomputeSOAStatusForCharges } from "../src/modules/customers/service";
 

@@ -1,5 +1,5 @@
-import type { CreatePOInput } from "@apex/types";
-import { PurchaseOrderStatus } from "@apex/types";
+﻿import type { CreatePOInput } from "@jnj/types";
+import { PurchaseOrderStatus } from "@jnj/types";
 
 export interface ProductUomSnapshot {
   sellingUnit: string;

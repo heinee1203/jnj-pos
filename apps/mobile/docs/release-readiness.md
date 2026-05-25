@@ -1,4 +1,4 @@
-# Android POS Release Readiness
+﻿# Android POS Release Readiness
 
 ## Build
 
@@ -12,19 +12,19 @@
 
 Run low-impact emulator checks only:
 
-`pnpm --filter @apex/mobile smoke:android:ui`
+`pnpm --filter @JNJ/mobile smoke:android:ui`
 
 For size screenshots:
 
-`$env:APEX_SMOKE_UI_SIZES="1"; pnpm --filter @apex/mobile smoke:android:ui`
+`$env:JNJ_SMOKE_UI_SIZES="1"; pnpm --filter @JNJ/mobile smoke:android:ui`
 
 For strict authenticated smoke, provide local environment variables only:
 
-`$env:APEX_SMOKE_EMAIL="cashier@example.com"`
-`$env:APEX_SMOKE_PASSWORD="local-password"`
-`$env:APEX_SMOKE_STORE_CODE="STORE01"`
-`$env:APEX_SMOKE_REQUIRE_AUTH="1"`
-`pnpm --filter @apex/mobile smoke:android:auth`
+`$env:JNJ_SMOKE_EMAIL="cashier@example.com"`
+`$env:JNJ_SMOKE_PASSWORD="local-password"`
+`$env:JNJ_SMOKE_STORE_CODE="STORE01"`
+`$env:JNJ_SMOKE_REQUIRE_AUTH="1"`
+`pnpm --filter @JNJ/mobile smoke:android:auth`
 
 Do not commit smoke credentials, manager PINs, card credentials, or registration codes.
 
@@ -69,7 +69,7 @@ Keep this pass low-impact. Use one tablet or emulator and avoid long stress loop
 - Create a large print queue with failed and printed jobs, then confirm preview, retry, and clear-printed actions remain usable.
 - Test weak/offline network by disconnecting briefly; non-cash checkout should block and recovery cards should stay visible.
 - Reprint the last receipt several times and confirm failed print jobs remain retryable rather than disappearing.
-- Capture tablet landscape, tablet portrait, and compact-width screenshots with `APEX_SMOKE_UI_SIZES=1`.
+- Capture tablet landscape, tablet portrait, and compact-width screenshots with `JNJ_SMOKE_UI_SIZES=1`.
 
 ## Next 8 QA Checklist
 

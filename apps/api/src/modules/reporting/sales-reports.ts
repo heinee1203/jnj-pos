@@ -1,11 +1,11 @@
-import { db } from "@apex/database";
+﻿import { db } from "@jnj/database";
 import {
   sales,
   saleLines,
   products,
   users,
   historicalSales,
-} from "@apex/database/schema";
+} from "@jnj/database/schema";
 import { eq, and, sql, type SQL } from "drizzle-orm";
 
 interface DateRangeOpts {

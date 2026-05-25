@@ -1,4 +1,4 @@
-# Android POS Pilot Validation Plan
+﻿# Android POS Pilot Validation Plan
 
 > **For Claude:** This is a testing/validation plan, NOT a feature implementation plan. Execute each task as a structured test protocol. Record PASS/FAIL results and file defects for any failures. Use superpowers:systematic-debugging for any defects found.
 
@@ -10,7 +10,7 @@
 - Android device (physical, not emulator) with USB debugging enabled
 - HID barcode scanner (USB or Bluetooth keyboard-wedge mode)
 - Bluetooth thermal receipt printer (58mm or 80mm ESC/POS compatible)
-- APEX API running at a reachable network address (not localhost)
+- JNJ API running at a reachable network address (not localhost)
 - Seeded database (50k products via `pnpm db:seed`)
 - At least 2 user accounts: one ADMIN, one CASHIER
 - At least 2 retail locations configured
@@ -269,7 +269,7 @@ npx react-native run-android --device
 
 1. Add products to cart
 2. Open many other apps to pressure memory
-3. Return to APEX POS
+3. Return to JNJ POS
 
 **Pass criteria:**
 - [ ] Cart restored from MMKV persistence

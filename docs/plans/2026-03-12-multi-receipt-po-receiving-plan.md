@@ -1,4 +1,4 @@
-# Multi-Receipt PO Receiving Implementation Plan
+﻿# Multi-Receipt PO Receiving Implementation Plan
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
@@ -137,7 +137,7 @@ CREATE INDEX idx_po_receipt_events_receipt_id ON po_receipt_events (po_receipt_i
 **Step 2: Run migration**
 
 ```bash
-cd C:/Users/Admin/Downloads/CLAUDE/APEX_POS && pnpm db:migrate
+cd C:/Users/Admin/Downloads/CLAUDE/JNJ_POS && pnpm db:migrate
 ```
 
 Expected: Migration applies successfully. Existing `po_receipt_events` rows get NULL `po_receipt_id` — that's fine.
@@ -217,7 +217,7 @@ import {
   locations,
   products,
   suppliers,
-} from "@apex/database/schema";
+} from "@JNJ/database/schema";
 ```
 
 **Step 2: Add DR number uniqueness check after status validation (after line 311)**
@@ -1179,7 +1179,7 @@ git commit -m "feat(web): collapsible receipt history grouped by DR number"
 **Step 1: Start API and verify it compiles**
 
 ```bash
-cd C:/Users/Admin/Downloads/CLAUDE/APEX_POS && pnpm dev
+cd C:/Users/Admin/Downloads/CLAUDE/JNJ_POS && pnpm dev
 ```
 
 Check for TypeScript compilation errors. Fix any type issues.

@@ -1,4 +1,4 @@
-import { POS_ROLES, REFUND_ROLES } from "@apex/types";
+﻿import { POS_ROLES, REFUND_ROLES } from "@jnj/types";
 
 export function assertPosRole(role: string) {
   if (!POS_ROLES.includes(role as any)) {

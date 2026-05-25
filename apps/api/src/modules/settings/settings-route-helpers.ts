@@ -1,5 +1,5 @@
-import type { FastifyReply } from "fastify";
-import { updateCompanySettingsSchema } from "@apex/types";
+﻿import type { FastifyReply } from "fastify";
+import { updateCompanySettingsSchema } from "@jnj/types";
 
 export function canUpdateCompanySettings(role: unknown) {
   return role === "ADMIN";

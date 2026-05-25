@@ -1,5 +1,5 @@
-import { db } from "@apex/database";
-import { stockJournal, products, locations, users, purchaseOrders, stockTransfers, sales, poReceiptEvents, historicalSales } from "@apex/database/schema";
+﻿import { db } from "@jnj/database";
+import { stockJournal, products, locations, users, purchaseOrders, stockTransfers, sales, poReceiptEvents, historicalSales } from "@jnj/database/schema";
 import { eq, and, gt, lt, gte, lte, ilike, or, sql, inArray, type SQL } from "drizzle-orm";
 
 // ── Types ──

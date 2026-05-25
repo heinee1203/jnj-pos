@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -389,7 +389,7 @@ export function useInventoryImportExport({
     ];
 
     const csv = "\uFEFF" + headers.map(escapeCSVCell).join(",") + "\n" + sampleRow.map(escapeCSVCell).join(",") + "\n";
-    downloadCSV(csv, "apex-item-import-template.csv");
+    downloadCSV(csv, "JNJ-item-import-template.csv");
   }, []);
 
   const handleImportFileUpload = useCallback(async (file: File) => {

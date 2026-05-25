@@ -1,6 +1,6 @@
-import bcrypt from "bcryptjs";
-import { db } from "@apex/database";
-import { roles, users } from "@apex/database/schema";
+﻿import bcrypt from "bcryptjs";
+import { db } from "@jnj/database";
+import { roles, users } from "@jnj/database/schema";
 import { and, eq, sql } from "drizzle-orm";
 
 export {

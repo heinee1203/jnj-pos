@@ -1,7 +1,7 @@
-import { db } from "@apex/database";
-import { brands, products } from "@apex/database/schema";
+﻿import { db } from "@jnj/database";
+import { brands, products } from "@jnj/database/schema";
 import { eq, and, sql, ilike, type SQL } from "drizzle-orm";
-import type { CreateBrandInput, UpdateBrandInput } from "@apex/types";
+import type { CreateBrandInput, UpdateBrandInput } from "@jnj/types";
 
 export interface BrandRow {
   id: string;

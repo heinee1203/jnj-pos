@@ -1,5 +1,5 @@
-import type { FastifyInstance } from "fastify";
-import { paginationSchema } from "@apex/types";
+﻿import type { FastifyInstance } from "fastify";
+import { paginationSchema } from "@jnj/types";
 import {
   getProductLocations,
   queryProductStockLevels,

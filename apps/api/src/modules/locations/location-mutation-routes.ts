@@ -1,5 +1,5 @@
-import type { FastifyInstance } from "fastify";
-import { createLocationSchema, updateLocationSchema } from "@apex/types";
+﻿import type { FastifyInstance } from "fastify";
+import { createLocationSchema, updateLocationSchema } from "@jnj/types";
 import {
   canManageLocations,
   type LocationRouteUser,

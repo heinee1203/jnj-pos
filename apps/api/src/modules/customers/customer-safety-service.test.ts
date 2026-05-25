@@ -1,8 +1,8 @@
-import assert from "node:assert/strict";
+﻿import assert from "node:assert/strict";
 import test from "node:test";
 
 test("customer safety summary scores missing profile fields and credit limit risk", async () => {
-  process.env.DATABASE_URL ??= "postgres://apex:apex@localhost:5432/apex_test";
+  process.env.DATABASE_URL ??= "postgres://jnj:jnj@localhost:5432/jnj_test";
   const { buildCustomerSafetySummary, buildDuplicateIndex } = await import(
     "./customer-safety-service"
   );
@@ -30,7 +30,7 @@ test("customer safety summary scores missing profile fields and credit limit ris
 });
 
 test("customer safety summary flags duplicate TIN, phone, and similar names", async () => {
-  process.env.DATABASE_URL ??= "postgres://apex:apex@localhost:5432/apex_test";
+  process.env.DATABASE_URL ??= "postgres://jnj:jnj@localhost:5432/jnj_test";
   const { buildCustomerSafetySummary, buildDuplicateIndex } = await import(
     "./customer-safety-service"
   );
@@ -49,7 +49,7 @@ test("customer safety summary flags duplicate TIN, phone, and similar names", as
 });
 
 test("customer credit control summary distinguishes watchlist and billing block", async () => {
-  process.env.DATABASE_URL ??= "postgres://apex:apex@localhost:5432/apex_test";
+  process.env.DATABASE_URL ??= "postgres://jnj:jnj@localhost:5432/jnj_test";
   const { buildCustomerCreditControl } = await import("./customer-safety-service");
 
   const watchlist = buildCustomerCreditControl({

@@ -1,5 +1,5 @@
-import { ChevronDown } from "lucide-react";
-import type { AdjustmentReasonCode } from "@apex/types";
+﻿import { ChevronDown } from "lucide-react";
+import type { AdjustmentReasonCode } from "@jnj/types";
 
 import type { AdjustmentDirection } from "../lib/use-new-adjustment-form";
 import { REASON_CODE_LABELS } from "../constants";

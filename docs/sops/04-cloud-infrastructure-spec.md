@@ -1,4 +1,4 @@
-# APEX POS — Cloud Infrastructure Specification (Render)
+﻿# JNJ POS — Cloud Infrastructure Specification (Render)
 
 **Document:** SOP-INFRA-001
 **Version:** 1.0
@@ -10,7 +10,7 @@
 
 ## 1. Environment Layout
 
-APEX POS uses **two fully isolated Render environments** — each with its own services, database, and secrets. They share nothing except the Git repository (different branches).
+JNJ POS uses **two fully isolated Render environments** — each with its own services, database, and secrets. They share nothing except the Git repository (different branches).
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -23,9 +23,9 @@ APEX POS uses **two fully isolated Render environments** — each with its own s
 
 ┌──── UAT SANDBOX (Render) ─────┐   ┌──── PRODUCTION (Render) ─────┐
 │                                │   │                               │
-│  apex-uat-web    (Next.js)     │   │  apex-web      (Next.js)      │
-│  apex-uat-api    (Fastify)     │   │  apex-api      (Fastify)      │
-│  apex-uat-db     (PostgreSQL)  │   │  apex-db       (PostgreSQL)   │
+│  JNJ-uat-web    (Next.js)     │   │  JNJ-web      (Next.js)      │
+│  JNJ-uat-api    (Fastify)     │   │  JNJ-api      (Fastify)      │
+│  JNJ-uat-db     (PostgreSQL)  │   │  JNJ-db       (PostgreSQL)   │
 │                                │   │                               │
 │  Branch: staging               │   │  Branch: main                 │
 │  Auto-deploy: YES              │   │  Auto-deploy: NO (manual)     │
@@ -41,7 +41,7 @@ APEX POS uses **two fully isolated Render environments** — each with its own s
 | **Auto-Deploy** | Yes (every push to `staging`) | No — manual deploy only |
 | **Database** | Separate instance, separate credentials | Separate instance, HA enabled |
 | **JWT_SECRET** | Auto-generated (unique to UAT) | Auto-generated (unique to Prod) |
-| **DATABASE_URL** | Points to `apex-uat-db` | Points to `apex-db` |
+| **DATABASE_URL** | Points to `JNJ-uat-db` | Points to `JNJ-db` |
 | **Seeded Data** | Test data via `pnpm db:seed` | Real data via ETL migration pipeline |
 | **Purpose** | Staff training, UAT testing, safe experimentation | Live business operations |
 | **Can be wiped?** | Yes — reset anytime | Never without rollback procedure |
@@ -119,7 +119,7 @@ If daily transaction volume exceeds ~500 sales/day or response times degrade:
 
 **PITR Procedure (Production):**
 
-1. Open Render Dashboard → `apex-db` → Recovery
+1. Open Render Dashboard → `JNJ-db` → Recovery
 2. Select the target timestamp (e.g., "2 hours before data corruption")
 3. Render creates a **new database instance** with the restored data
 4. Update `DATABASE_URL` in the API service to point to the restored instance
@@ -144,7 +144,7 @@ pg_dump "$RENDER_EXTERNAL_DB_URL" \
   --format=custom \
   --no-owner \
   --no-privileges \
-  --file="apex-backup-$(date +%Y%m%d-%H%M%S).dump"
+  --file="JNJ-backup-$(date +%Y%m%d-%H%M%S).dump"
 ```
 
 > Store manual backups in a separate location (e.g., encrypted cloud storage). Render's PITR covers most scenarios, but off-platform backups protect against Render-level incidents.
@@ -164,15 +164,15 @@ pg_dump "$RENDER_EXTERNAL_DB_URL" \
 
 ### 4a. Variable Inventory
 
-Every APEX POS deployment requires these environment variables:
+Every JNJ POS deployment requires these environment variables:
 
 | Variable | Source | UAT Value | Production Value |
 |----------|--------|-----------|------------------|
-| `DATABASE_URL` | Render auto-inject | `fromDatabase: apex-uat-db` | `fromDatabase: apex-db` |
+| `DATABASE_URL` | Render auto-inject | `fromDatabase: JNJ-uat-db` | `fromDatabase: JNJ-db` |
 | `JWT_SECRET` | Render auto-generate | `generateValue: true` | `generateValue: true` |
 | `NODE_ENV` | Static | `production` | `production` |
 | `PORT` | Render auto-set | (Render sets this) | (Render sets this) |
-| `NEXT_PUBLIC_API_URL` | Manual | `https://apex-uat-api.onrender.com` | `https://apex-api.onrender.com` |
+| `NEXT_PUBLIC_API_URL` | Manual | `https://JNJ-uat-api.onrender.com` | `https://JNJ-api.onrender.com` |
 
 ### 4b. Secret Management Rules
 
@@ -186,16 +186,16 @@ Every APEX POS deployment requires these environment variables:
 
 ### 4c. Environment Group (Optional Optimization)
 
-Render supports **Environment Groups** — shared variable sets that can be attached to multiple services. For APEX POS, this reduces duplication:
+Render supports **Environment Groups** — shared variable sets that can be attached to multiple services. For JNJ POS, this reduces duplication:
 
 ```
-Environment Group: "apex-prod-shared"
+Environment Group: "JNJ-prod-shared"
   ├── NODE_ENV = production
   └── JWT_SECRET = (generated)
 
 Attached to:
-  ├── apex-api (inherits NODE_ENV, JWT_SECRET)
-  └── apex-web (inherits NODE_ENV)
+  ├── JNJ-api (inherits NODE_ENV, JWT_SECRET)
+  └── JNJ-web (inherits NODE_ENV)
 ```
 
 > Each service still gets its own `DATABASE_URL` and `NEXT_PUBLIC_API_URL` as service-level variables.
@@ -204,7 +204,7 @@ Attached to:
 
 ```bash
 # .env (monorepo root — NEVER committed, NEVER deployed)
-DATABASE_URL=postgresql://apex:apex_secret@localhost:5433/apex_dev
+DATABASE_URL=postgresql://JNJ:jnj_secret@localhost:5433/jnj_dev
 JWT_SECRET=change-me-in-production-use-a-64-char-random-string
 PORT=3000
 NODE_ENV=development
@@ -228,10 +228,10 @@ This file is used **only** for local `pnpm dev`. Render deployments ignore it en
 | 2 | Create 5 test sales via the UAT web app | 5 completed sales with stock deductions | ☐ |
 | 3 | Record current timestamp: `______:______` | — | ☐ |
 | 4 | **Simulate corruption:** Delete all products via Drizzle Studio or SQL: `DELETE FROM products WHERE org_id = '...'` | Products table is empty (catastrophic loss) | ☐ |
-| 5 | Open Render Dashboard → `apex-uat-db` → Recovery | Recovery interface loads | ☐ |
+| 5 | Open Render Dashboard → `JNJ-uat-db` → Recovery | Recovery interface loads | ☐ |
 | 6 | Select the timestamp from Step 3 (before the DELETE) | Render begins creating a recovery instance | ☐ |
 | 7 | Wait for the recovery instance to provision (~5–10 min) | New database instance is "Available" | ☐ |
-| 8 | Update `apex-uat-api` service's `DATABASE_URL` to point to the recovered database | API restarts with new connection | ☐ |
+| 8 | Update `JNJ-uat-api` service's `DATABASE_URL` to point to the recovered database | API restarts with new connection | ☐ |
 | 9 | Open UAT web app → search for a product | Products are restored — all 50k present | ☐ |
 | 10 | Verify the 5 test sales still exist | Sales data intact from before corruption | ☐ |
 | 11 | Delete the corrupted (old) database instance | Clean up | ☐ |
@@ -249,11 +249,11 @@ This file is used **only** for local `pnpm dev`. Render deployments ignore it en
 | Step | Action | Expected Result | ✓ |
 |------|--------|-----------------|---|
 | 1 | From a POS terminal at the shop, open browser DevTools → Network tab | Network tab visible | ☐ |
-| 2 | Navigate to the APEX POS login page | Page loads. Note total load time: ______ms | ☐ |
+| 2 | Navigate to the JNJ POS login page | Page loads. Note total load time: ______ms | ☐ |
 | 3 | Log in and navigate to the POS page | Dashboard renders. Note API response time for initial data fetch: ______ms | ☐ |
 | 4 | Search for a product by mnemonic SKU | Product appears. Note `/products?mnemonic_sku=` response time: ______ms | ☐ |
 | 5 | **Acceptable latency thresholds:** | Page load < 3s, API calls < 500ms, Product search < 200ms | ☐ |
-| 6 | In Render Dashboard, manually restart `apex-uat-api` (Deploy → Manual Deploy or Restart) | Service restarts | ☐ |
+| 6 | In Render Dashboard, manually restart `JNJ-uat-api` (Deploy → Manual Deploy or Restart) | Service restarts | ☐ |
 | 7 | Wait for health check: `GET /health` returns 200 | Service is healthy within 60 seconds | ☐ |
 | 8 | Repeat product search from the POS terminal | Product search works normally after restart | ☐ |
 | 9 | **Simulate network drop:** Disconnect POS terminal's WiFi for 30 seconds, then reconnect | — | ☐ |

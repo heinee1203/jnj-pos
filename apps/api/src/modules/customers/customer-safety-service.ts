@@ -1,4 +1,4 @@
-import { db } from "@apex/database";
+﻿import { db } from "@jnj/database";
 import {
   auditLogs,
   customerCollectionNotes,
@@ -6,7 +6,7 @@ import {
   customerPaymentRiskEvents,
   customerTransactions,
   customers,
-} from "@apex/database/schema";
+} from "@jnj/database/schema";
 import { and, desc, eq, sql } from "drizzle-orm";
 
 type CustomerLike = {

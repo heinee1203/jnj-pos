@@ -1,4 +1,4 @@
-import { db, type DbOrTx } from "@apex/database";
+﻿import { db, type DbOrTx } from "@jnj/database";
 import {
   inventory,
   poLines,
@@ -8,14 +8,14 @@ import {
   purchaseOrders,
   serialNumbers,
   stockJournal,
-} from "@apex/database/schema";
+} from "@jnj/database/schema";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import {
   generateCostCode,
   PROCUREMENT_ROLES,
   PurchaseOrderStatus,
   type ReceivePOInput,
-} from "@apex/types";
+} from "@jnj/types";
 import { autoFulfillBackordersForPO } from "../backorders/service";
 import {
   applyReceiptResultToPoLine,

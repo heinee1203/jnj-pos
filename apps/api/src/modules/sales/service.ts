@@ -1,4 +1,4 @@
-import { db, type DbOrTx } from "@apex/database";
+﻿import { db, type DbOrTx } from "@jnj/database";
 import {
   sales,
   saleLines,
@@ -11,10 +11,10 @@ import {
   customerVehicles,
   users,
   historicalSales,
-} from "@apex/database/schema";
+} from "@jnj/database/schema";
 import { eq, and, or, sql, desc, ilike, inArray, type SQL, asc } from "drizzle-orm";
-import type { CreateSaleInput, CompleteSaleInput, RefundSaleInput } from "@apex/types";
-import { SaleStatus, isValidSaleTransition, REFUND_ROLES } from "@apex/types";
+import type { CreateSaleInput, CompleteSaleInput, RefundSaleInput } from "@jnj/types";
+import { SaleStatus, isValidSaleTransition, REFUND_ROLES } from "@jnj/types";
 import { getOrCreateShift } from "../shifts/service";
 import { chargeCustomerAccount, CreditLimitError } from "../customers/service";
 import {

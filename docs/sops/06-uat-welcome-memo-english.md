@@ -1,4 +1,4 @@
-# CBROS Genuine Autoparts & Accessories
+﻿# CBROS Genuine Autoparts & Accessories
 
 ---
 
@@ -7,7 +7,7 @@
 **To:** All Staff — Cashiers, Warehouse Team, Service Advisors, Mechanics
 **From:** Management & ERP Implementation Team
 **Date:** March 2026
-**Re:** Welcome to the APEX POS — User Acceptance Testing (UAT) Sandbox
+**Re:** Welcome to the JNJ POS — User Acceptance Testing (UAT) Sandbox
 
 ---
 
@@ -15,7 +15,7 @@
 
 Team,
 
-We are proud to announce that our new system — **APEX POS** — is ready for you to test.
+We are proud to announce that our new system — **JNJ POS** — is ready for you to test.
 
 Starting this week, you will have access to a **UAT Sandbox**. This is a safe, isolated copy of our new system loaded with test data. Nothing you do in the Sandbox will affect our real inventory, real customers, or real transactions. It is impossible to cause damage here.
 

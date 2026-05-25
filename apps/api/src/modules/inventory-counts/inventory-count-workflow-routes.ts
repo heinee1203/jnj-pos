@@ -1,10 +1,10 @@
-import type { FastifyInstance } from "fastify";
+﻿import type { FastifyInstance } from "fastify";
 import {
   cancelCountSchema,
   completeCountSchema,
   createCountSchema,
   recordCountItemsSchema,
-} from "@apex/types";
+} from "@jnj/types";
 import {
   getInventoryCountErrorStatus,
   isInventoryCountManager,

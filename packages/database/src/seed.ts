@@ -1,4 +1,4 @@
-import dotenv from "dotenv";
+﻿import dotenv from "dotenv";
 dotenv.config({ path: "../../.env" });
 
 import { drizzle } from "drizzle-orm/postgres-js";
@@ -150,7 +150,7 @@ async function seed() {
   console.log("  Creating organization...");
   const [org] = await db
     .insert(schema.organizations)
-    .values({ name: "Apex Auto Parts Inc.", slug: "apex-auto-parts" })
+    .values({ name: "JNJ Auto Parts Inc.", slug: "JNJ-auto-parts" })
     .returning();
 
   // ── 2. Create Locations ──
@@ -195,7 +195,7 @@ async function seed() {
       orgId: org.id,
       primaryLocationId: warehouse.id,
       fullName: "Admin User",
-      email: "admin@apex.com",
+      email: "admin@jnj.com",
       passwordHash,
       role: "ADMIN",
     })
@@ -291,7 +291,7 @@ async function seed() {
   console.log(`   Store 1: ${store1.name} (${store1.id})`);
   console.log(`   Store 2: ${store2.name} (${store2.id})`);
   console.log(`   Transit Buffer: ${transitBuffer.name} (${transitBuffer.id})`);
-  console.log(`   Admin: admin@apex.com / admin12345`);
+  console.log(`   Admin: admin@jnj.com / admin12345`);
   console.log(`   Products: ${TOTAL_PRODUCTS.toLocaleString()}`);
   console.log(`   Inventory rows: ${(TOTAL_PRODUCTS * 3).toLocaleString()}`);
 

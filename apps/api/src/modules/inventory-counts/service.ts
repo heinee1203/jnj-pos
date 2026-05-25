@@ -1,4 +1,4 @@
-import { db } from "@apex/database";
+﻿import { db } from "@jnj/database";
 import {
   inventoryCounts,
   inventoryCountItems,
@@ -9,7 +9,7 @@ import {
   brands,
   categories,
   stockJournal,
-} from "@apex/database/schema";
+} from "@jnj/database/schema";
 import {
   eq,
   and,
@@ -22,7 +22,7 @@ import {
   isNotNull,
   type SQL,
 } from "drizzle-orm";
-import type { CreateCountInput, RecordCountItemsInput } from "@apex/types";
+import type { CreateCountInput, RecordCountItemsInput } from "@jnj/types";
 
 // ── Generate count number ──
 

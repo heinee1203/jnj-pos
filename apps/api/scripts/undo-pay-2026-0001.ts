@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Undo PAY-2026-0001 (₱3,100 CASH, notes="INV#1085") for Fajardo, Don.
  *
  * This is the payment that put SOA-2026-0072 into PARTIAL state with
@@ -26,7 +26,7 @@ import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 dotenv.config({ path: resolve(dirname(fileURLToPath(import.meta.url)), "../../../.env") });
 
-import { db } from "@apex/database";
+import { db } from "@jnj/database";
 import { sql } from "drizzle-orm";
 import { recomputeSOAStatus } from "../src/modules/customers/service";
 

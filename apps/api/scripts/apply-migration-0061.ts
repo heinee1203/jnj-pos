@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Apply migration 0061_supplier_soa_records.sql directly.
  * Same rationale as apply-migration-0060.ts: drizzle-kit journal is out of
  * sync with the hand-written migrations, so we execute the SQL file via
@@ -10,7 +10,7 @@ import fs from "fs";
 import dotenv from "dotenv";
 dotenv.config({ path: resolve(dirname(fileURLToPath(import.meta.url)), "../../../.env") });
 
-import { db } from "@apex/database";
+import { db } from "@jnj/database";
 import { sql } from "drizzle-orm";
 
 const MIGRATION_PATH = resolve(

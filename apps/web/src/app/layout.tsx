@@ -6,8 +6,8 @@ import { AuthProvider } from "./auth-context";
 import { AppShell } from "./app-shell";
 
 export const metadata: Metadata = {
-  title: "CBROS Genuine Autoparts \u2014 Admin",
-  description: "Automotive ERP & POS Administration",
+  title: "JNJ POS",
+  description: "School Supply & Merchandise POS",
 };
 
 export default function RootLayout({

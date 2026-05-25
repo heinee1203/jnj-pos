@@ -1,10 +1,10 @@
-"use client";
+﻿"use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useRef, useState } from "react";
 import { apiFetch } from "@/lib/api";
 import { ApiError } from "@/lib/query-provider";
-import type { CreateAdjustmentInput } from "@apex/types";
+import type { CreateAdjustmentInput } from "@jnj/types";
 
 // ── Types ──
 

@@ -1,10 +1,10 @@
-import { db } from "@apex/database";
+﻿import { db } from "@jnj/database";
 import {
   permissions,
   roles,
   rolePermissions,
   users,
-} from "@apex/database/schema";
+} from "@jnj/database/schema";
 import { eq, and, sql, desc, inArray } from "drizzle-orm";
 
 // ── Legacy permission map (fallback for users without roleId) ──

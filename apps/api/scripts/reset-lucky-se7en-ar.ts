@@ -1,4 +1,4 @@
-/**
+﻿/**
  * DESTRUCTIVE: Full AR reset for Lucky Se7en, INC (AR-0006) ONLY.
  *
  * Wipes all PAYMENT transactions, ar_payment_allocations, SOA records and
@@ -19,7 +19,7 @@ import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 dotenv.config({ path: resolve(dirname(fileURLToPath(import.meta.url)), "../../../.env") });
 
-import { db } from "@apex/database";
+import { db } from "@jnj/database";
 import { sql } from "drizzle-orm";
 
 const APPLY = process.argv.includes("--apply");

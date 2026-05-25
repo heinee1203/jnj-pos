@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Diagnose duplicate receipt numbers in historical_sales.
  * Run: npx tsx apps/api/scripts/diagnose-duplicate-receipts.ts
  */
@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 dotenv.config({ path: resolve(__dirname, "../../../.env") });
 
-import { db } from "@apex/database";
+import { db } from "@jnj/database";
 import { sql } from "drizzle-orm";
 
 async function main() {

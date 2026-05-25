@@ -1,4 +1,4 @@
-# Industrial Premium Android POS — Implementation Plan
+﻿# Industrial Premium Android POS — Implementation Plan
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
@@ -853,7 +853,7 @@ git commit -m "feat(mobile): redesign transaction screens with dark theme"
 **Step 3: Update LoginScreen**
 
 - Full dark background
-- "APEX" title in `textStyles.display` + `colors.accent.primary` (amber)
+- "JNJ" title in `textStyles.display` + `colors.accent.primary` (amber)
 - Input fields: use `Input` component
 - Sign In button: `Button` variant="primary"
 

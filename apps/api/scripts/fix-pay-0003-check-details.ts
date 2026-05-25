@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Update PAY-2026-0003 with check payment details.
  * Run: npx tsx apps/api/scripts/fix-pay-0003-check-details.ts
  */
@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 dotenv.config({ path: resolve(__dirname, "../../../.env") });
 
-import { db } from "@apex/database";
+import { db } from "@jnj/database";
 import { sql } from "drizzle-orm";
 
 async function main() {

@@ -1,11 +1,11 @@
-import { createHash, randomInt } from "node:crypto";
-import { db } from "@apex/database";
+﻿import { createHash, randomInt } from "node:crypto";
+import { db } from "@jnj/database";
 import {
   locations,
   posDeviceRegistrationCodes,
   posDevices,
   users,
-} from "@apex/database/schema";
+} from "@jnj/database/schema";
 import { eq, and, desc } from "drizzle-orm";
 
 const REGISTRATION_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -114,7 +114,7 @@ export async function createDeviceRegistrationCode(
         locationName: location.name,
         locationCode: location.code,
         qrPayload: JSON.stringify({
-          type: "APEX_POS_DEVICE_REGISTRATION",
+          type: "JNJ_POS_DEVICE_REGISTRATION",
           code,
           locationId: location.id,
           locationName: location.name,

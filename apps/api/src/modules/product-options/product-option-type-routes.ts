@@ -1,5 +1,5 @@
-import type { FastifyInstance } from "fastify";
-import { createOptionTypeSchema, updateOptionTypeSchema } from "@apex/types";
+﻿import type { FastifyInstance } from "fastify";
+import { createOptionTypeSchema, updateOptionTypeSchema } from "@jnj/types";
 import {
   createOptionType,
   deleteOptionType,

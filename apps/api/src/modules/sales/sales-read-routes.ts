@@ -1,6 +1,6 @@
-import type { FastifyInstance } from "fastify";
+﻿import type { FastifyInstance } from "fastify";
 import { sql } from "drizzle-orm";
-import { db } from "@apex/database";
+import { db } from "@jnj/database";
 import { parseQuery, salesQuerySchema } from "../../lib/validate-query";
 import {
   getHistoricalReceipt,

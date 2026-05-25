@@ -1,4 +1,4 @@
-import { bindDeviceToLocation, type DeviceBinding } from '@/config/device-binding';
+﻿import { bindDeviceToLocation, type DeviceBinding } from '@/config/device-binding';
 import { APP_VERSION } from '@/config/app-version';
 import { apiFetch, ApiError } from '@/services/api-client';
 import { setDisabledDeviceState } from '@/storage/device-status';
@@ -41,7 +41,7 @@ export async function registerDeviceWithCode(input: {
     method: 'POST',
     body: JSON.stringify({
       deviceId,
-      name: input.name || `APEX POS ${deviceId.slice(-6).toUpperCase()}`,
+      name: input.name || `JNJ POS ${deviceId.slice(-6).toUpperCase()}`,
       registrationCode: input.registrationCode.trim(),
       appVersion: APP_VERSION,
     }),

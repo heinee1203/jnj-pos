@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useRef, useMemo, Suspense } from "react";
 import Link from "next/link";
@@ -382,7 +382,7 @@ function NewPurchaseOrderInner() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "apex-po-import-template.csv";
+    a.download = "JNJ-po-import-template.csv";
     a.click();
     URL.revokeObjectURL(url);
   };

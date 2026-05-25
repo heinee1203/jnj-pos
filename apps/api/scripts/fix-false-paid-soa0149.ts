@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Fix false PAID status on SOA-0149 invoices.
  * Delete FIFO backfill allocations that incorrectly allocated old payments to SOA-0149 charges.
  * Run: npx tsx apps/api/scripts/fix-false-paid-soa0149.ts
@@ -10,7 +10,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 dotenv.config({ path: resolve(__dirname, "../../../.env") });
 
-import { db } from "@apex/database";
+import { db } from "@jnj/database";
 import { sql } from "drizzle-orm";
 
 async function main() {

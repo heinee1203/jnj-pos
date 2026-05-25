@@ -1,5 +1,5 @@
-import type { FastifyInstance } from "fastify";
-import { createVariantBatchSchema, createVariantSchema } from "@apex/types";
+﻿import type { FastifyInstance } from "fastify";
+import { createVariantBatchSchema, createVariantSchema } from "@jnj/types";
 import {
   canManageVariants,
   sendVariantManageRequired,

@@ -1,8 +1,8 @@
-import type { FastifyInstance } from "fastify";
-import { db } from "@apex/database";
-import { products, inventory, productFamilies, categories, productSubcategories, brands } from "@apex/database/schema";
+﻿import type { FastifyInstance } from "fastify";
+import { db } from "@jnj/database";
+import { products, inventory, productFamilies, categories, productSubcategories, brands } from "@jnj/database/schema";
 import { eq, and, sql } from "drizzle-orm";
-import { listProductsQuerySchema } from "@apex/types";
+import { listProductsQuerySchema } from "@jnj/types";
 
 import { buildStandardProductListConditions, isGroupedProductQuery, parseProductPagination, parseProductSort, resolveProductScope } from "./query";
 import { buildStableProductOrderBy } from "./sorting";

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Apply migration 0060_daily_sales_summary.sql directly.
  *
  * The repo's migrations are hand-written SQL files, and the drizzle-kit
@@ -14,7 +14,7 @@ import fs from "fs";
 import dotenv from "dotenv";
 dotenv.config({ path: resolve(dirname(fileURLToPath(import.meta.url)), "../../../.env") });
 
-import { db } from "@apex/database";
+import { db } from "@jnj/database";
 import { sql } from "drizzle-orm";
 
 const MIGRATION_PATH = resolve(

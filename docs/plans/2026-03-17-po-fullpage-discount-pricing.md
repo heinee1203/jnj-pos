@@ -1,4 +1,4 @@
-# PO Full-Page Creation + Discount Pricing Implementation Plan
+﻿# PO Full-Page Creation + Discount Pricing Implementation Plan
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
@@ -29,7 +29,7 @@ Both nullable — existing PO lines won't have them.
 
 **Step 2: Generate migration**
 
-Run: `cd /c/Users/Admin/Downloads/CLAUDE/APEX_POS && pnpm db:generate`
+Run: `cd /c/Users/Admin/Downloads/CLAUDE/JNJ_POS && pnpm db:generate`
 
 **Step 3: Run migration**
 
@@ -476,7 +476,7 @@ git commit -m "feat(web): discount pricing in PO detail edit mode and read-only 
 
 **Step 1: Build the web app**
 
-Run: `cd /c/Users/Admin/Downloads/CLAUDE/APEX_POS/apps/web && npx next build`
+Run: `cd /c/Users/Admin/Downloads/CLAUDE/JNJ_POS/apps/web && npx next build`
 Expected: Build passes with zero errors.
 
 **Step 2: Start dev server and verify**

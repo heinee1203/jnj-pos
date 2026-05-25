@@ -1,9 +1,9 @@
-import type { FastifyPluginAsync } from "fastify";
+﻿import type { FastifyPluginAsync } from "fastify";
 import fp from "fastify-plugin";
-import { db } from "@apex/database";
-import { locations } from "@apex/database/schema";
+import { db } from "@jnj/database";
+import { locations } from "@jnj/database/schema";
 import { eq, and } from "drizzle-orm";
-import type { StoreContext } from "@apex/types";
+import type { StoreContext } from "@jnj/types";
 
 const SKIP_PATHS = [
   "/health",

@@ -1,4 +1,4 @@
-import { brands, categories, inventory, products } from "@apex/database/schema";
+﻿import { brands, categories, inventory, products } from "@jnj/database/schema";
 import { eq, ilike, sql, type SQL } from "drizzle-orm";
 
 import { type SortField, VALID_SORT_FIELDS } from "./sorting";

@@ -1,6 +1,6 @@
-import { db } from "@apex/database";
-import { organizationSettings } from "@apex/database/schema";
-import type { UpdateCompanySettingsInput } from "@apex/types";
+﻿import { db } from "@jnj/database";
+import { organizationSettings } from "@jnj/database/schema";
+import type { UpdateCompanySettingsInput } from "@jnj/types";
 import { eq } from "drizzle-orm";
 
 export async function getCompanySettings(orgId: string) {

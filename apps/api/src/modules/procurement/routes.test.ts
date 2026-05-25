@@ -1,4 +1,4 @@
-import assert from "node:assert/strict";
+﻿import assert from "node:assert/strict";
 import test from "node:test";
 
 type RegisteredRoute = {
@@ -27,7 +27,7 @@ function createRouteRecorder() {
 }
 
 test("procurement route registration keeps supplier, PO core, lifecycle, and edit routes first", async () => {
-  process.env.DATABASE_URL ??= "postgres://apex:apex@localhost:5432/apex_test";
+  process.env.DATABASE_URL ??= "postgres://jnj:jnj@localhost:5432/jnj_test";
   const { procurementRoutes } = await import("./routes");
   const { app, routes } = createRouteRecorder();
 
@@ -55,7 +55,7 @@ test("procurement route registration keeps supplier, PO core, lifecycle, and edi
 });
 
 test("procurement route registration preserves static-before-dynamic PO paths", async () => {
-  process.env.DATABASE_URL ??= "postgres://apex:apex@localhost:5432/apex_test";
+  process.env.DATABASE_URL ??= "postgres://jnj:jnj@localhost:5432/jnj_test";
   const { procurementRoutes } = await import("./routes");
   const { app, routes } = createRouteRecorder();
 
@@ -82,7 +82,7 @@ test("procurement route registration preserves static-before-dynamic PO paths", 
 });
 
 test("procurement route registration preserves auxiliary route order", async () => {
-  process.env.DATABASE_URL ??= "postgres://apex:apex@localhost:5432/apex_test";
+  process.env.DATABASE_URL ??= "postgres://jnj:jnj@localhost:5432/jnj_test";
   const { procurementRoutes } = await import("./routes");
   const { app, routes } = createRouteRecorder();
 

@@ -1,4 +1,4 @@
-// config.ts handles dotenv loading from monorepo root
+﻿// config.ts handles dotenv loading from monorepo root
 import { db, closeDb, DATA_DIR } from "./config";
 import { sql } from "drizzle-orm";
 import path from "path";
@@ -31,7 +31,7 @@ import {
 import { generateReconciliationReport } from "./reconcile";
 
 // ═══════════════════════════════════════════════
-// APEX POS — Data Migration ETL Runner
+// JNJ POS — Data Migration ETL Runner
 //
 // Pipeline: Extract → Stage → Validate → Promote → Reconcile
 //
@@ -74,7 +74,7 @@ async function main() {
     ?? (args.indexOf("--phase") !== -1 ? args[args.indexOf("--phase") + 1] : null);
 
   console.log("═══════════════════════════════════════════════");
-  console.log("  APEX POS — Data Migration ETL Pipeline");
+  console.log("  JNJ POS — Data Migration ETL Pipeline");
   console.log("═══════════════════════════════════════════════\n");
 
   try {

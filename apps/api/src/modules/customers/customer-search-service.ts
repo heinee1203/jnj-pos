@@ -1,5 +1,5 @@
-import { db } from "@apex/database";
-import { customers } from "@apex/database/schema";
+﻿import { db } from "@jnj/database";
+import { customers } from "@jnj/database/schema";
 import { and, eq, ilike, or, sql } from "drizzle-orm";
 
 export async function searchCustomers(orgId: string, query: string | undefined) {

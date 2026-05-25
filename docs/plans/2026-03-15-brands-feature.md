@@ -1,4 +1,4 @@
-# Add Brand as a Product Attribute — Implementation Plan
+﻿# Add Brand as a Product Attribute — Implementation Plan
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
@@ -80,7 +80,7 @@ ALTER TABLE products ADD COLUMN IF NOT EXISTS brand_id UUID REFERENCES brands(id
 CREATE INDEX IF NOT EXISTS idx_products_brand_id ON products (brand_id);
 
 CREATE TRIGGER trg_brands_updated_at
-  BEFORE UPDATE ON brands FOR EACH ROW EXECUTE FUNCTION apex_update_timestamp();
+  BEFORE UPDATE ON brands FOR EACH ROW EXECUTE FUNCTION JNJ_update_timestamp();
 ```
 
 **Step 5: Run migration**

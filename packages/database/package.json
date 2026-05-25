@@ -1,5 +1,5 @@
 {
-  "name": "@apex/database",
+  "name": "@jnj/database",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -24,7 +24,7 @@
     "seed": "tsx src/seed.ts"
   },
   "dependencies": {
-    "@apex/types": "workspace:*",
+    "@jnj/types": "workspace:*",
     "dotenv": "^16.4.7",
     "drizzle-orm": "^0.45.1",
     "postgres": "^3.4.8"

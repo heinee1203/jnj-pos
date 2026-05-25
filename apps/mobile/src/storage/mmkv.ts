@@ -1,10 +1,10 @@
-import { MMKV } from 'react-native-mmkv';
+﻿import { MMKV } from 'react-native-mmkv';
 
-export const storage = new MMKV({ id: 'apex-pos' });
+export const storage = new MMKV({ id: 'jnj-pos' });
 
 export const secureStorage = new MMKV({
-  id: 'apex-pos-secure',
-  encryptionKey: 'apex-device-key', // TODO: derive from device keystore in production
+  id: 'jnj-pos-secure',
+  encryptionKey: 'JNJ-device-key', // TODO: derive from device keystore in production
 });
 
 export function getJSON<T>(store: MMKV, key: string): T | null {

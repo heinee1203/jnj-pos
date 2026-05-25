@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Data repair: fix every drifted SOA status by reading real
  * ar_payment_allocations on soa_line_items. Mirrors the logic in
  * recomputeSOAStatus() in apps/api/src/modules/customers/service.ts.
@@ -18,7 +18,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 dotenv.config({ path: resolve(__dirname, "../../../.env") });
 
-import { db } from "@apex/database";
+import { db } from "@jnj/database";
 import { sql } from "drizzle-orm";
 
 const APPLY = process.argv.includes("--apply");

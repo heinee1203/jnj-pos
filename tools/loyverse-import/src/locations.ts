@@ -1,5 +1,5 @@
-import { db } from "./config";
-import { locations } from "@apex/database/schema";
+﻿import { db } from "./config";
+import { locations } from "@jnj/database/schema";
 import { eq, and } from "drizzle-orm";
 
 interface LocationDef {

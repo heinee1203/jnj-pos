@@ -1,4 +1,4 @@
-# Dynamic Reorder Engine (Layer 2) Implementation Plan
+﻿# Dynamic Reorder Engine (Layer 2) Implementation Plan
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
@@ -118,7 +118,7 @@ In `packages/types/src/schemas.ts`, add to `updateProductSchema`:
 **Step 5: Generate migration and apply**
 
 ```bash
-cd C:/Users/Admin/Downloads/CLAUDE/APEX_POS
+cd C:/Users/Admin/Downloads/CLAUDE/JNJ_POS
 pnpm db:generate
 pnpm db:migrate
 ```
@@ -157,8 +157,8 @@ This is the core computation. Key functions:
 #### `refreshReorderSuggestions(orgId: string)`
 
 ```typescript
-import { db } from "@apex/database";
-import { reorderSuggestions, reorderSettings } from "@apex/database/schema";
+import { db } from "@JNJ/database";
+import { reorderSuggestions, reorderSettings } from "@JNJ/database/schema";
 import { eq, sql } from "drizzle-orm";
 import { refreshStockMetrics, refreshSupplierMetrics } from "../stock-monitor/service";
 
@@ -427,7 +427,7 @@ export async function getReorderCounts(orgId: string) {
 **Step 2: Verify types compile**
 
 ```bash
-cd C:/Users/Admin/Downloads/CLAUDE/APEX_POS/apps/api && npx tsc --noEmit 2>&1 | grep "error TS" | grep reorder
+cd C:/Users/Admin/Downloads/CLAUDE/JNJ_POS/apps/api && npx tsc --noEmit 2>&1 | grep "error TS" | grep reorder
 ```
 
 **Step 3: Commit**
@@ -465,8 +465,8 @@ import {
   getReorderCounts,
   exportReorderCSV,
 } from "./service";
-import { db } from "@apex/database";
-import { reorderSuggestions, reorderSettings } from "@apex/database/schema";
+import { db } from "@JNJ/database";
+import { reorderSuggestions, reorderSettings } from "@JNJ/database/schema";
 import { eq, and, sql, inArray } from "drizzle-orm";
 
 export const reorderRoutes: FastifyPluginAsync = async (app) => {
@@ -667,7 +667,7 @@ await app.register(reorderRoutes, { prefix: "/inventory/reorder" });
 **Step 4: Verify and commit**
 
 ```bash
-cd C:/Users/Admin/Downloads/CLAUDE/APEX_POS/apps/api && npx tsc --noEmit 2>&1 | grep "error TS" | grep -v procurement/routes | grep -v stock-levels
+cd C:/Users/Admin/Downloads/CLAUDE/JNJ_POS/apps/api && npx tsc --noEmit 2>&1 | grep "error TS" | grep -v procurement/routes | grep -v stock-levels
 git add apps/api/src/modules/reorder/ apps/api/src/app.ts
 git commit -m "feat(api): reorder query endpoints, settings, dismiss, inline qty, bulk create-POs"
 ```
@@ -769,7 +769,7 @@ git commit -m "feat(web): reorder settings page, sidebar with badge, edit item r
 **Step 1: Full builds**
 
 ```bash
-cd C:/Users/Admin/Downloads/CLAUDE/APEX_POS
+cd C:/Users/Admin/Downloads/CLAUDE/JNJ_POS
 cd packages/database && pnpm build
 cd ../types && pnpm build
 cd ../../apps/api && npx tsc --noEmit 2>&1 | grep "error TS" | grep -v procurement/routes | grep -v stock-levels
@@ -779,7 +779,7 @@ cd ../web && npx next build 2>&1 | tail -10
 **Step 2: Smoke test**
 
 ```bash
-TOKEN=$(curl -s -X POST http://localhost:3000/auth/login -H 'Content-Type: application/json' -d '{"email":"admin@apex.com","password":"admin12345"}' | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>console.log(JSON.parse(d).token))")
+TOKEN=$(curl -s -X POST http://localhost:3000/auth/login -H 'Content-Type: application/json' -d '{"email":"admin@jnj.com","password":"admin12345"}' | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>console.log(JSON.parse(d).token))")
 LOCID=$(curl -s http://localhost:3000/locations -H "Authorization: Bearer $TOKEN" | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>console.log(JSON.parse(d).data[0].id))")
 
 # Refresh suggestions

@@ -1,5 +1,5 @@
-import { db } from "@apex/database";
-import { discountRules, customerTiers } from "@apex/database/schema";
+﻿import { db } from "@jnj/database";
+import { discountRules, customerTiers } from "@jnj/database/schema";
 import { eq, and, sql, desc, asc } from "drizzle-orm";
 
 // ── Customer Tiers ──

@@ -1,8 +1,8 @@
-import type { FastifyInstance } from "fastify";
-import { db } from "@apex/database";
-import { products, vehicleCompatibility } from "@apex/database/schema";
+﻿import type { FastifyInstance } from "fastify";
+import { db } from "@jnj/database";
+import { products, vehicleCompatibility } from "@jnj/database/schema";
 import { and, asc, eq, sql } from "drizzle-orm";
-import { addVehicleSchema, updateVehicleSchema } from "@apex/types";
+import { addVehicleSchema, updateVehicleSchema } from "@jnj/types";
 
 import { MANAGE_ROLES } from "./permissions";
 

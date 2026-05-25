@@ -1,6 +1,6 @@
-export type AuthorizationCredentialMethod = 'pin' | 'barcode' | 'card';
+﻿export type AuthorizationCredentialMethod = 'pin' | 'barcode' | 'card';
 
-const LABELED_AUTH_PATTERN = /^(?:APEXAUTH|AUTH|APEX-MGR|MGR|MANAGER|PIN)[\s:/|=+#-]?\d{4}$/i;
+const LABELED_AUTH_PATTERN = /^(?:APEXAUTH|AUTH|JNJ-MGR|MGR|MANAGER|PIN)[\s:/|=+#-]?\d{4}$/i;
 const CARD_TRACK_PATTERN = /^[%;].*\?$/;
 const JSON_AUTH_PATTERN = /^\{.*"(?:pin|auth|authorizationPin|managerPin)"\s*:\s*"\d{4}".*\}$/i;
 const URL_AUTH_PATTERN = /^[a-z][a-z0-9+.-]*:\/\/.+[?&](?:pin|auth|code|managerPin)=\d{4}(?:&|$)/i;

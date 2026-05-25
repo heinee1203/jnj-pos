@@ -1,5 +1,5 @@
-import type { DbOrTx } from "@apex/database";
-import { products } from "@apex/database/schema";
+﻿import type { DbOrTx } from "@jnj/database";
+import { products } from "@jnj/database/schema";
 import { and, eq } from "drizzle-orm";
 
 /**

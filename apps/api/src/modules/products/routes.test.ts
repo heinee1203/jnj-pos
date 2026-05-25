@@ -1,4 +1,4 @@
-import assert from "node:assert/strict";
+﻿import assert from "node:assert/strict";
 import test from "node:test";
 
 type RegisteredRoute = {
@@ -27,7 +27,7 @@ function createRouteRecorder() {
 }
 
 test("product route registration keeps static routes before dynamic product detail routes", async () => {
-  process.env.DATABASE_URL ??= "postgres://apex:apex@localhost:5432/apex_test";
+  process.env.DATABASE_URL ??= "postgres://jnj:jnj@localhost:5432/jnj_test";
   const { productRoutes } = await import("./routes");
   const { app, routes } = createRouteRecorder();
 

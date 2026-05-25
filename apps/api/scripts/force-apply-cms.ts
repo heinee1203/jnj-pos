@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Force-apply 4 credit memos to 2 existing SOAs (Fajardo, Don).
  *
  *   SOA-2026-0072 (Jul 1 – Aug 31)  ← CM-3591 (₱700) + CM-3593 (₱750)
@@ -22,7 +22,7 @@ import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 dotenv.config({ path: resolve(dirname(fileURLToPath(import.meta.url)), "../../../.env") });
 
-import { db } from "@apex/database";
+import { db } from "@jnj/database";
 import { sql } from "drizzle-orm";
 
 const APPLY = process.argv.includes("--apply");

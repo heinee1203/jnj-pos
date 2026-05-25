@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Bulk import 1,009 supplier invoices from the purchases Excel workbook.
  *
  * Source: "purchases 2026 as of april 13.xlsx" — 4 columns (Date, Supplier, Invoice#, Amount)
@@ -19,7 +19,7 @@ import dotenv from "dotenv";
 dotenv.config({ path: resolve(dirname(fileURLToPath(import.meta.url)), "../../../.env") });
 
 import * as XLSX from "xlsx";
-import { db } from "@apex/database";
+import { db } from "@jnj/database";
 import { sql } from "drizzle-orm";
 import fs from "fs";
 
@@ -149,7 +149,7 @@ async function main() {
   console.log(`Total amount: ₱${totalAmount.toLocaleString("en-PH", { minimumFractionDigits: 2 })}`);
 
   // Admin user
-  const [admin] = (await db.execute(sql`SELECT id FROM users WHERE email = 'admin@apex.com' LIMIT 1`)) as any[];
+  const [admin] = (await db.execute(sql`SELECT id FROM users WHERE email = 'admin@jnj.com' LIMIT 1`)) as any[];
   if (!admin) { console.error("ABORT: admin not found"); process.exit(1); }
 
   if (!APPLY) {

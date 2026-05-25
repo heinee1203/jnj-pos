@@ -1,18 +1,18 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: apex-postgres
+    container_name: jnj-postgres
     restart: unless-stopped
     ports:
       - "5433:5432"
     environment:
-      POSTGRES_USER: apex
-      POSTGRES_PASSWORD: apex_secret
-      POSTGRES_DB: apex_dev
+      POSTGRES_USER: jnj
+      POSTGRES_PASSWORD: jnj_secret
+      POSTGRES_DB: jnj_dev
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U apex -d apex_dev"]
+      test: ["CMD-SHELL", "pg_isready -U jnj -d jnj_dev"]
       interval: 5s
       timeout: 3s
       retries: 5

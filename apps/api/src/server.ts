@@ -1,4 +1,4 @@
-import { resolve, dirname } from "node:path";
+﻿import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
 
@@ -7,7 +7,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: resolve(__dirname, "../../../.env") });
 
 async function start() {
-  // Dynamic import so dotenv is loaded before @apex/database initializes
+  // Dynamic import so dotenv is loaded before @jnj/database initializes
   const { buildApp } = await import("./app");
 
   const PORT = Number(process.env.PORT) || 3000;

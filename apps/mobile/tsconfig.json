@@ -1,4 +1,4 @@
-{
+﻿{
   "compilerOptions": {
     "target": "esnext",
     "module": "esnext",
@@ -8,7 +8,7 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
-      "@apex/types": ["../../packages/types/src"]
+      "@jnj/types": ["../../packages/types/src"]
     },
     "strict": true,
     "noEmit": true,

@@ -1,9 +1,9 @@
-import { resolve, dirname } from "path";
+﻿import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 dotenv.config({ path: resolve(dirname(fileURLToPath(import.meta.url)), "../../../.env") });
 
-import { db } from "@apex/database";
+import { db } from "@jnj/database";
 import { sql } from "drizzle-orm";
 
 // The user referenced "AR-0006" — in this codebase the AR account code

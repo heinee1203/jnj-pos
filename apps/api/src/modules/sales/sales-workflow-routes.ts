@@ -1,10 +1,10 @@
-import type { FastifyInstance } from "fastify";
+﻿import type { FastifyInstance } from "fastify";
 import {
   completeSaleSchema,
   createSaleSchema,
   refundSaleSchema,
   voidSaleSchema,
-} from "@apex/types";
+} from "@jnj/types";
 import { getRequiredLocationContext, requireAnyPermission } from "../../lib/require-permission";
 import { logAction } from "./sale-audit-service";
 import { verifyAuthorizationCredential } from "./sale-auth-service";

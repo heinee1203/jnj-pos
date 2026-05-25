@@ -1,4 +1,4 @@
-import type { CreateProductInput, VariantItem } from "@apex/types";
+﻿import type { CreateProductInput, VariantItem } from "@jnj/types";
 
 export function buildParentPlaceholderSku(now = Date.now()) {
   return `P-${now.toString(36).toUpperCase().slice(-8)}`;

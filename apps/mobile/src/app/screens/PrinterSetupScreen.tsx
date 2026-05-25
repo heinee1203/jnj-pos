@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+﻿import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -48,7 +48,7 @@ export default function PrinterSetupScreen() {
   const styles = createStyles();
   const isConnected = connectionRevision >= 0 && printer.isConnected;
   const testLabelZpl = buildShelfLabel({
-    itemName: 'APEX POS TEST LABEL',
+    itemName: 'JNJ POS TEST LABEL',
     sku: 'TEST-001',
     barcode: '4806512345678',
     price: 100,
@@ -359,7 +359,7 @@ export default function PrinterSetupScreen() {
       />
       <LabelPreviewModal
         visible={labelPreviewVisible}
-        itemName="APEX POS TEST LABEL"
+        itemName="JNJ POS TEST LABEL"
         sku="TEST-001"
         barcode="4806512345678"
         price={100}

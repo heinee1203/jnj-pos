@@ -1,5 +1,5 @@
-import { db, type DbOrTx } from "@apex/database";
-import { priceChanges, products, brands, users } from "@apex/database/schema";
+﻿import { db, type DbOrTx } from "@jnj/database";
+import { priceChanges, products, brands, users } from "@jnj/database/schema";
 import {
   eq,
   and,

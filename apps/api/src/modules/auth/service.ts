@@ -1,11 +1,11 @@
-import { db } from "@apex/database";
-import { organizations, users, locations } from "@apex/database/schema";
+﻿import { db } from "@jnj/database";
+import { organizations, users, locations } from "@jnj/database/schema";
 import { eq, and, inArray, isNotNull } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
 const SALT_ROUNDS = 12;
 const AUTHORIZATION_ROLES = ["ADMIN", "MANAGER"] as const;
-const AUTHORIZATION_CREDENTIAL_LABEL_PATTERN = /(?:PIN|AUTH|APEXAUTH|APEX-MGR|MGR|MANAGER|APEXMANAGER)/i;
+const AUTHORIZATION_CREDENTIAL_LABEL_PATTERN = /(?:PIN|AUTH|APEXAUTH|JNJ-MGR|MGR|MANAGER|APEXMANAGER)/i;
 
 export async function createOrganizationWithAdmin(input: {
   orgName: string;
@@ -111,7 +111,7 @@ export function extractAuthorizationPin(credential: string): string | null {
   if (urlPin) return urlPin;
 
   const labeled = normalized.match(
-    /(?:PIN|AUTH|APEXAUTH|APEX-MGR|MGR|MANAGER)[\s:/|=+#-]*(\d{4})(?!\d)/i,
+    /(?:PIN|AUTH|APEXAUTH|JNJ-MGR|MGR|MANAGER)[\s:/|=+#-]*(\d{4})(?!\d)/i,
   );
   if (labeled) return labeled[1];
 
@@ -161,7 +161,7 @@ function extractUrlAuthorizationPin(credential: string): string | null {
  * - 1234
  * - PIN:1234
  * - APEXAUTH1234
- * - APEX-MGR:1234
+ * - JNJ-MGR:1234
  * - magstripe-like track data containing =1234? or ^1234?
  */
 export async function verifyAuthorizationCredential(

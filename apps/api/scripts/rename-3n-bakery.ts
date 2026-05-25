@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Rename "3n Bakery" to "Santamaria Bakery & Foods CORP / 3N Bakery".
  * Run: npx tsx apps/api/scripts/rename-3n-bakery.ts
  */
@@ -9,8 +9,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 dotenv.config({ path: resolve(__dirname, "../../../.env") });
 
-import { db } from "@apex/database";
-import { customers } from "@apex/database/schema";
+import { db } from "@jnj/database";
+import { customers } from "@jnj/database/schema";
 import { eq, and, ilike } from "drizzle-orm";
 
 const ORG_ID = "556e350a-7180-4ec9-9e1e-ea0ca1937f40";

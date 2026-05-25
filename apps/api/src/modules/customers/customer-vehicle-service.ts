@@ -1,6 +1,6 @@
-import { db } from "@apex/database";
-import { customers, customerVehicles } from "@apex/database/schema";
-import type { CreateCustomerVehicleInput } from "@apex/types";
+﻿import { db } from "@jnj/database";
+import { customers, customerVehicles } from "@jnj/database/schema";
+import type { CreateCustomerVehicleInput } from "@jnj/types";
 import { and, eq } from "drizzle-orm";
 
 export async function listCustomerVehicles(customerId: string, orgId: string) {

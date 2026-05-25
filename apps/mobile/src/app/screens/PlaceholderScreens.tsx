@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+﻿import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { getHeldCarts, type HeldCart } from '@/storage/held-carts';
@@ -867,7 +867,7 @@ export function SyncManagementScreen() {
     try {
       const body = [
         '',
-        'APEX POS HARDWARE TEST',
+        'JNJ POS HARDWARE TEST',
         `Receipt printer ${new Date().toLocaleString('en-PH')}`,
         `Operator ${user?.fullName ?? user?.email ?? 'Unknown'}`,
         '',
@@ -894,7 +894,7 @@ export function SyncManagementScreen() {
     try {
       const zpl = [
         '^XA',
-        '^FO40,36^A0N,36,36^FDAPEX POS TEST^FS',
+        '^FO40,36^A0N,36,36^FDJNJ POS TEST^FS',
         '^FO40,86^A0N,24,24^FDZPL label printer ready^FS',
         '^FO40,126^BY2^BCN,70,Y,N,N^FDAPEX-HW-TEST^FS',
         '^XZ',
@@ -1536,7 +1536,7 @@ export function AboutScreen() {
         <View style={styles.aboutLogo}>
           <Text style={styles.aboutLogoText}>A</Text>
         </View>
-        <Text style={styles.aboutTitle}>APEX POS</Text>
+        <Text style={styles.aboutTitle}>JNJ POS</Text>
         <Text style={styles.aboutSubtitle}>C-BROS Genuine Autoparts & Accessories, Inc.</Text>
         <View style={styles.infoCard}>
           <InfoRow label="Version" value={APP_VERSION} />

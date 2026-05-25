@@ -1,4 +1,4 @@
-import { db } from "@apex/database";
+﻿import { db } from "@jnj/database";
 import {
   locations,
   poLines,
@@ -9,7 +9,7 @@ import {
   stockJournal,
   suppliers,
   users,
-} from "@apex/database/schema";
+} from "@jnj/database/schema";
 import { and, asc, desc, eq, inArray, sql, type SQL } from "drizzle-orm";
 
 export async function getPOReceipts(poId: string, orgId: string) {

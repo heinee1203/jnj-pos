@@ -1,4 +1,4 @@
-# Phase 1: ERP Backbone Implementation Plan
+﻿# Phase 1: ERP Backbone Implementation Plan
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
@@ -32,15 +32,15 @@ packages:
 
 ```json
 {
-  "name": "apex-pos",
+  "name": "jnj-pos",
   "private": true,
   "scripts": {
-    "dev": "pnpm --filter @apex/api dev",
-    "build": "pnpm --filter @apex/api build",
-    "db:generate": "pnpm --filter @apex/database generate",
-    "db:migrate": "pnpm --filter @apex/database migrate",
-    "db:seed": "pnpm --filter @apex/database seed",
-    "db:studio": "pnpm --filter @apex/database studio",
+    "dev": "pnpm --filter @JNJ/api dev",
+    "build": "pnpm --filter @JNJ/api build",
+    "db:generate": "pnpm --filter @JNJ/database generate",
+    "db:migrate": "pnpm --filter @JNJ/database migrate",
+    "db:seed": "pnpm --filter @JNJ/database seed",
+    "db:studio": "pnpm --filter @JNJ/database studio",
     "typecheck": "tsc --build",
     "clean": "rm -rf apps/*/dist packages/*/dist"
   },
@@ -92,7 +92,7 @@ dist/
 **Step 5: Create `.env.example` and `.env`**
 
 ```env
-DATABASE_URL=postgresql://apex:apex_secret@localhost:5432/apex_dev
+DATABASE_URL=postgresql://JNJ:jnj_secret@localhost:5432/jnj_dev
 JWT_SECRET=change-me-in-production-use-a-64-char-random-string
 PORT=3000
 NODE_ENV=development
@@ -128,18 +128,18 @@ git commit -m "chore: scaffold root pnpm workspace with shared tsconfig"
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: apex-postgres
+    container_name: jnj-postgres
     restart: unless-stopped
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: apex
-      POSTGRES_PASSWORD: apex_secret
-      POSTGRES_DB: apex_dev
+      POSTGRES_USER: JNJ
+      POSTGRES_PASSWORD: jnj_secret
+      POSTGRES_DB: jnj_dev
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U apex -d apex_dev"]
+      test: ["CMD-SHELL", "pg_isready -U JNJ -d jnj_dev"]
       interval: 5s
       timeout: 3s
       retries: 5
@@ -152,13 +152,13 @@ volumes:
 
 ```yaml
 databases:
-  - name: apex-db
+  - name: JNJ-db
     plan: starter
-    databaseName: apex_prod
-    user: apex
+    databaseName: JNJ_prod
+    user: JNJ
 
 services:
-  - name: apex-api
+  - name: JNJ-api
     plan: starter
     type: web
     runtime: node
@@ -167,7 +167,7 @@ services:
     envVars:
       - key: DATABASE_URL
         fromDatabase:
-          name: apex-db
+          name: JNJ-db
           property: connectionString
       - key: JWT_SECRET
         generateValue: true
@@ -180,7 +180,7 @@ services:
 **Step 3: Start Postgres and verify**
 
 Run: `docker compose up -d`
-Expected: `apex-postgres` container running, healthy.
+Expected: `jnj-postgres` container running, healthy.
 
 Run: `docker compose ps`
 Expected: Shows postgres service as "Up" and healthy.
@@ -207,7 +207,7 @@ git commit -m "infra: add Docker Compose for local Postgres and Render blueprint
 
 ```json
 {
-  "name": "@apex/types",
+  "name": "@JNJ/types",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -382,7 +382,7 @@ git commit -m "feat(types): add shared enums, Zod schemas, and TS interfaces"
 
 ```json
 {
-  "name": "@apex/database",
+  "name": "@JNJ/database",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -405,13 +405,13 @@ git commit -m "feat(types): add shared enums, Zod schemas, and TS interfaces"
     "seed": "tsx src/seed.ts"
   },
   "dependencies": {
-    "@apex/types": "workspace:*",
+    "@JNJ/types": "workspace:*",
     "drizzle-orm": "^0.45.1",
     "postgres": "^3.4.8",
     "dotenv": "^16.4.7"
   },
   "devDependencies": {
-    "@apex/types": "workspace:*",
+    "@JNJ/types": "workspace:*",
     "drizzle-kit": "^0.31.9",
     "@faker-js/faker": "^10.3.0",
     "tsx": "^4.21.0",
@@ -817,7 +817,7 @@ Expected: All workspace dependencies resolved.
 
 **Step 14: Build packages/types then packages/database**
 
-Run: `pnpm --filter @apex/types build && pnpm --filter @apex/database build`
+Run: `pnpm --filter @JNJ/types build && pnpm --filter @JNJ/database build`
 Expected: Both `dist/` folders created successfully.
 
 **Step 15: Commit**
@@ -838,7 +838,7 @@ git commit -m "feat(database): add full Drizzle schema with all 8 tables and ind
 **Step 1: Ensure Docker Postgres is running**
 
 Run: `docker compose up -d`
-Expected: `apex-postgres` is healthy.
+Expected: `jnj-postgres` is healthy.
 
 **Step 2: Generate the Drizzle migration**
 
@@ -862,12 +862,12 @@ Expected: All tables created, extension enabled, indexes built. Zero errors.
 
 **Step 5: Verify tables exist**
 
-Run: `docker compose exec postgres psql -U apex -d apex_dev -c "\dt"`
+Run: `docker compose exec postgres psql -U JNJ -d jnj_dev -c "\dt"`
 Expected: Lists tables: organizations, locations, users, products, inventory, suppliers, stock_transfers, stock_transfer_items.
 
 **Step 6: Verify trigram index**
 
-Run: `docker compose exec postgres psql -U apex -d apex_dev -c "\di idx_products_name_trgm"`
+Run: `docker compose exec postgres psql -U JNJ -d jnj_dev -c "\di idx_products_name_trgm"`
 Expected: Shows the GIN index on `products.name`.
 
 **Step 7: Commit**
@@ -892,7 +892,7 @@ git commit -m "feat(database): generate initial migration with pg_trgm extension
 
 ```json
 {
-  "name": "@apex/api",
+  "name": "@JNJ/api",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -902,8 +902,8 @@ git commit -m "feat(database): generate initial migration with pg_trgm extension
     "start": "node dist/server.js"
   },
   "dependencies": {
-    "@apex/database": "workspace:*",
-    "@apex/types": "workspace:*",
+    "@JNJ/database": "workspace:*",
+    "@JNJ/types": "workspace:*",
     "@fastify/cors": "^11.2.0",
     "@fastify/jwt": "^10.0.0",
     "@fastify/sensible": "^6.0.4",
@@ -989,7 +989,7 @@ async function start() {
   const app = await buildApp();
   try {
     await app.listen({ port: PORT, host: HOST });
-    app.log.info(`Apex API running on http://${HOST}:${PORT}`);
+    app.log.info(`JNJ API running on http://${HOST}:${PORT}`);
   } catch (err) {
     app.log.error(err);
     process.exit(1);
@@ -1003,7 +1003,7 @@ start();
 
 ```typescript
 import type { FastifyPluginAsync } from "fastify";
-import { db } from "@apex/database";
+import { db } from "@JNJ/database";
 import { sql } from "drizzle-orm";
 
 export const healthRoutes: FastifyPluginAsync = async (app) => {
@@ -1028,9 +1028,9 @@ export const healthRoutes: FastifyPluginAsync = async (app) => {
 
 **Step 6: Install deps, build, and verify health check**
 
-Run: `pnpm install && pnpm --filter @apex/types build && pnpm --filter @apex/database build`
+Run: `pnpm install && pnpm --filter @JNJ/types build && pnpm --filter @JNJ/database build`
 
-> Note: Don't build `@apex/api` yet — it references auth and product modules that don't exist yet. We'll create placeholder files first.
+> Note: Don't build `@JNJ/api` yet — it references auth and product modules that don't exist yet. We'll create placeholder files first.
 
 **Step 7: Commit (partial — server bootstrap + health)**
 
@@ -1054,7 +1054,7 @@ This Fastify plugin adds a `request.authenticate()` decorator that verifies JWT 
 ```typescript
 import type { FastifyPluginAsync, FastifyRequest } from "fastify";
 import fp from "fastify-plugin";
-import type { JwtPayload } from "@apex/types";
+import type { JwtPayload } from "@JNJ/types";
 
 // Extend Fastify types
 declare module "fastify" {
@@ -1091,10 +1091,10 @@ export const authPlugin = fp(authPluginFn, {
 ```typescript
 import type { FastifyPluginAsync } from "fastify";
 import fp from "fastify-plugin";
-import { db } from "@apex/database";
-import { locations } from "@apex/database/schema";
+import { db } from "@JNJ/database";
+import { locations } from "@JNJ/database/schema";
 import { eq, and } from "drizzle-orm";
-import type { StoreContext } from "@apex/types";
+import type { StoreContext } from "@JNJ/types";
 
 // Paths that skip store-context check
 const SKIP_PATHS = ["/health", "/auth/login", "/auth/register"];
@@ -1182,8 +1182,8 @@ git commit -m "feat(api): add JWT auth plugin and store-context middleware"
 **Step 1: Create `apps/api/src/modules/auth/service.ts`**
 
 ```typescript
-import { db } from "@apex/database";
-import { organizations, users, locations } from "@apex/database/schema";
+import { db } from "@JNJ/database";
+import { organizations, users, locations } from "@JNJ/database/schema";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
@@ -1269,7 +1269,7 @@ export async function authenticateUser(email: string, password: string) {
 
 ```typescript
 import type { FastifyPluginAsync } from "fastify";
-import { registerSchema, loginSchema } from "@apex/types";
+import { registerSchema, loginSchema } from "@JNJ/types";
 import { createOrganizationWithAdmin, authenticateUser } from "./service.js";
 
 export const authRoutes: FastifyPluginAsync = async (app) => {
@@ -1369,11 +1369,11 @@ git commit -m "feat(api): add auth module with register and login endpoints"
 
 ```typescript
 import type { FastifyPluginAsync } from "fastify";
-import { db } from "@apex/database";
-import { products, inventory } from "@apex/database/schema";
+import { db } from "@JNJ/database";
+import { products, inventory } from "@JNJ/database/schema";
 import { eq, and, gt, ilike, sql, type SQL } from "drizzle-orm";
-import { paginationSchema } from "@apex/types";
-import type { PaginatedResponse } from "@apex/types";
+import { paginationSchema } from "@JNJ/types";
+import type { PaginatedResponse } from "@JNJ/types";
 
 export const productRoutes: FastifyPluginAsync = async (app) => {
   // All product routes require auth + store context
@@ -1732,7 +1732,7 @@ async function seed() {
   console.log("  Creating organization...");
   const [org] = await db
     .insert(schema.organizations)
-    .values({ name: "Apex Auto Parts Inc.", slug: "apex-auto-parts" })
+    .values({ name: "JNJ Trading Inc.", slug: "JNJ-auto-parts" })
     .returning();
 
   // ── 2. Create Locations ──
@@ -1763,7 +1763,7 @@ async function seed() {
       orgId: org.id,
       primaryLocationId: warehouse.id,
       fullName: "Admin User",
-      email: "admin@apex.com",
+      email: "admin@jnj.com",
       passwordHash,
       role: "ADMIN",
     })
@@ -1861,7 +1861,7 @@ async function seed() {
   console.log(`   Warehouse: ${warehouse.name} (${warehouse.id})`);
   console.log(`   Store 1: ${store1.name} (${store1.id})`);
   console.log(`   Store 2: ${store2.name} (${store2.id})`);
-  console.log(`   Admin: admin@apex.com / admin12345`);
+  console.log(`   Admin: admin@jnj.com / admin12345`);
   console.log(`   Products: ${TOTAL_PRODUCTS.toLocaleString()}`);
   console.log(`   Inventory rows: ${(TOTAL_PRODUCTS * 3).toLocaleString()}`);
 
@@ -1898,7 +1898,7 @@ Run: `pnpm install`
 
 **Step 2: Build all packages in order**
 
-Run: `pnpm --filter @apex/types build && pnpm --filter @apex/database build && pnpm --filter @apex/api build`
+Run: `pnpm --filter @JNJ/types build && pnpm --filter @JNJ/database build && pnpm --filter @JNJ/api build`
 Expected: All three packages compile without errors.
 
 **Step 3: Start Postgres if not already running**
@@ -1943,7 +1943,7 @@ Run:
 ```bash
 curl -s -X POST http://localhost:3000/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin@apex.com","password":"admin12345"}' | jq .
+  -d '{"email":"admin@jnj.com","password":"admin12345"}' | jq .
 ```
 Expected: 200 response with JWT token. **Save this token.**
 
@@ -1986,7 +1986,7 @@ git commit -m "feat: Phase 1 complete — ERP backbone with auth, products, and 
 **Step 1: Create `CLAUDE.md`**
 
 ```markdown
-# Apex POS — ERP & POS Suite
+# JNJ POS — ERP & POS Suite
 
 ## Project Structure
 pnpm monorepo: `apps/api` (Fastify), `packages/database` (Drizzle), `packages/types` (shared).

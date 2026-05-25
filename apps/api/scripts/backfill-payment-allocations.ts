@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Backfill ar_payment_allocations for all existing PAYMENT transactions using FIFO.
  * Run: npx tsx apps/api/scripts/backfill-payment-allocations.ts
  */
@@ -9,8 +9,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 dotenv.config({ path: resolve(__dirname, "../../../.env") });
 
-import { db } from "@apex/database";
-import { customerTransactions, arPaymentAllocations } from "@apex/database/schema";
+import { db } from "@jnj/database";
+import { customerTransactions, arPaymentAllocations } from "@jnj/database/schema";
 import { eq, and, asc, sql } from "drizzle-orm";
 
 const ORG_ID = "556e350a-7180-4ec9-9e1e-ea0ca1937f40";

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ZPL Label Builder for Zebra ZD230 printer.
  * Generates ZPL II commands for shelf/barcode labels.
  *
@@ -26,7 +26,7 @@ interface AuthorizationBadgeData {
  * Layout: item name (top), barcode (center), cost code (bottom).
  */
 export function buildShelfLabel(data: LabelData): string {
-  const name = normalizeLabelText(data.itemName || 'APEX POS ITEM').slice(0, 48);
+  const name = normalizeLabelText(data.itemName || 'JNJ POS ITEM').slice(0, 48);
   const barcode = normalizeBarcodeValue(data.barcode);
   const sku = normalizeLabelText(data.sku ?? '');
   const costLine = [data.supplierCode, data.costCode].map(normalizeLabelText).filter(Boolean).join(' ');
@@ -64,7 +64,7 @@ export function buildAuthorizationBadgeLabel(data: AuthorizationBadgeData): stri
   const credential = normalizeBarcodeValue(data.credential);
   const name = normalizeLabelText(data.fullName || 'MANAGER');
   const role = normalizeLabelText(data.role || 'MANAGER');
-  const location = normalizeLabelText(data.locationName || 'APEX POS');
+  const location = normalizeLabelText(data.locationName || 'JNJ POS');
   const detailLine = [role, location].filter(Boolean).join('  ');
 
   let zpl = '^XA\n';
@@ -74,7 +74,7 @@ export function buildAuthorizationBadgeLabel(data: AuthorizationBadgeData): stri
   zpl += '^FO30,66^BY2,2,64\n';
   zpl += `^BCN,64,Y,N,N^FD${escapeZpl(credential)}^FS\n`;
   zpl += `^FO10,142^FB380,1,0,C,0^CF0,16^FD${escapeZpl(detailLine)}^FS\n`;
-  zpl += '^FO10,164^FB380,1,0,C,0^CF0,14^FDAPEX POS MANAGER APPROVAL^FS\n';
+  zpl += '^FO10,164^FB380,1,0,C,0^CF0,14^FDJNJ POS MANAGER APPROVAL^FS\n';
   zpl += '^XZ\n';
   return zpl;
 }

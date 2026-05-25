@@ -1,6 +1,6 @@
-import type { FastifyInstance } from "fastify";
-import { db } from "@apex/database";
-import { brands, categories, inventory, locations, productFamilies, productSubcategories, products, vehicleCompatibility } from "@apex/database/schema";
+﻿import type { FastifyInstance } from "fastify";
+import { db } from "@jnj/database";
+import { brands, categories, inventory, locations, productFamilies, productSubcategories, products, vehicleCompatibility } from "@jnj/database/schema";
 import { and, asc, eq, sql } from "drizzle-orm";
 
 export function registerProductSearchRoutes(app: FastifyInstance) {

@@ -1,4 +1,4 @@
-import type { PrinterProvider } from '@/hardware/printer/types';
+﻿import type { PrinterProvider } from '@/hardware/printer/types';
 import { getDeviceBinding } from '@/config/device-binding';
 import { getPendingSales } from '@/storage/pending-sales';
 import { getUnsyncedRegisterDrawerEvents } from '@/storage/register-drawer-events';
@@ -57,7 +57,7 @@ export interface HardwareReadinessItem {
 }
 
 function createDeviceId(): string {
-  return `apex-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+  return `JNJ-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
 export function getOrCreateDeviceId(): string {
@@ -226,7 +226,7 @@ export function buildReadinessSummaryText(items: HardwareReadinessItem[]): strin
 
 export function buildSupportDiagnosticText(snapshot: RegisterHealthSnapshot, apiHealth: string): string {
   return [
-    'APEX POS SUPPORT DIAGNOSTICS',
+    'JNJ POS SUPPORT DIAGNOSTICS',
     `Device ID: ${snapshot.deviceId}`,
     `App: ${snapshot.appVersion} (${snapshot.build}; ${snapshot.gitSha})`,
     `Store: ${snapshot.boundStore} [${snapshot.storeCode}]`,

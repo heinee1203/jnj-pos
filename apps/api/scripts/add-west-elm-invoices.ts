@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Add 5 supplier invoices for West Elm Tree Sales Corp.
  * Run: npx tsx apps/api/scripts/add-west-elm-invoices.ts
  */
@@ -10,8 +10,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 dotenv.config({ path: resolve(__dirname, "../../../.env") });
 
-import { db } from "@apex/database";
-import { suppliers, supplierInvoices } from "@apex/database/schema";
+import { db } from "@jnj/database";
+import { suppliers, supplierInvoices } from "@jnj/database/schema";
 import { eq, and, sql } from "drizzle-orm";
 
 const ORG_ID = "556e350a-7180-4ec9-9e1e-ea0ca1937f40";

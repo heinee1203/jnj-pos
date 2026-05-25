@@ -1,4 +1,4 @@
-# CBROS Genuine Autoparts & Accessories
+﻿# CBROS Genuine Autoparts & Accessories
 
 ---
 
@@ -7,7 +7,7 @@
 **Para sa:** Lahat ng Staff — Cashiers, Warehouse Team, Service Advisors, Mechanics
 **Mula sa:** Management & ERP Implementation Team
 **Petsa:** March 2026
-**Tungkol sa:** Welcome sa APEX POS — User Acceptance Testing (UAT) Sandbox
+**Tungkol sa:** Welcome sa JNJ POS — User Acceptance Testing (UAT) Sandbox
 
 ---
 
@@ -15,7 +15,7 @@
 
 Team,
 
-Ready na ang bago nating system — **APEX POS** — at kayo na ang susunod na gagamit.
+Ready na ang bago nating system — **JNJ POS** — at kayo na ang susunod na gagamit.
 
 Simula ngayong week, bibigyan kayo ng access sa isang **UAT Sandbox**. Ito ay isang safe na test copy ng bagong system. Puro test data lang ang nasa loob — hindi totoong inventory, hindi totoong customers, hindi totoong transactions. Kahit ano ang gawin niyo dito, walang masisira.
 

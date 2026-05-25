@@ -1,5 +1,5 @@
-import { db } from "@apex/database";
-import { priceChanges } from "@apex/database/schema";
+﻿import { db } from "@jnj/database";
+import { priceChanges } from "@jnj/database/schema";
 
 export type PriceChangeSource = "manual" | "bulk_update" | "import" | "margin_alert" | "dead_stock_clearance" | "po_received";
 

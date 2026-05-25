@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Insert 10 backdated CHARGE rows for Flo Marketing.
  *
  * Customer: Flo Marketing (AR-0073)
@@ -16,7 +16,7 @@ import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 dotenv.config({ path: resolve(dirname(fileURLToPath(import.meta.url)), "../../../.env") });
 
-import { db } from "@apex/database";
+import { db } from "@jnj/database";
 import { sql } from "drizzle-orm";
 
 const APPLY = process.argv.includes("--apply");
@@ -79,10 +79,10 @@ async function main() {
 
   // Admin user
   const [admin] = (await db.execute(sql`
-    SELECT id, email FROM users WHERE email = 'admin@apex.com' LIMIT 1
+    SELECT id, email FROM users WHERE email = 'admin@jnj.com' LIMIT 1
   `)) as any[];
   if (!admin) {
-    console.error("ABORT: admin@apex.com not found");
+    console.error("ABORT: admin@jnj.com not found");
     process.exit(1);
   }
   console.log(`Admin: ${admin.email} (${admin.id})`);

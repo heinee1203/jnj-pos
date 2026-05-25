@@ -1,4 +1,4 @@
-import assert from "node:assert/strict";
+﻿import assert from "node:assert/strict";
 import test from "node:test";
 
 type RegisteredRoute = {
@@ -21,7 +21,7 @@ function createRouteRecorder() {
 }
 
 test("adjustment route registration preserves public endpoint order", async () => {
-  process.env.DATABASE_URL ??= "postgres://apex:apex@localhost:5432/apex_test";
+  process.env.DATABASE_URL ??= "postgres://jnj:jnj@localhost:5432/jnj_test";
   const { adjustmentRoutes } = await import("./routes");
   const { app, routes } = createRouteRecorder();
 

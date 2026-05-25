@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+﻿import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -54,7 +54,7 @@ export default function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={styles.content}>
-        <Text style={styles.logo}>APEX POS</Text>
+        <Text style={styles.logo}>JNJ POS</Text>
         {(() => {
           const binding = getDeviceBinding();
           return binding ? (

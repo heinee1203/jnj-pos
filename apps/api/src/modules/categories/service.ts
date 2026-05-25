@@ -1,7 +1,7 @@
-import { db } from "@apex/database";
-import { categories, products } from "@apex/database/schema";
+﻿import { db } from "@jnj/database";
+import { categories, products } from "@jnj/database/schema";
 import { eq, and, sql, ilike, type SQL } from "drizzle-orm";
-import type { CreateCategoryInput, UpdateCategoryInput } from "@apex/types";
+import type { CreateCategoryInput, UpdateCategoryInput } from "@jnj/types";
 
 // ── Types ──
 

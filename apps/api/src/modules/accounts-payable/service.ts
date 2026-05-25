@@ -1,4 +1,4 @@
-import { db, type DbOrTx } from "@apex/database";
+﻿import { db, type DbOrTx } from "@jnj/database";
 import {
   supplierInvoices,
   checkVouchers,
@@ -7,7 +7,7 @@ import {
   bankAccounts,
   suppliers,
   supplierReturns,
-} from "@apex/database/schema";
+} from "@jnj/database/schema";
 import { eq, and, sql, desc, asc, lt, inArray, or, gte, lte, ilike, type SQL } from "drizzle-orm";
 import {
   appendAuditNote,

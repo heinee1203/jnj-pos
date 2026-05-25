@@ -1,4 +1,4 @@
-import { loginSchema, registerSchema } from "@apex/types";
+﻿import { loginSchema, registerSchema } from "@jnj/types";
 
 type AuthTokenUser = {
   id: string;

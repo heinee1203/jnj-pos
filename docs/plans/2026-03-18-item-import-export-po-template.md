@@ -1,4 +1,4 @@
-# Item List Import/Export + PO CSV Template Implementation Plan
+﻿# Item List Import/Export + PO CSV Template Implementation Plan
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
@@ -71,7 +71,7 @@ const downloadCSV = useCallback((csvContent: string, suffix = "") => {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `apex-items-${date}${suffix}.csv`;
+  a.download = `JNJ-items-${date}${suffix}.csv`;
   a.click();
   URL.revokeObjectURL(url);
 }, []);
@@ -211,7 +211,7 @@ Add before the final closing `};` of the `productRoutes` plugin. This is a large
       return reply.status(403).send({ error: "Forbidden" });
     }
 
-    const { bulkImportSchema } = await import("@apex/types");
+    const { bulkImportSchema } = await import("@JNJ/types");
     const parsed = bulkImportSchema.safeParse(request.body);
     if (!parsed.success) {
       return reply.status(400).send({
@@ -388,7 +388,7 @@ Expected: No errors
 Test manually:
 ```bash
 curl -s -X POST http://localhost:3000/products/import \
-  -H "Authorization: Bearer $(curl -s -X POST http://localhost:3000/auth/login -H 'Content-Type: application/json' -d '{"email":"admin@apex.com","password":"admin12345"}' | jq -r '.token')" \
+  -H "Authorization: Bearer $(curl -s -X POST http://localhost:3000/auth/login -H 'Content-Type: application/json' -d '{"email":"admin@jnj.com","password":"admin12345"}' | jq -r '.token')" \
   -H "X-Location-ID: <location-id>" \
   -H "Content-Type: application/json" \
   -d '{"dryRun": true, "rows": [{"name":"Test Import Item","sku":"TEST-IMP-001","unitPrice":"100.00","costPrice":"50.00"}]}' | jq .
@@ -452,7 +452,7 @@ const handleDownloadTemplate = useCallback(() => {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "apex-item-import-template.csv";
+  a.download = "JNJ-item-import-template.csv";
   a.click();
   URL.revokeObjectURL(url);
 }, []);
@@ -859,7 +859,7 @@ const handleDownloadPOTemplate = () => {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "apex-po-import-template.csv";
+  a.download = "JNJ-po-import-template.csv";
   a.click();
   URL.revokeObjectURL(url);
 };

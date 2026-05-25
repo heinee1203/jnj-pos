@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import {
   createContext,
@@ -68,8 +68,8 @@ interface AuthContextValue {
  * ───────────────────────────────────────────── */
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
-const AUTH_STORAGE_KEY = "apex-dev-auth";
-const LOCATION_STORAGE_KEY = "apex-active-location";
+const AUTH_STORAGE_KEY = "JNJ-dev-auth";
+const LOCATION_STORAGE_KEY = "JNJ-active-location";
 
 /** Sentinel value for "All Locations" aggregate view */
 export const ALL_LOCATIONS = "ALL";

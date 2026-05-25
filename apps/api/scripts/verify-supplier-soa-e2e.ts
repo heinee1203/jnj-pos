@@ -1,4 +1,4 @@
-/**
+﻿/**
  * End-to-end verification of the new supplier SOA history infrastructure
  * against the live database. Exercises:
  *
@@ -23,7 +23,7 @@ import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 dotenv.config({ path: resolve(dirname(fileURLToPath(import.meta.url)), "../../../.env") });
 
-import { db } from "@apex/database";
+import { db } from "@jnj/database";
 import { sql } from "drizzle-orm";
 import {
   listInvoices,

@@ -1,4 +1,4 @@
-import { db } from "@apex/database";
+﻿import { db } from "@jnj/database";
 import {
   notifications,
   notificationSettings,
@@ -8,7 +8,7 @@ import {
   saleLines,
   sales,
   locations,
-} from "@apex/database/schema";
+} from "@jnj/database/schema";
 import { eq, and, or, isNull, sql, desc, gte, lt, asc, type SQL } from "drizzle-orm";
 
 // ── Types ──

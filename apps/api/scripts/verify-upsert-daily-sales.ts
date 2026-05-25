@@ -1,4 +1,4 @@
-/**
+﻿/**
  * End-to-end verification of the upsertDailySales service.
  * Picks an unused future-but-valid date, inserts, edits, then deletes
  * the test row so the live DB returns to its original state.
@@ -18,7 +18,7 @@ import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 dotenv.config({ path: resolve(dirname(fileURLToPath(import.meta.url)), "../../../.env") });
 
-import { db } from "@apex/database";
+import { db } from "@jnj/database";
 import { sql } from "drizzle-orm";
 import {
   upsertDailySales,
@@ -27,7 +27,7 @@ import {
 
 const ORG_ID = "556e350a-7180-4ec9-9e1e-ea0ca1937f40";
 const TEST_DATE = "2026-04-11"; // today; no existing data per earlier checks
-const ADMIN_USER_ID = "7de24d98-556f-4a8e-a8ec-00802ff01580"; // admin@apex.com
+const ADMIN_USER_ID = "7de24d98-556f-4a8e-a8ec-00802ff01580"; // admin@jnj.com
 
 async function main() {
   console.log("=== upsertDailySales smoke test ===\n");

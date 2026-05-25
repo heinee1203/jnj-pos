@@ -1,4 +1,4 @@
-import { db } from "@apex/database";
+﻿import { db } from "@jnj/database";
 import {
   products,
   inventory,
@@ -6,9 +6,9 @@ import {
   productOptionValues,
   productOptionTypes,
   brands,
-} from "@apex/database/schema";
+} from "@jnj/database/schema";
 import { eq, and, sql, asc } from "drizzle-orm";
-import { generateEan13 } from "@apex/types";
+import { generateEan13 } from "@jnj/types";
 
 export interface VariantRow {
   id: string;

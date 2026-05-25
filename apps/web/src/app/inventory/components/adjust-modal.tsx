@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useMemo, useEffect } from "react";
 import {
@@ -6,7 +6,7 @@ import {
   POSITIVE_ONLY_REASON_CODES,
   NEGATIVE_ONLY_REASON_CODES,
   RESTRICTED_REASON_CODES,
-} from "@apex/types";
+} from "@jnj/types";
 import { useAdjustmentMutation, type AdjustmentMutationStatus } from "@/hooks/use-adjustment-mutation";
 import { useAuth } from "@/app/auth-context";
 import { ModalShell } from "./modal-shell";

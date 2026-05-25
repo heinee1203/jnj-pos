@@ -1,8 +1,8 @@
-import type { FastifyInstance } from "fastify";
-import { db } from "@apex/database";
-import { brands, categories, inventory, productFamilies, productSubcategories, products } from "@apex/database/schema";
+﻿import type { FastifyInstance } from "fastify";
+import { db } from "@jnj/database";
+import { brands, categories, inventory, productFamilies, productSubcategories, products } from "@jnj/database/schema";
 import { and, eq, inArray, sql } from "drizzle-orm";
-import { generateEan13, isValidBarcode, updateProductSchema, type VariantItem } from "@apex/types";
+import { generateEan13, isValidBarcode, updateProductSchema, type VariantItem } from "@jnj/types";
 
 import {
   buildVariantProductName,

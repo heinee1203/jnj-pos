@@ -1,11 +1,11 @@
-import { db } from "@apex/database";
-import { purchaseOrders } from "@apex/database/schema";
+﻿import { db } from "@jnj/database";
+import { purchaseOrders } from "@jnj/database/schema";
 import { eq, sql } from "drizzle-orm";
 import {
   isValidPOTransition,
   PROCUREMENT_ROLES,
   PurchaseOrderStatus,
-} from "@apex/types";
+} from "@jnj/types";
 
 function assertProcurementRole(userRole: string) {
   if (!PROCUREMENT_ROLES.includes(userRole as any)) {

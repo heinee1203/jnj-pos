@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Apply CM-3037 to SOA-2026-0148 for RT Montana.
  * Run: npx tsx apps/api/scripts/apply-cm3037-to-soa0148.ts
  */
@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 dotenv.config({ path: resolve(__dirname, "../../../.env") });
 
-import { db } from "@apex/database";
+import { db } from "@jnj/database";
 import { sql } from "drizzle-orm";
 
 async function main() {

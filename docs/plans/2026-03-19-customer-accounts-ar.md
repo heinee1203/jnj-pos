@@ -1,4 +1,4 @@
-# Customer Accounts & Accounts Receivable — Implementation Plan
+﻿# Customer Accounts & Accounts Receivable — Implementation Plan
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
@@ -221,7 +221,7 @@ CREATE INDEX IF NOT EXISTS "idx_ct_org_reference" ON "customer_transactions" ("o
 **Step 5: Run migration**
 
 ```bash
-cd C:/Users/Admin/Downloads/CLAUDE/APEX_POS && pnpm db:generate
+cd C:/Users/Admin/Downloads/CLAUDE/JNJ_POS && pnpm db:generate
 ```
 
 Then verify the generated SQL matches expectations. If Drizzle generate creates a separate migration, that's fine — use it instead of the hand-written one. Then:
@@ -466,8 +466,8 @@ Replace the existing `routes.ts` with the full CRUD + AR endpoints. Keep the exi
 
 **Route structure pattern** (follow existing sales/routes.ts):
 ```typescript
-import { AR_ROLES } from "@apex/types";
-import { createCustomerSchema, updateCustomerSchema, recordPaymentSchema, customerAdjustmentSchema } from "@apex/types";
+import { AR_ROLES } from "@JNJ/types";
+import { createCustomerSchema, updateCustomerSchema, recordPaymentSchema, customerAdjustmentSchema } from "@JNJ/types";
 import { listCustomers, getCustomer, createCustomer, updateCustomer, softDeleteCustomer, recordPayment, recordAdjustment, listTransactions } from "./service";
 
 function assertArRole(role: string) {
@@ -626,7 +626,7 @@ class CreditLimitError extends Error {
 **Step 3: Verify existing tests still pass**
 
 ```bash
-cd C:/Users/Admin/Downloads/CLAUDE/APEX_POS && pnpm build
+cd C:/Users/Admin/Downloads/CLAUDE/JNJ_POS && pnpm build
 ```
 
 **Step 4: Commit**
@@ -863,7 +863,7 @@ In `globals.css`, add:
 **Step 2: SOA print layout**
 
 In the Statement tab, wrap SOA content in a `print-soa-container` div. Format:
-- Company header (from org settings if available, else "APEX AUTO PARTS")
+- Company header (from org settings if available, else "JNJ Trading")
 - "Statement of Account" title
 - Customer name, address, date range, terms
 - Transaction table with Debit/Credit/Balance columns
@@ -908,7 +908,7 @@ This group should already exist in the sidebar (the exploration showed it with "
 **Step 2: Verify navigation works**
 
 ```bash
-cd C:/Users/Admin/Downloads/CLAUDE/APEX_POS && pnpm dev
+cd C:/Users/Admin/Downloads/CLAUDE/JNJ_POS && pnpm dev
 ```
 
 Navigate to `/customers` and `/customers/reports/aging` in the browser.
@@ -927,7 +927,7 @@ git commit -m "feat(web): update sidebar nav with AR Aging Report under Customer
 **Step 1: Build check**
 
 ```bash
-cd C:/Users/Admin/Downloads/CLAUDE/APEX_POS && pnpm build
+cd C:/Users/Admin/Downloads/CLAUDE/JNJ_POS && pnpm build
 ```
 
 Fix any TypeScript errors.

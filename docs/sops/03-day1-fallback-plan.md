@@ -1,4 +1,4 @@
-# APEX POS — Day 1 Fallback Plan
+﻿# JNJ POS — Day 1 Fallback Plan
 
 **Document:** SOP-FALLBACK-001
 **Version:** 1.0
@@ -9,9 +9,9 @@
 
 ## Purpose
 
-This document is the **emergency protocol** for Cashiers, Service Advisors, and Warehouse Staff if the APEX POS system becomes unavailable on Day 1 (or any day during the Hypercare period). Print this document and keep one copy at **every POS terminal and service desk**.
+This document is the **emergency protocol** for Cashiers, Service Advisors, and Warehouse Staff if the JNJ POS system becomes unavailable on Day 1 (or any day during the Hypercare period). Print this document and keep one copy at **every POS terminal and service desk**.
 
-**This is NOT a permanent procedure.** It is a temporary fallback to keep the business operating while IT resolves the system issue. All paper slips must be entered into APEX POS as soon as the system is restored.
+**This is NOT a permanent procedure.** It is a temporary fallback to keep the business operating while IT resolves the system issue. All paper slips must be entered into JNJ POS as soon as the system is restored.
 
 ---
 
@@ -22,7 +22,7 @@ Activate this fallback plan if **any** of the following occur:
 | Trigger | What You'll See |
 |---------|----------------|
 | **Network outage** | Browser shows "Unable to connect" or "ERR_CONNECTION_REFUSED" |
-| **Server crash** | APEX POS shows a blank/white screen or "500 Internal Server Error" |
+| **Server crash** | JNJ POS shows a blank/white screen or "500 Internal Server Error" |
 | **Login failure** | Cannot log in despite correct credentials (system-wide, not user error) |
 | **Extreme slowness** | Pages take >30 seconds to load, transactions time out |
 | **Database error** | Error messages mentioning "database", "connection", or "timeout" |
@@ -36,7 +36,7 @@ Activate this fallback plan if **any** of the following occur:
 | Action | How |
 |--------|-----|
 | **Call the on-duty Manager** | Phone: _______________________ |
-| **State clearly:** | "APEX POS is down. I am switching to paper fallback." |
+| **State clearly:** | "JNJ POS is down. I am switching to paper fallback." |
 | **Manager will:** | Contact IT Admin and confirm fallback activation for all staff |
 
 > **Do not wait** for permission to start writing paper slips if customers are at the counter. Begin immediately and notify management as soon as practical.
@@ -51,7 +51,7 @@ Use the **SALE SLIP** template below. One slip per transaction.
 
 ```
 ┌─────────────────────────────────────────────────┐
-│              APEX POS — MANUAL SALE SLIP         │
+│              JNJ POS — MANUAL SALE SLIP         │
 │                                                  │
 │  Date: ___/___/______    Time: ___:___ AM / PM   │
 │                                                  │
@@ -106,7 +106,7 @@ Use the **JOB CARD SLIP** template below. One slip per vehicle.
 
 ```
 ┌─────────────────────────────────────────────────┐
-│            APEX POS — MANUAL JOB CARD SLIP       │
+│            JNJ POS — MANUAL JOB CARD SLIP       │
 │                                                  │
 │  Date: ___/___/______    Time: ___:___ AM / PM   │
 │                                                  │
@@ -177,7 +177,7 @@ Use the **RECEIVING SLIP** template below. One slip per delivery.
 
 ```
 ┌─────────────────────────────────────────────────┐
-│          APEX POS — MANUAL RECEIVING SLIP        │
+│          JNJ POS — MANUAL RECEIVING SLIP        │
 │                                                  │
 │  Date: ___/___/______    Time: ___:___ AM / PM   │
 │                                                  │
@@ -208,7 +208,7 @@ Use the **RECEIVING SLIP** template below. One slip per delivery.
 │  ____________________________________________    │
 │                                                  │
 │  DO NOT shelve goods until this slip is entered   │
-│  into APEX POS and stock levels are confirmed.   │
+│  into JNJ POS and stock levels are confirmed.   │
 │                                                  │
 │  Slip #: _____  (sequential, start from R-001)   │
 │                                                  │
@@ -240,7 +240,7 @@ Use the **RECEIVING SLIP** template below. One slip per delivery.
 
 > **This section is for MANAGERS only.** Do not allow Cashiers to self-enter their own slips (separation of duties).
 
-When APEX POS is restored:
+When JNJ POS is restored:
 
 | # | Action | Owner | Done |
 |---|--------|-------|------|
@@ -251,7 +251,7 @@ When APEX POS is restored:
 | 4.5 | Enter **Receiving slips first** (stock must exist before sales can deduct) | Manager | ☐ |
 | 4.6 | Enter **Sale slips** in chronological order — match products by SKU, attach customer/vehicle if noted | Manager / Cashier (supervised) | ☐ |
 | 4.7 | Enter **Job Card slips** — create job cards, add labor lines, add part lines, issue parts, invoice | Manager | ☐ |
-| 4.8 | **Cross-check:** Compare paper slip totals vs. APEX transaction totals | Manager | ☐ |
+| 4.8 | **Cross-check:** Compare paper slip totals vs. JNJ transaction totals | Manager | ☐ |
 | 4.9 | File all paper slips in a dated envelope: "Fallback Period: ___/___/___ to ___/___/___" | Manager | ☐ |
 | 4.10 | Store envelope in safe/lockbox for minimum **90 days** (audit trail) | Manager | ☐ |
 
@@ -273,7 +273,7 @@ Entering sales before receiving can cause "Insufficient Stock" errors.
 
 ```
 ┌─────────────────────────────────────────────┐
-│          APEX POS — SYSTEM DOWN?            │
+│          JNJ POS — SYSTEM DOWN?            │
 │                                             │
 │  1. CALL MANAGER: ______________________   │
 │                                             │

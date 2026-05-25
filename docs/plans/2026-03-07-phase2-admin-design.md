@@ -1,4 +1,4 @@
-# Phase 2: Enterprise Guardrails + Desktop Admin — Approved Design
+﻿# Phase 2: Enterprise Guardrails + Desktop Admin — Approved Design
 
 **Date:** 2026-03-07
 **Status:** Approved (with ERP Consultant hardening + idempotency guardrail)
@@ -81,7 +81,7 @@ New Zod schemas for journal entries, product families, vehicle compatibility
 
 ## Frontend: Next.js Admin Shell
 
-Stack: Next.js 15 (App Router), Tailwind CSS v4, ShadcnUI, @apex/types
+Stack: Next.js 15 (App Router), Tailwind CSS v4, ShadcnUI, @JNJ/types
 
 Layout: Sidebar nav + top bar + right-side detail drawer
 Inventory page: Two tabs (Quick Search / Full Inventory), shared useInventorySearch() hook

@@ -1,4 +1,4 @@
-# Item List Import/Export + PO CSV Template Download
+﻿# Item List Import/Export + PO CSV Template Download
 
 **Date:** 2026-03-18
 **Status:** Approved
@@ -12,7 +12,7 @@ Pure client-side CSV generation. Two modes:
 
 CSV columns: Name, SKU, Barcode, OEM Number, Family, Category, Sub-category, Brand, Sell Price, Cost Price, Margin %, Stock, Reorder Point, Variable Price, Active
 
-File naming: `apex-items-YYYY-MM-DD.csv` with UTF-8 BOM for Excel compatibility.
+File naming: `JNJ-items-YYYY-MM-DD.csv` with UTF-8 BOM for Excel compatibility.
 
 Bulk-selection Export button exports only selected items.
 

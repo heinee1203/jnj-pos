@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Remove Q3039 from Diarcco CORP and recalculate.
  * Run: npx tsx apps/api/scripts/remove-diarcco-q3039.ts
  */
@@ -9,8 +9,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 dotenv.config({ path: resolve(__dirname, "../../../.env") });
 
-import { db } from "@apex/database";
-import { customers, customerTransactions } from "@apex/database/schema";
+import { db } from "@jnj/database";
+import { customers, customerTransactions } from "@jnj/database/schema";
 import { eq, asc, sql } from "drizzle-orm";
 
 const CUSTOMER_ID = "f9dde83a-4a75-4b1d-92f2-da6a92035c04";

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Undo wrong Q0370/Q0378 inserts on Cabral, Alfredo Jr and recalc.
  */
 import { resolve, dirname } from "path";
@@ -8,8 +8,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 dotenv.config({ path: resolve(__dirname, "../../../.env") });
 
-import { db } from "@apex/database";
-import { customers, customerTransactions } from "@apex/database/schema";
+import { db } from "@jnj/database";
+import { customers, customerTransactions } from "@jnj/database/schema";
 import { eq, asc, sql } from "drizzle-orm";
 
 const WRONG_CUSTOMER_ID = "21604e6f-1275-4187-86fe-571044f2774d";

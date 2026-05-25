@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useAuth } from '@/hooks/use-auth';
 import { usePosPermission } from '@/hooks/use-pos-permission';
@@ -39,7 +39,7 @@ export default function ManagerAuditScreen() {
   const supportWarnings = getSupportLogs().filter(log => log.level !== 'info');
 
   const copyText = [
-    'APEX POS MANAGER AUDIT',
+    'JNJ POS MANAGER AUDIT',
     `Generated: ${new Date().toLocaleString('en-PH')}`,
     `User: ${user?.fullName || user?.email || 'Unknown'}`,
     '',

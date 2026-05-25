@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ZPL label templates for CBROS Auto Parts shelf/barcode labels.
  * All physical positions are expressed in millimeters and converted by
  * ZplBuilder using the label's dpmm setting.
@@ -399,7 +399,7 @@ export function buildShelfLabelPreviewModel(
   const cfg = config ?? LABEL_50x30;
   const sizeId = getShelfLabelSizeId(cfg);
   const layout = LAYOUTS[sizeId];
-  const itemName = normalizeLabelText(data.itemName || "APEX POS ITEM")
+  const itemName = normalizeLabelText(data.itemName || "JNJ POS ITEM")
     .toUpperCase()
     .slice(0, 96);
   const barcodeData = normalizeBarcodeValue(data.barcodeData);

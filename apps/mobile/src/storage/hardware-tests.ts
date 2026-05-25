@@ -1,4 +1,4 @@
-import { getJSON, setJSON, storage } from '@/storage/mmkv';
+﻿import { getJSON, setJSON, storage } from '@/storage/mmkv';
 import { KEYS } from '@/storage/keys';
 import { getDeviceBinding } from '@/config/device-binding';
 import { APP_BUILD_DATE, APP_VERSION } from '@/config/app-version';
@@ -60,7 +60,7 @@ function createId(): string {
 function getStoredDeviceId(): string {
   const existing = storage.getString(KEYS.DEVICE_ID);
   if (existing) return existing;
-  const next = `apex-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+  const next = `JNJ-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
   storage.set(KEYS.DEVICE_ID, next);
   return next;
 }

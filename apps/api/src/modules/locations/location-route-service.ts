@@ -1,6 +1,6 @@
-import { db } from "@apex/database";
-import { locations } from "@apex/database/schema";
-import type { CreateLocationInput, UpdateLocationInput } from "@apex/types";
+﻿import { db } from "@jnj/database";
+import { locations } from "@jnj/database/schema";
+import type { CreateLocationInput, UpdateLocationInput } from "@jnj/types";
 import { and, eq } from "drizzle-orm";
 
 function buildLocationByOrgWhere(id: string, orgId: string) {

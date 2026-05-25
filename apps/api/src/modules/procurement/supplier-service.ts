@@ -1,5 +1,5 @@
-import { db } from "@apex/database";
-import { purchaseOrders, suppliers } from "@apex/database/schema";
+﻿import { db } from "@jnj/database";
+import { purchaseOrders, suppliers } from "@jnj/database/schema";
 import { and, asc, eq, sql } from "drizzle-orm";
 
 export async function listSuppliers(orgId: string) {

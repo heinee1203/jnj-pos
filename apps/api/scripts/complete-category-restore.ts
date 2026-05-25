@@ -1,5 +1,5 @@
-/**
- * Complete category/subcategory/brand restoration from APEX + Loyverse CSVs.
+﻿/**
+ * Complete category/subcategory/brand restoration from JNJ + Loyverse CSVs.
  *
  * DRY RUN: npx tsx apps/api/scripts/complete-category-restore.ts
  * APPLY:   npx tsx apps/api/scripts/complete-category-restore.ts --apply
@@ -13,12 +13,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 dotenv.config({ path: resolve(__dirname, "../../../.env") });
 
-import { db } from "@apex/database";
-import { products, categories, brands, productSubcategories } from "@apex/database/schema";
+import { db } from "@jnj/database";
+import { products, categories, brands, productSubcategories } from "@jnj/database/schema";
 import { eq, and, isNull, sql } from "drizzle-orm";
 
 const ORG_ID = "556e350a-7180-4ec9-9e1e-ea0ca1937f40";
-const APEX_CSV = "C:\\Users\\Admin\\Downloads\\apex-items-2026-04-09.csv";
+const JNJ_CSV = "C:\\Users\\Admin\\Downloads\\JNJ-items-2026-04-09.csv";
 const LOYVERSE_CSV = "C:\\Users\\Admin\\Downloads\\export_items (67).csv";
 const APPLY = process.argv.includes("--apply");
 
@@ -98,14 +98,14 @@ async function main() {
   const productBySku = new Map(allProducts.map(p => [p.sku.toLowerCase(), p]));
   console.log(`DB products: ${allProducts.length}`);
 
-  // Parse APEX CSV
-  const apexRows = parseCSV(fs.readFileSync(APEX_CSV, "utf8"));
+  // Parse JNJ CSV
+  const apexRows = parseCSV(fs.readFileSync(JNJ_CSV, "utf8"));
   const apexHeaders = apexRows[0].map(h => h.trim().toLowerCase());
   const aSkuIdx = apexHeaders.indexOf("sku");
   const aCatIdx = apexHeaders.indexOf("category");
   const aSubIdx = apexHeaders.indexOf("sub-category");
   const aBrandIdx = apexHeaders.indexOf("brand");
-  console.log(`APEX CSV: ${apexRows.length - 1} rows, SKU=${aSkuIdx} Cat=${aCatIdx} Sub=${aSubIdx} Brand=${aBrandIdx}`);
+  console.log(`JNJ CSV: ${apexRows.length - 1} rows, SKU=${aSkuIdx} Cat=${aCatIdx} Sub=${aSubIdx} Brand=${aBrandIdx}`);
 
   // Parse Loyverse CSV
   const loyRows = parseCSV(fs.readFileSync(LOYVERSE_CSV, "utf8"));
@@ -120,7 +120,7 @@ async function main() {
   }
   console.log(`Loyverse CSV: ${loyRows.length - 1} rows, SKU→Cat: ${loySkuToCat.size}`);
 
-  // Build confirmed Loyverse→Curated mapping from APEX export cross-ref
+  // Build confirmed Loyverse→Curated mapping from JNJ export cross-ref
   const confirmedMapping = new Map<string, string>(); // loyverseCat → curatedCatId
   for (let i = 1; i < apexRows.length; i++) {
     const sku = apexRows[i][aSkuIdx]?.trim();
@@ -140,8 +140,8 @@ async function main() {
   let pass3Cat = 0;
   const updates = new Map<string, { categoryId?: string; brandId?: string; subcategoryId?: string }>();
 
-  // === PASS 1: Direct from APEX export ===
-  console.log("\n--- Pass 1: APEX export direct ---");
+  // === PASS 1: Direct from JNJ export ===
+  console.log("\n--- Pass 1: JNJ export direct ---");
   for (let i = 1; i < apexRows.length; i++) {
     const sku = apexRows[i][aSkuIdx]?.trim();
     if (!sku) continue;

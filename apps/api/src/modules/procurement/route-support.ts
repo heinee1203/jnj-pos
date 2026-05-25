@@ -1,4 +1,4 @@
-import { PROCUREMENT_ROLES } from "@apex/types";
+﻿import { PROCUREMENT_ROLES } from "@jnj/types";
 
 export function assertProcurementRole(role: string) {
   if (!PROCUREMENT_ROLES.includes(role as any)) {

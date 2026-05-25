@@ -1,4 +1,4 @@
-/**
+﻿/**
  * One-off: replay the settlement work for orphan DVs DV-2026-000026 and
  * DV-2026-000027.
  *
@@ -23,7 +23,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 dotenv.config({ path: resolve(__dirname, "../../../.env") });
 
-import { db } from "@apex/database";
+import { db } from "@jnj/database";
 import { sql } from "drizzle-orm";
 import { replayConfirmForOrphan } from "../src/modules/accounts-payable/service";
 

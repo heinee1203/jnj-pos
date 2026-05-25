@@ -1,5 +1,5 @@
-import type { FastifyInstance } from "fastify";
-import { createBrandSchema, updateBrandSchema } from "@apex/types";
+﻿import type { FastifyInstance } from "fastify";
+import { createBrandSchema, updateBrandSchema } from "@jnj/types";
 import {
   createBrand,
   deleteBrand,

@@ -1,5 +1,5 @@
-import type { FastifyRequest, FastifyReply } from "fastify";
-import type { StoreContext } from "@apex/types";
+﻿import type { FastifyRequest, FastifyReply } from "fastify";
+import type { StoreContext } from "@jnj/types";
 
 function userPermissions(request: FastifyRequest): string[] {
   return (request.user as any)?.permissions ?? [];

@@ -1,4 +1,4 @@
-# Android POS App — Implementation Plan
+﻿# Android POS App — Implementation Plan
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
@@ -22,7 +22,7 @@
 **Step 1: Create React Native project**
 
 ```bash
-cd C:/Users/Admin/Downloads/CLAUDE/APEX_POS
+cd C:/Users/Admin/Downloads/CLAUDE/JNJ_POS
 npx @react-native-community/cli init ApexPOS --directory apps/mobile --pm npm
 ```
 
@@ -41,7 +41,7 @@ Already includes `apps/*` — no change needed.
 Create `apps/mobile/package.json` name field:
 ```json
 {
-  "name": "@apex/mobile"
+  "name": "@JNJ/mobile"
 }
 ```
 
@@ -62,7 +62,7 @@ Create `apps/mobile/tsconfig.json`:
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
-      "@apex/types": ["../../packages/types/src"]
+      "@JNJ/types": ["../../packages/types/src"]
     },
     "strict": true,
     "noEmit": true
@@ -174,11 +174,11 @@ Create `apps/mobile/src/storage/mmkv.ts`:
 ```typescript
 import { MMKV } from 'react-native-mmkv';
 
-export const storage = new MMKV({ id: 'apex-pos' });
+export const storage = new MMKV({ id: 'jnj-pos' });
 
 export const secureStorage = new MMKV({
-  id: 'apex-pos-secure',
-  encryptionKey: 'apex-device-key', // TODO: derive from device keystore in production
+  id: 'jnj-pos-secure',
+  encryptionKey: 'JNJ-device-key', // TODO: derive from device keystore in production
 });
 
 export function getJSON<T>(store: MMKV, key: string): T | null {
@@ -772,8 +772,8 @@ git commit -m "feat(mobile): add WatermelonDB schema with Product, Inventory, Re
 
 Create `apps/api/src/modules/sync/service.ts`:
 ```typescript
-import { db } from "@apex/database";
-import { products, inventory } from "@apex/database/schema";
+import { db } from "@JNJ/database";
+import { products, inventory } from "@JNJ/database/schema";
 import { and, eq, gt, sql } from "drizzle-orm";
 
 interface SyncOpts {
@@ -1882,7 +1882,7 @@ export class BluetoothPrinterAdapter implements PrinterProvider {
 
   async printTestPage(): Promise<PrintResult> {
     return this.printReceipt({
-      header: { storeName: 'APEX AUTO PARTS', address: 'Test Print' },
+      header: { storeName: 'JNJ Trading', address: 'Test Print' },
       transaction: {
         receiptNumber: 'TEST-001',
         date: new Date().toLocaleString(),

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Fix invalid store names in historical_sales:
  * - April 1-9, 2026: DELETE (duplicates of entries already under correct names)
  * - Other dates: REMAP to correct store names
@@ -12,7 +12,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 dotenv.config({ path: resolve(__dirname, "../../../.env") });
 
-import { db } from "@apex/database";
+import { db } from "@jnj/database";
 import { sql } from "drizzle-orm";
 
 const REMAP: Record<string, string> = {

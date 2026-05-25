@@ -1,5 +1,5 @@
-import type { FastifyInstance } from "fastify";
-import { createCustomerSchema } from "@apex/types";
+﻿import type { FastifyInstance } from "fastify";
+import { createCustomerSchema } from "@jnj/types";
 import { createCustomer, listCustomers } from "./customer-collection-service";
 import { assertAdmin, assertArRole } from "./route-support";
 import {

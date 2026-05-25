@@ -1,5 +1,5 @@
 {
-  "name": "@apex/web",
+  "name": "@jnj/web",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -11,7 +11,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@apex/types": "workspace:*",
+    "@jnj/types": "workspace:*",
     "@tanstack/react-query": "^5.90.21",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

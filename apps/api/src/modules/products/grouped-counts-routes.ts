@@ -1,5 +1,5 @@
-import type { FastifyInstance } from "fastify";
-import { db } from "@apex/database";
+﻿import type { FastifyInstance } from "fastify";
+import { db } from "@jnj/database";
 import { sql } from "drizzle-orm";
 
 export function registerProductGroupedCountRoutes(app: FastifyInstance) {

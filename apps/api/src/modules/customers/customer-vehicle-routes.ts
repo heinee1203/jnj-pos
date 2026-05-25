@@ -1,5 +1,5 @@
-import type { FastifyInstance } from "fastify";
-import { createCustomerVehicleSchema } from "@apex/types";
+﻿import type { FastifyInstance } from "fastify";
+import { createCustomerVehicleSchema } from "@jnj/types";
 import {
   createCustomerVehicle,
   listCustomerVehicles,

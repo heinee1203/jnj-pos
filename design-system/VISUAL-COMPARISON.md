@@ -3,7 +3,7 @@
 ## Test Environment
 - **Emulator**: sdk_gphone64_x86_64, 2560x1600 tablet
 - **Android API**: 34 (Android 14)
-- **App package**: com.cbros.apexpos
+- **App package**: com.jnj.pos
 - **Store**: C Autoparts (RETAIL STORE)
 - **Date**: April 12, 2026
 - **Theme**: Manually toggled from Light to **Dark** via Settings > Appearance

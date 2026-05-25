@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
@@ -31,7 +31,7 @@ export default function LoginPage() {
       await login(email, password);
       // After login, check session for role to determine redirect
       try {
-        const stored = sessionStorage.getItem("apex-dev-auth");
+        const stored = sessionStorage.getItem("JNJ-dev-auth");
         const parsed = stored ? JSON.parse(stored) : null;
         router.replace(getRedirectPath(parsed?.user?.role));
       } catch {

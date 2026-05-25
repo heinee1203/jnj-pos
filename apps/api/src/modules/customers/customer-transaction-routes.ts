@@ -1,5 +1,5 @@
-import type { FastifyInstance } from "fastify";
-import { customerAdjustmentSchema, recordPaymentSchema } from "@apex/types";
+﻿import type { FastifyInstance } from "fastify";
+import { customerAdjustmentSchema, recordPaymentSchema } from "@jnj/types";
 import {
   deleteTransaction,
   editTransactionAmount,

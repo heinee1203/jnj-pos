@@ -1,4 +1,4 @@
-import { db } from "@apex/database";
+﻿import { db } from "@jnj/database";
 import {
   inventory,
   products,
@@ -6,7 +6,7 @@ import {
   categories,
   locations,
   stockMetrics,
-} from "@apex/database/schema";
+} from "@jnj/database/schema";
 import {
   eq,
   and,

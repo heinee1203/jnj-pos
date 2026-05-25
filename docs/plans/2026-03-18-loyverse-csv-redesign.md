@@ -1,4 +1,4 @@
-# Loyverse-Style Per-Location CSV Import/Export Implementation Plan
+﻿# Loyverse-Style Per-Location CSV Import/Export Implementation Plan
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
@@ -38,7 +38,7 @@ Note: `createProductSchema` already has `description` on line 119.
 **Step 3: Generate and run migration**
 
 ```bash
-cd C:/Users/Admin/Downloads/CLAUDE/APEX_POS
+cd C:/Users/Admin/Downloads/CLAUDE/JNJ_POS
 pnpm db:generate
 pnpm db:migrate
 ```
@@ -70,13 +70,13 @@ git commit -m "feat(schema): add description column to products table"
 **Files:**
 - Modify: `apps/api/src/modules/products/routes.ts` (add import for `locations` table, add new route before `/import`)
 
-**Context:** The products routes file is 2160 lines. All routes are inside `export const productRoutes: FastifyPluginAsync = async (app) => { ... }` which closes at line 1750. The import route `app.post("/import", ...)` starts at line 1595. Add the new export route BEFORE the import route. Also add `locations` to the import from `@apex/database/schema` on line 3.
+**Context:** The products routes file is 2160 lines. All routes are inside `export const productRoutes: FastifyPluginAsync = async (app) => { ... }` which closes at line 1750. The import route `app.post("/import", ...)` starts at line 1595. Add the new export route BEFORE the import route. Also add `locations` to the import from `@JNJ/database/schema` on line 3.
 
 **Step 1: Add `locations` to schema import**
 
 Line 3, add `locations` to the destructured import:
 ```typescript
-import { products, inventory, productFamilies, vehicleCompatibility, categories, productSubcategories, brands, locations } from "@apex/database/schema";
+import { products, inventory, productFamilies, vehicleCompatibility, categories, productSubcategories, brands, locations } from "@JNJ/database/schema";
 ```
 
 **Step 2: Add the export route**
@@ -231,7 +231,7 @@ Insert before line 1595 (`app.post("/import", ...)`):
 **Step 3: Verify**
 
 ```bash
-cd C:/Users/Admin/Downloads/CLAUDE/APEX_POS/apps/api && npx tsc --noEmit 2>&1 | grep -v stock-levels | grep -v procurement
+cd C:/Users/Admin/Downloads/CLAUDE/JNJ_POS/apps/api && npx tsc --noEmit 2>&1 | grep -v stock-levels | grep -v procurement
 ```
 
 **Step 4: Commit**
@@ -354,13 +354,13 @@ Also add `description` to the product create and update value objects:
 **Step 3: Rebuild types package**
 
 ```bash
-cd C:/Users/Admin/Downloads/CLAUDE/APEX_POS/packages/types && pnpm build
+cd C:/Users/Admin/Downloads/CLAUDE/JNJ_POS/packages/types && pnpm build
 ```
 
 **Step 4: Verify**
 
 ```bash
-cd C:/Users/Admin/Downloads/CLAUDE/APEX_POS/apps/api && npx tsc --noEmit 2>&1 | grep -v stock-levels | grep -v procurement
+cd C:/Users/Admin/Downloads/CLAUDE/JNJ_POS/apps/api && npx tsc --noEmit 2>&1 | grep -v stock-levels | grep -v procurement
 ```
 
 **Step 5: Commit**
@@ -540,7 +540,7 @@ The old `buildCSV` used `getMarginPercent`. The new one doesn't include Margin %
 **Step 7: Verify and commit**
 
 ```bash
-cd C:/Users/Admin/Downloads/CLAUDE/APEX_POS/apps/web && npx next build 2>&1 | tail -10
+cd C:/Users/Admin/Downloads/CLAUDE/JNJ_POS/apps/web && npx next build 2>&1 | tail -10
 git add apps/web/src/app/inventory/page.tsx
 git commit -m "feat(inventory): rewrite CSV export with per-location columns"
 ```
@@ -587,7 +587,7 @@ Replace the existing `handleDownloadTemplate` (lines 263-276) with:
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "apex-item-import-template.csv";
+    a.download = "JNJ-item-import-template.csv";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -726,7 +726,7 @@ After the stats badges, add:
 **Step 6: Verify and commit**
 
 ```bash
-cd C:/Users/Admin/Downloads/CLAUDE/APEX_POS/apps/web && npx next build 2>&1 | tail -10
+cd C:/Users/Admin/Downloads/CLAUDE/JNJ_POS/apps/web && npx next build 2>&1 | tail -10
 git add apps/web/src/app/inventory/page.tsx
 git commit -m "feat(inventory): rewrite import template and parser for per-location columns"
 ```
@@ -738,7 +738,7 @@ git commit -m "feat(inventory): rewrite import template and parser for per-locat
 **Step 1: Full builds**
 
 ```bash
-cd C:/Users/Admin/Downloads/CLAUDE/APEX_POS
+cd C:/Users/Admin/Downloads/CLAUDE/JNJ_POS
 cd packages/database && pnpm build
 cd ../types && pnpm build
 cd ../../apps/web && npx next build 2>&1 | tail -10
@@ -749,7 +749,7 @@ cd ../api && npx tsc --noEmit 2>&1 | grep -v stock-levels | grep -v procurement
 
 ```bash
 # Get token
-TOKEN=$(curl -s -X POST http://localhost:3000/auth/login -H 'Content-Type: application/json' -d '{"email":"admin@apex.com","password":"admin12345"}' | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>console.log(JSON.parse(d).token))")
+TOKEN=$(curl -s -X POST http://localhost:3000/auth/login -H 'Content-Type: application/json' -d '{"email":"admin@jnj.com","password":"admin12345"}' | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>console.log(JSON.parse(d).token))")
 
 # Get a location ID
 curl -s http://localhost:3000/locations -H "Authorization: Bearer $TOKEN" | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{const r=JSON.parse(d);console.log(r.data[0].id, r.data[0].name)})"

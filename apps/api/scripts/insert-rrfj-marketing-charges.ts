@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Insert 9 backdated CHARGE rows for RRFJ Marketing (AR-0010).
  *
  * Existing: 9 transactions from 2026-01-02 onward, balance ₱15,810.
@@ -14,7 +14,7 @@ import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 dotenv.config({ path: resolve(dirname(fileURLToPath(import.meta.url)), "../../../.env") });
 
-import { db } from "@apex/database";
+import { db } from "@jnj/database";
 import { sql } from "drizzle-orm";
 
 const APPLY = process.argv.includes("--apply");
@@ -45,7 +45,7 @@ async function main() {
   const [pre] = (await db.execute(sql`SELECT COUNT(*)::int AS n FROM customer_transactions WHERE customer_id = ${CUSTOMER_ID} AND recorded_at <= '2026-01-01'::timestamptz`)) as any[];
   if (pre.n > 0) { console.error(`ABORT: ${pre.n} pre-2026 transactions exist`); process.exit(1); }
 
-  const [admin] = (await db.execute(sql`SELECT id FROM users WHERE email = 'admin@apex.com' LIMIT 1`)) as any[];
+  const [admin] = (await db.execute(sql`SELECT id FROM users WHERE email = 'admin@jnj.com' LIMIT 1`)) as any[];
   if (!admin) { console.error("ABORT: admin not found"); process.exit(1); }
 
   const [cust] = (await db.execute(sql`SELECT current_balance::text FROM customers WHERE id = ${CUSTOMER_ID}`)) as any[];

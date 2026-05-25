@@ -1,4 +1,4 @@
-# Product Taxonomy & Variant System Implementation Plan
+﻿# Product Taxonomy & Variant System Implementation Plan
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
@@ -43,7 +43,7 @@ index("idx_categories_family_id").on(table.familyId),
 
 **Step 2: Verify TypeScript compiles**
 
-Run: `cd /c/Users/Admin/Downloads/CLAUDE/APEX_POS && npx tsc --noEmit -p packages/database/tsconfig.json`
+Run: `cd /c/Users/Admin/Downloads/CLAUDE/JNJ_POS && npx tsc --noEmit -p packages/database/tsconfig.json`
 Expected: No errors
 
 ---
@@ -112,7 +112,7 @@ export * from "./product-subcategories";
 
 **Step 3: Verify TypeScript compiles**
 
-Run: `cd /c/Users/Admin/Downloads/CLAUDE/APEX_POS && npx tsc --noEmit -p packages/database/tsconfig.json`
+Run: `cd /c/Users/Admin/Downloads/CLAUDE/JNJ_POS && npx tsc --noEmit -p packages/database/tsconfig.json`
 
 ---
 
@@ -136,7 +136,7 @@ index("idx_products_subcategory_id").on(table.subcategoryId),
 
 **Step 2: Verify TypeScript compiles**
 
-Run: `cd /c/Users/Admin/Downloads/CLAUDE/APEX_POS && npx tsc --noEmit -p packages/database/tsconfig.json`
+Run: `cd /c/Users/Admin/Downloads/CLAUDE/JNJ_POS && npx tsc --noEmit -p packages/database/tsconfig.json`
 
 ---
 
@@ -366,20 +366,20 @@ CREATE INDEX IF NOT EXISTS idx_variant_options_value_id
 -- Apply updated_at trigger to new tables
 CREATE TRIGGER trg_product_subcategories_updated_at
   BEFORE UPDATE ON product_subcategories
-  FOR EACH ROW EXECUTE FUNCTION apex_update_timestamp();
+  FOR EACH ROW EXECUTE FUNCTION JNJ_update_timestamp();
 ```
 
 **Step 2: Run migration**
 
-Run: `cd /c/Users/Admin/Downloads/CLAUDE/APEX_POS && pnpm db:migrate`
+Run: `cd /c/Users/Admin/Downloads/CLAUDE/JNJ_POS && pnpm db:migrate`
 Expected: Migration applies cleanly, no errors.
 
 **Step 3: Verify tables exist**
 
-Run: `docker exec apex-postgres psql -U apex -d apex_dev -c "\dt product_*"`
+Run: `docker exec jnj-postgres psql -U JNJ -d jnj_dev -c "\dt product_*"`
 Expected: Tables `product_subcategories`, `product_option_types`, `product_option_values`, `product_variant_options` listed.
 
-Run: `docker exec apex-postgres psql -U apex -d apex_dev -c "\d products" | grep -E "parent_product_id|is_parent|subcategory_id"`
+Run: `docker exec jnj-postgres psql -U JNJ -d jnj_dev -c "\d products" | grep -E "parent_product_id|is_parent|subcategory_id"`
 Expected: All three columns visible.
 
 **Step 4: Commit**
@@ -464,7 +464,7 @@ export type CreateVariantBatchInput = z.infer<typeof createVariantBatchSchema>;
 
 **Step 2: Verify compile**
 
-Run: `cd /c/Users/Admin/Downloads/CLAUDE/APEX_POS && npx tsc --noEmit -p packages/types/tsconfig.json`
+Run: `cd /c/Users/Admin/Downloads/CLAUDE/JNJ_POS && npx tsc --noEmit -p packages/types/tsconfig.json`
 
 **Step 3: Commit**
 
@@ -487,10 +487,10 @@ git commit -m "feat(types): add Zod schemas for subcategories, option types, and
 File: `apps/api/src/modules/subcategories/service.ts`
 
 ```typescript
-import { db } from "@apex/database";
-import { productSubcategories, products } from "@apex/database/schema";
+import { db } from "@JNJ/database";
+import { productSubcategories, products } from "@JNJ/database/schema";
 import { eq, and, sql, type SQL } from "drizzle-orm";
-import type { CreateSubcategoryInput, UpdateSubcategoryInput } from "@apex/types";
+import type { CreateSubcategoryInput, UpdateSubcategoryInput } from "@JNJ/types";
 
 export interface SubcategoryRow {
   id: string;
@@ -672,7 +672,7 @@ File: `apps/api/src/modules/subcategories/routes.ts`
 
 ```typescript
 import type { FastifyPluginAsync } from "fastify";
-import { createSubcategorySchema, updateSubcategorySchema } from "@apex/types";
+import { createSubcategorySchema, updateSubcategorySchema } from "@JNJ/types";
 import {
   listSubcategories,
   createSubcategory,
@@ -759,7 +759,7 @@ In `apps/api/src/app.ts`:
 
 **Step 4: Verify API starts**
 
-Run: `cd /c/Users/Admin/Downloads/CLAUDE/APEX_POS && pnpm dev`
+Run: `cd /c/Users/Admin/Downloads/CLAUDE/JNJ_POS && pnpm dev`
 Expected: Server starts without errors on port 3000.
 
 **Step 5: Commit**
@@ -788,13 +788,13 @@ git commit -m "feat(api): subcategory CRUD endpoints
 File: `apps/api/src/modules/product-options/service.ts`
 
 ```typescript
-import { db } from "@apex/database";
+import { db } from "@JNJ/database";
 import {
   productOptionTypes,
   productOptionValues,
   productVariantOptions,
   products,
-} from "@apex/database/schema";
+} from "@JNJ/database/schema";
 import { eq, and, sql } from "drizzle-orm";
 
 export interface OptionValueRow {
@@ -1011,7 +1011,7 @@ File: `apps/api/src/modules/product-options/routes.ts`
 
 ```typescript
 import type { FastifyPluginAsync } from "fastify";
-import { createOptionTypeSchema, updateOptionTypeSchema } from "@apex/types";
+import { createOptionTypeSchema, updateOptionTypeSchema } from "@JNJ/types";
 import {
   listOptionTypes,
   createOptionType,
@@ -1208,16 +1208,16 @@ git commit -m "feat(api): product option types & values CRUD
 File: `apps/api/src/modules/variants/service.ts`
 
 ```typescript
-import { db } from "@apex/database";
+import { db } from "@JNJ/database";
 import {
   products,
   inventory,
   productVariantOptions,
   productOptionValues,
   productOptionTypes,
-} from "@apex/database/schema";
+} from "@JNJ/database/schema";
 import { eq, and, sql, asc } from "drizzle-orm";
-import { generateEan13 } from "@apex/types";
+import { generateEan13 } from "@JNJ/types";
 
 export interface VariantRow {
   id: string;
@@ -1469,7 +1469,7 @@ File: `apps/api/src/modules/variants/routes.ts`
 
 ```typescript
 import type { FastifyPluginAsync } from "fastify";
-import { createVariantSchema, createVariantBatchSchema } from "@apex/types";
+import { createVariantSchema, createVariantBatchSchema } from "@JNJ/types";
 import { listVariants, createVariant, createVariantBatch, deleteVariant } from "./service";
 
 const MANAGE_ROLES = ["ADMIN", "MANAGER"];

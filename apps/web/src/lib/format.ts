@@ -1,5 +1,5 @@
-/**
- * Shared formatting utilities for the Apex POS web dashboard.
+﻿/**
+ * Shared formatting utilities for the JNJ POS web dashboard.
  * All monetary values use PHP (₱) and en-PH locale.
  */
 

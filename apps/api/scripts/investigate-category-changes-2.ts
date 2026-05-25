@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Deep investigation: how many products were reassigned to newly-created categories.
  * Run: npx tsx apps/api/scripts/investigate-category-changes-2.ts
  */
@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 dotenv.config({ path: resolve(__dirname, "../../../.env") });
 
-import { db } from "@apex/database";
+import { db } from "@jnj/database";
 import { sql } from "drizzle-orm";
 
 const ORG_ID = "556e350a-7180-4ec9-9e1e-ea0ca1937f40";

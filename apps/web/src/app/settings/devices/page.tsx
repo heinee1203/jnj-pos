@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useCallback } from "react";
 import { QRCodeSVG } from "qrcode.react";
@@ -124,7 +124,7 @@ export default function PosDevicesPage() {
     if (!registrationCode) return;
     await navigator.clipboard?.writeText(
       [
-        "APEX POS DEVICE REGISTRATION",
+        "JNJ POS DEVICE REGISTRATION",
         `Store: ${registrationCode.locationName} [${registrationCode.locationCode}]`,
         `Code: ${registrationCode.code ?? "Hidden"}`,
         `Expires: ${new Date(registrationCode.expiresAt).toLocaleString()}`,

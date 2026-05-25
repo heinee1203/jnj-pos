@@ -1,4 +1,4 @@
-import { UserRole } from "@apex/types";
+﻿import { UserRole } from "@jnj/types";
 
 export const ADJUSTMENT_ROLES: UserRole[] = [
   UserRole.ADMIN,

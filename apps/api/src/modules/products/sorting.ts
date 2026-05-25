@@ -1,4 +1,4 @@
-import { brands, categories, inventory, productSubcategories, products } from "@apex/database/schema";
+﻿import { brands, categories, inventory, productSubcategories, products } from "@jnj/database/schema";
 import { asc, desc, sql } from "drizzle-orm";
 
 // Allowed sort columns mapped to their Drizzle column references.

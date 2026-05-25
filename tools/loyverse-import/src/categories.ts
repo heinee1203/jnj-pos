@@ -1,5 +1,5 @@
-import { db, BATCH_SIZE } from "./config";
-import { categories } from "@apex/database/schema";
+﻿import { db, BATCH_SIZE } from "./config";
+import { categories } from "@jnj/database/schema";
 import { sql } from "drizzle-orm";
 
 function slugify(name: string): string {

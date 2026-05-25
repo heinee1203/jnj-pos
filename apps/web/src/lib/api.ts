@@ -1,4 +1,4 @@
-import { ApiError } from "./query-provider";
+﻿import { ApiError } from "./query-provider";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
@@ -67,7 +67,7 @@ export async function apiFetch<T>(
   if (res.status === 401) {
     // Token expired or invalid — redirect to login
     if (typeof window !== "undefined") {
-      sessionStorage.removeItem("apex-auth");
+      sessionStorage.removeItem("jnj-auth");
       window.location.href = "/login";
     }
     throw new ApiError("Session expired — please log in again", 401);

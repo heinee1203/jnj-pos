@@ -1,4 +1,4 @@
-# Apex POS — Automotive ERP & POS Suite
+﻿# JNJ POS — School Supply & Merchandise POS
 
 ## Project Structure
 pnpm monorepo with 3 packages:
@@ -47,8 +47,8 @@ pnpm monorepo with 3 packages:
 ## Environment
 - `.env` lives at monorepo root (not in packages)
 - `apps/api/src/server.ts` loads dotenv with explicit root path before importing app
-- Docker Postgres: user=apex, password=apex_secret, db=apex_dev
-- Seed admin: admin@apex.com / admin12345
+- Docker Postgres: user=jnj, password=jnj_secret, db=jnj_dev
+- Seed admin: admin@jnj.com / admin12345
 
 ## Public Routes (no auth required)
 - `GET /health`

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Delete 3 test customers with no AR activity.
  * Run: npx tsx apps/api/scripts/delete-test-customers.ts
  */
@@ -10,7 +10,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 dotenv.config({ path: resolve(__dirname, "../../../.env") });
 
-import { db } from "@apex/database";
+import { db } from "@jnj/database";
 import { sql } from "drizzle-orm";
 
 const NAMES = ["Lucas Alfred Cabral", "Juan Dela Cruz", "Christianne Cabral"];

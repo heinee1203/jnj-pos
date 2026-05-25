@@ -1,8 +1,8 @@
-import type { FastifyInstance } from "fastify";
-import { db } from "@apex/database";
-import { brands, categories, inventory, locations, productFamilies, productOptionTypes, productOptionValues, productSubcategories, productVariantOptions, products, suppliers } from "@apex/database/schema";
+﻿import type { FastifyInstance } from "fastify";
+import { db } from "@jnj/database";
+import { brands, categories, inventory, locations, productFamilies, productOptionTypes, productOptionValues, productSubcategories, productVariantOptions, products, suppliers } from "@jnj/database/schema";
 import { and, asc, desc, eq, ilike, inArray, sql, type SQL } from "drizzle-orm";
-import { bulkImportSchema, generateEan13 } from "@apex/types";
+import { bulkImportSchema, generateEan13 } from "@jnj/types";
 
 import { MANAGE_ROLES } from "./permissions";
 import { generateUniqueMnemonicSku } from "./sku";

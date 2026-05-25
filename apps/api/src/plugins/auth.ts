@@ -1,6 +1,6 @@
-import type { FastifyPluginAsync, FastifyRequest } from "fastify";
+﻿import type { FastifyPluginAsync, FastifyRequest } from "fastify";
 import fp from "fastify-plugin";
-import type { JwtPayload } from "@apex/types";
+import type { JwtPayload } from "@jnj/types";
 
 declare module "@fastify/jwt" {
   interface FastifyJWT {

@@ -1,7 +1,7 @@
-import { db } from "@apex/database";
-import { productSubcategories, products } from "@apex/database/schema";
+﻿import { db } from "@jnj/database";
+import { productSubcategories, products } from "@jnj/database/schema";
 import { eq, and, sql, type SQL } from "drizzle-orm";
-import type { CreateSubcategoryInput, UpdateSubcategoryInput } from "@apex/types";
+import type { CreateSubcategoryInput, UpdateSubcategoryInput } from "@jnj/types";
 
 export interface SubcategoryRow {
   id: string;

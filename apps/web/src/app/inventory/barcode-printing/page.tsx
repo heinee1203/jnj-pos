@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, Suspense } from "react";
 import {
@@ -36,7 +36,7 @@ import {
   type ShelfLabelPreviewObject,
   type ShelfLabelSizeId,
   type ZplLabelConfig,
-} from "@apex/types";
+} from "@jnj/types";
 
 type PrintStatus = "idle" | "sending" | "ok" | "fail";
 

@@ -1,4 +1,4 @@
-import { resolve } from "node:path";
+﻿import { resolve } from "node:path";
 import type { TestContext } from "node:test";
 import dotenv from "dotenv";
 import { eq } from "drizzle-orm";
@@ -11,13 +11,13 @@ export type ApiIntegrationHarness = {
   app: FastifyInstance;
   authHeaders: Record<string, string>;
   authHeadersFor: (role: string, userId?: string) => Record<string, string>;
-  db: typeof import("@apex/database").db;
+  db: typeof import("@jnj/database").db;
   ids: {
     locationId: string;
     orgId: string;
     userId: string;
   };
-  schema: typeof import("@apex/database/schema");
+  schema: typeof import("@jnj/database/schema");
 };
 
 export function getIntegrationDatabaseUrl() {
@@ -50,8 +50,8 @@ export async function createApiIntegrationHarness(t: TestContext): Promise<ApiIn
 
   const [{ buildApp }, database, schema] = await Promise.all([
     import("../app"),
-    import("@apex/database"),
-    import("@apex/database/schema"),
+    import("@jnj/database"),
+    import("@jnj/database/schema"),
   ]);
   const { db } = database;
   const maybeCloseDatabaseConnections = (

@@ -1,5 +1,5 @@
-import { db } from "@apex/database";
-import { poLines, purchaseOrders } from "@apex/database/schema";
+﻿import { db } from "@jnj/database";
+import { poLines, purchaseOrders } from "@jnj/database/schema";
 import { and, eq } from "drizzle-orm";
 import { getPOByNumber } from "./purchase-order-read-service";
 

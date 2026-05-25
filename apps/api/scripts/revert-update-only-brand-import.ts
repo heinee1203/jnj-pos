@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Revert brand assignments changed by a bad "Update Only" item import.
  *
  * DRY RUN:
@@ -9,7 +9,7 @@
  *
  * Optional:
  *   --start=2026-05-18T01:46:00.000Z --end=2026-05-18T01:56:00.000Z
- *   --csv="C:\Users\Admin\Downloads\apex-items-2026-04-09.csv"
+ *   --csv="C:\Users\Admin\Downloads\JNJ-items-2026-04-09.csv"
  */
 import { dirname, resolve } from "path";
 import { fileURLToPath } from "url";
@@ -21,11 +21,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 dotenv.config({ path: resolve(__dirname, "../../../.env") });
 
-import { db } from "@apex/database";
-import { brands, products } from "@apex/database/schema";
+import { db } from "@jnj/database";
+import { brands, products } from "@jnj/database/schema";
 
 const ORG_ID = "556e350a-7180-4ec9-9e1e-ea0ca1937f40";
-const DEFAULT_CSV = "C:\\Users\\Admin\\Downloads\\apex-items-2026-04-09.csv";
+const DEFAULT_CSV = "C:\\Users\\Admin\\Downloads\\JNJ-items-2026-04-09.csv";
 const APPLY = process.argv.includes("--apply");
 
 type ProductRow = {

@@ -1,6 +1,6 @@
-import type { FastifyInstance } from "fastify";
-import { db } from "@apex/database";
-import { categories, inventory, productFamilies, products } from "@apex/database/schema";
+﻿import type { FastifyInstance } from "fastify";
+import { db } from "@jnj/database";
+import { categories, inventory, productFamilies, products } from "@jnj/database/schema";
 import { and, asc, eq, ilike, sql, type SQL } from "drizzle-orm";
 
 import { MANAGE_ROLES } from "./permissions";

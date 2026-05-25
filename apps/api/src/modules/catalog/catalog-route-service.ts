@@ -1,5 +1,5 @@
-import { createHash } from "crypto";
-import { db } from "@apex/database";
+﻿import { createHash } from "crypto";
+import { db } from "@jnj/database";
 import {
   apiKeys,
   brands,
@@ -9,7 +9,7 @@ import {
   productFamilies,
   products,
   productSubcategories,
-} from "@apex/database/schema";
+} from "@jnj/database/schema";
 import {
   and,
   asc,

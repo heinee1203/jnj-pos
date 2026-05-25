@@ -1,4 +1,4 @@
-export const MANAGER_BADGE_TITLE = 'APEX MANAGER BADGE';
+﻿export const MANAGER_BADGE_TITLE = 'JNJ MANAGER BADGE';
 
 export function normalizeManagerAuthorizationPin(value: string): string {
   return value.replace(/\D/g, '').slice(0, 4);
@@ -13,7 +13,7 @@ export function buildManagerBarcodeCredential(pin: string): string {
   if (!isManagerAuthorizationPin(normalized)) {
     throw new Error('Manager authorization PIN must be exactly 4 digits.');
   }
-  return `APEX-MGR/${normalized}`;
+  return `JNJ-MGR/${normalized}`;
 }
 
 export function buildManagerCardCredential(pin: string): string {

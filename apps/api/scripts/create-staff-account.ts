@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Add STAFF role to user_role enum and create staff account.
  * Run: npx tsx apps/api/scripts/create-staff-account.ts
  */
@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 dotenv.config({ path: resolve(__dirname, "../../../.env") });
 
-import { db } from "@apex/database";
+import { db } from "@jnj/database";
 import { sql } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 

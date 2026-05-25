@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { buildSupportQrPayload, recordSupportQrMetadata } from '@/storage/support-qr';
@@ -17,7 +17,7 @@ export function SupportPacketQrCard({ text }: { text: string }) {
   return (
     <View style={styles.card}>
       <View style={styles.qrWrap}>
-        <QRCode value={payload || 'APEX POS SUPPORT'} size={148} backgroundColor="#FFFFFF" color="#172033" />
+        <QRCode value={payload || 'JNJ POS SUPPORT'} size={148} backgroundColor="#FFFFFF" color="#172033" />
       </View>
       <View style={styles.copy}>
         <Text style={styles.title}>Support QR</Text>

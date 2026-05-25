@@ -1,12 +1,12 @@
-import path from "path";
+﻿import path from "path";
 import { fileURLToPath } from "url";
 import { db, BATCH_SIZE, getOrgId, closeDb } from "./config";
 import { parseCSV, type LoyverseRow } from "./parser";
 import { ensureLocations } from "./locations";
 import { ensureCategories, classifyCategory } from "./categories";
 import { generateMnemonicSku, resetMnemonicState } from "./mnemonic";
-import { generateCostCode } from "@apex/types";
-import { products, inventory } from "@apex/database/schema";
+import { generateCostCode } from "@jnj/types";
+import { products, inventory } from "@jnj/database/schema";
 import { sql } from "drizzle-orm";
 
 // Monorepo root (3 levels up from src/)
@@ -23,7 +23,7 @@ async function main() {
   const clearFlag = args.includes("--clear");
 
   console.log("═══════════════════════════════════════════════");
-  console.log("  APEX POS — Loyverse Catalog Import");
+  console.log("  JNJ POS — Loyverse Catalog Import");
   console.log("═══════════════════════════════════════════════\n");
 
   const startTime = Date.now();

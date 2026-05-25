@@ -1,5 +1,5 @@
-{
-  "name": "@apex/migration",
+﻿{
+  "name": "@jnj/migration",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -11,8 +11,8 @@
     "migrate:reconcile": "tsx src/runner.ts --phase reconcile"
   },
   "dependencies": {
-    "@apex/database": "workspace:*",
-    "@apex/types": "workspace:*",
+    "@jnj/database": "workspace:*",
+    "@jnj/types": "workspace:*",
     "csv-parse": "^5.6.0",
     "dotenv": "^16.4.7",
     "drizzle-orm": "^0.45.1",

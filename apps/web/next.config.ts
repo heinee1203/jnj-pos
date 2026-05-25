@@ -1,8 +1,8 @@
-import type { NextConfig } from "next";
+﻿import type { NextConfig } from "next";
 import { resolve } from "path";
 
 const nextConfig: NextConfig = {
-  transpilePackages: ["@apex/types"],
+  transpilePackages: ["@jnj/types"],
   outputFileTracingRoot: resolve(import.meta.dirname, "../../"),
   async redirects() {
     return [

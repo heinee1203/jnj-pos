@@ -1,17 +1,16 @@
 {
-  "name": "apex-pos",
+  "name": "jnj-pos",
   "private": true,
   "scripts": {
-    "dev": "pnpm --filter @apex/api dev",
-    "build": "pnpm --filter @apex/types build && pnpm --filter @apex/database build && pnpm --filter @apex/api build && pnpm --filter @apex/web build",
-    "db:generate": "pnpm --filter @apex/database generate",
-    "db:migrate": "pnpm --filter @apex/database migrate",
-    "db:seed": "pnpm --filter @apex/database seed",
-    "db:studio": "pnpm --filter @apex/database studio",
-    "typecheck": "pnpm --filter @apex/types typecheck && pnpm --filter @apex/database typecheck && pnpm --filter @apex/api typecheck && pnpm --filter @apex/web typecheck && pnpm --filter @apex/mobile typecheck",
-    "web:dev": "pnpm --filter @apex/web dev",
-    "web:build": "pnpm --filter @apex/web build",
-    "loyverse:import": "pnpm --filter @apex/loyverse-import run-import",
+    "dev": "pnpm --filter @jnj/api dev",
+    "build": "pnpm --filter @jnj/types build && pnpm --filter @jnj/database build && pnpm --filter @jnj/api build && pnpm --filter @jnj/web build",
+    "db:generate": "pnpm --filter @jnj/database generate",
+    "db:migrate": "pnpm --filter @jnj/database migrate",
+    "db:seed": "pnpm --filter @jnj/database seed",
+    "db:studio": "pnpm --filter @jnj/database studio",
+    "typecheck": "pnpm --filter @jnj/types typecheck && pnpm --filter @jnj/database typecheck && pnpm --filter @jnj/api typecheck && pnpm --filter @jnj/web typecheck && pnpm --filter @jnj/mobile typecheck",
+    "web:dev": "pnpm --filter @jnj/web dev",
+    "web:build": "pnpm --filter @jnj/web build",
     "clean": "rm -rf apps/*/dist packages/*/dist"
   },
   "devDependencies": {

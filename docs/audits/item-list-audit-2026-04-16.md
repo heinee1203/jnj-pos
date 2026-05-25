@@ -1,4 +1,4 @@
-# Item List Page — Full Audit
+﻿# Item List Page — Full Audit
 
 **Date:** 2026-04-16
 **Scope:** `/inventory` page end-to-end (web UI, API, shared types, schema)
@@ -56,7 +56,7 @@ flowchart LR
         ImportInline[POST /products/import<br/>routes.ts:2426+]
         ImportCenter[import/routes.ts<br/>preview + execute]
     end
-    DB[(PostgreSQL 16<br/>apex_dev)]
+    DB[(PostgreSQL 16<br/>jnj_dev)]
 
     User --> Page
     Page -- "viewMode=flat" --> Hook

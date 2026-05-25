@@ -1,5 +1,5 @@
-import type { FastifyInstance } from "fastify";
-import { createCategorySchema, updateCategorySchema } from "@apex/types";
+﻿import type { FastifyInstance } from "fastify";
+import { createCategorySchema, updateCategorySchema } from "@jnj/types";
 import {
   createCategory,
   deleteCategory,

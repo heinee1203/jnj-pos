@@ -1,4 +1,4 @@
-# APEX POS — Go-Live Cutover Sequence
+﻿# JNJ POS — Go-Live Cutover Sequence
 
 **Document:** SOP-CUTOVER-001
 **Version:** 1.0
@@ -9,7 +9,7 @@
 
 ## Purpose
 
-This document provides the chronological checklist for transitioning from the legacy system to APEX POS. Each step must be completed in order. The cutover is designed to be executed over a single weekend (Friday evening to Monday morning) with minimal business disruption.
+This document provides the chronological checklist for transitioning from the legacy system to JNJ POS. Each step must be completed in order. The cutover is designed to be executed over a single weekend (Friday evening to Monday morning) with minimal business disruption.
 
 ---
 
@@ -36,8 +36,8 @@ These items must be verified **at least 3 business days** before the cutover dat
 | P3 | `DATABASE_URL` and `ORG_ID` environment variables configured for production | IT Admin | ☐ |
 | P4 | Production database migrations applied (`pnpm db:migrate`) | IT Admin | ☐ |
 | P5 | Migration staging tables applied (`0007_phase9_migration_staging.sql`) | IT Admin | ☐ |
-| P6 | APEX POS web application deployed to production server | IT Admin | ☐ |
-| P7 | APEX API deployed and passing `GET /health` check | IT Admin | ☐ |
+| P6 | JNJ POS web application deployed to production server | IT Admin | ☐ |
+| P7 | JNJ API deployed and passing `GET /health` check | IT Admin | ☐ |
 | P8 | Admin user created via `POST /auth/register` | IT Admin | ☐ |
 | P9 | All staff user accounts created with correct roles (MANAGER, CASHIER, WAREHOUSE_STAFF) | Store Mgr | ☐ |
 | P10 | Network connectivity tested from all POS terminals/tablets to production server | IT Admin | ☐ |
@@ -116,7 +116,7 @@ Place in `tools/migration/data/` before running the ETL pipeline:
 
 ### PHASE 3 — ETL EXECUTION (Saturday Evening)
 
-> **Objective:** Run the APEX migration pipeline to load all data into the production database.
+> **Objective:** Run the JNJ migration pipeline to load all data into the production database.
 
 | # | Time | Action | Owner | Done |
 |---|------|--------|-------|------|
@@ -133,7 +133,7 @@ Place in `tools/migration/data/` before running the ETL pipeline:
 
 ```
 ═══════════════════════════════════════════════
-  APEX POS — Data Migration ETL Pipeline
+  JNJ POS — Data Migration ETL Pipeline
 ═══════════════════════════════════════════════
 
 ── Phase 1+2: Extract & Stage ──
@@ -178,8 +178,8 @@ Place in `tools/migration/data/` before running the ETL pipeline:
 | 4.3 | — | **Review rejections:** Open `reconciliation-report.json` — check each rejected row's `validationErrors` | ERP Consultant | ☐ |
 | 4.4 | — | Categorize rejections: data quality issues (fixable) vs. orphaned records (expected) | ERP Consultant | ☐ |
 | 4.5 | — | If rejections are fixable: correct source CSV, re-run `pnpm migrate --phase extract` through reconcile | ERP Consultant | ☐ |
-| 4.6 | — | **Spot-check live data in APEX:** | — | ☐ |
-| 4.6a | — | Log into APEX POS → verify location count matches expected | Store Mgr | ☐ |
+| 4.6 | — | **Spot-check live data in JNJ:** | — | ☐ |
+| 4.6a | — | Log into JNJ POS → verify location count matches expected | Store Mgr | ☐ |
 | 4.6b | — | Search for 10 random products by SKU → verify names, prices, categories correct | ERP Consultant | ☐ |
 | 4.6c | — | Search for 5 random products by mnemonic SKU → verify mnemonic lookup works | ERP Consultant | ☐ |
 | 4.6d | — | Search for 5 customers by phone → verify names, vehicle lists correct | Store Mgr | ☐ |
@@ -211,7 +211,7 @@ Place in `tools/migration/data/` before running the ETL pipeline:
 |---|------|--------|-------|------|
 | 5.1 | 07:00 | Cutover Lead sends **GO-LIVE confirmation** to all staff | Cutover Lead | ☐ |
 | 5.2 | 07:00 | Distribute printed Day 1 Fallback Plan (SOP-FALLBACK-001) to every terminal | Cutover Lead | ☐ |
-| 5.3 | 07:15 | All staff log into APEX POS with their assigned credentials | All Staff | ☐ |
+| 5.3 | 07:15 | All staff log into JNJ POS with their assigned credentials | All Staff | ☐ |
 | 5.4 | 07:15 | Each user selects their assigned location | All Staff | ☐ |
 | 5.5 | 07:15 | ERP Consultant and IT Admin on-site at primary location for support | Support Team | ☐ |
 | 5.6 | 07:30 | **First live transaction** — supervised by Cutover Lead | Cashier + Lead | ☐ |
@@ -245,7 +245,7 @@ If a **NO-GO** decision is made at any Phase 4 checkpoint:
 
 | # | Action | Owner | Time |
 |---|--------|-------|------|
-| R1 | **Stop** — do not open APEX POS to staff | Cutover Lead | Immediate |
+| R1 | **Stop** — do not open JNJ POS to staff | Cutover Lead | Immediate |
 | R2 | Restore production database from Phase 3 pre-migration snapshot | IT Admin | ~15 min |
 | R3 | Re-enable legacy system user logins | IT Admin | ~5 min |
 | R4 | Send **ROLLBACK notification** to all staff: "Use legacy system until further notice" | Cutover Lead | Immediate |

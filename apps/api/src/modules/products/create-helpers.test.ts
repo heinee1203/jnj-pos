@@ -1,7 +1,7 @@
-import assert from "node:assert/strict";
+﻿import assert from "node:assert/strict";
 import test from "node:test";
 
-import type { CreateProductInput } from "@apex/types";
+import type { CreateProductInput } from "@jnj/types";
 
 import {
   buildCreateInventoryInsertValues,

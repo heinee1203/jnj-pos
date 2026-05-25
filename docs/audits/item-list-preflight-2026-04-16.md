@@ -1,4 +1,4 @@
-# Item List — Pre-Flight Verification Results
+﻿# Item List — Pre-Flight Verification Results
 
 **Date:** 2026-04-16
 **Purpose:** Resolve five open verification items from the Item List audit (`docs/audits/item-list-audit-2026-04-16.md`) before Phase 1a implementation begins.
@@ -344,6 +344,6 @@ Call-site gate in `routes.ts:80–128` (full read):
 
 ## Appendix B — Out-of-Scope Tools Needed Later
 
-- `psql` connected to `apex_dev` (port 5433) with a representative tenant's UUIDs for NV-4 / NV-5.
+- `psql` connected to `jnj_dev` (port 5433) with a representative tenant's UUIDs for NV-4 / NV-5.
 - Running API server (`pnpm dev`) with a valid JWT + `X-Location-ID` for NV-6.
 - Chrome Performance profiler for P-3 (render budget measurement on 500-row pages).

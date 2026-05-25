@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Apply migration 0062_suppliers_ap_fields.sql. Same pattern as 0060/0061.
  */
 import { resolve, dirname } from "path";
@@ -7,7 +7,7 @@ import fs from "fs";
 import dotenv from "dotenv";
 dotenv.config({ path: resolve(dirname(fileURLToPath(import.meta.url)), "../../../.env") });
 
-import { db } from "@apex/database";
+import { db } from "@jnj/database";
 import { sql } from "drizzle-orm";
 
 const MIGRATION_PATH = resolve(

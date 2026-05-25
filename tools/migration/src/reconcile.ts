@@ -1,4 +1,4 @@
-import { db } from "./config";
+﻿import { db } from "./config";
 import { sql } from "drizzle-orm";
 import fs from "fs";
 import path from "path";
@@ -138,7 +138,7 @@ export async function generateReconciliationReport(): Promise<ReconciliationRepo
   const txtPath = path.join(REPORT_DIR, `reconciliation-${ts}.txt`);
   const lines: string[] = [
     "═══════════════════════════════════════════════════",
-    "  APEX POS — Data Migration Reconciliation Report",
+    "  JNJ POS — Data Migration Reconciliation Report",
     `  Generated: ${report.timestamp}`,
     "═══════════════════════════════════════════════════",
     "",

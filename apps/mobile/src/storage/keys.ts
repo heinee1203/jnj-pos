@@ -1,4 +1,4 @@
-export const KEYS = {
+﻿export const KEYS = {
   // Auth
   AUTH_TOKEN: 'auth.token',
   AUTH_USER: 'auth.user',
@@ -47,7 +47,7 @@ export const KEYS = {
   CART_RESTORE_SNAPSHOT: 'cart.restoreSnapshot',
 
   // Receipt number auto-increment
-  LAST_RECEIPT_NUMBER: 'apex.last_receipt_number',
+  LAST_RECEIPT_NUMBER: 'JNJ.last_receipt_number',
 
   // Pending sales queue
   PENDING_SALES: 'pending.sales',

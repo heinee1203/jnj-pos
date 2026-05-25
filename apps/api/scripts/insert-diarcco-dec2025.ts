@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Insert 10 backdated December 2025 CHARGE rows for Diarcco CORP.
  *
  * Per lookup-diarcco-dec2025: customer has 37 existing transactions, all
@@ -6,7 +6,7 @@
  * ledger and the full ledger gets rewound by the insert total (₱37,315).
  *
  * Same-day invoices use 16:00:00 and 16:00:01 to preserve listed order.
- * All rows: billed=false, recorded_by=admin@apex.com.
+ * All rows: billed=false, recorded_by=admin@jnj.com.
  *
  * Run:
  *   Dry run:  npx tsx apps/api/scripts/insert-diarcco-dec2025.ts
@@ -17,7 +17,7 @@ import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 dotenv.config({ path: resolve(dirname(fileURLToPath(import.meta.url)), "../../../.env") });
 
-import { db } from "@apex/database";
+import { db } from "@jnj/database";
 import { sql } from "drizzle-orm";
 
 const APPLY = process.argv.includes("--apply");
@@ -83,10 +83,10 @@ async function main() {
 
   // Guard 3: resolve admin user
   const [admin] = (await db.execute(sql`
-    SELECT id, email FROM users WHERE email = 'admin@apex.com' LIMIT 1
+    SELECT id, email FROM users WHERE email = 'admin@jnj.com' LIMIT 1
   `)) as any[];
   if (!admin) {
-    console.error("ABORT: admin@apex.com user not found");
+    console.error("ABORT: admin@jnj.com user not found");
     process.exit(1);
   }
   console.log(`admin user: ${admin.email}  (${admin.id})\n`);

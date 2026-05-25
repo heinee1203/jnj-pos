@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Fix Q3342 wrong allocation — PAY-2026-0049 belongs to SOA-0085, not SOA-0084.
  * Run: npx tsx apps/api/scripts/fix-q3342-allocation.ts
  */
@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 dotenv.config({ path: resolve(__dirname, "../../../.env") });
 
-import { db } from "@apex/database";
+import { db } from "@jnj/database";
 import { sql } from "drizzle-orm";
 
 async function main() {

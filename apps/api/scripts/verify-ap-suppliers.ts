@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Smoke-test the new AP supplier master services against the live DB.
  * Calls each service function in isolation and verifies:
  *   - listSuppliersWithAPStats returns rollups that match direct SQL sums
@@ -11,7 +11,7 @@ import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 dotenv.config({ path: resolve(dirname(fileURLToPath(import.meta.url)), "../../../.env") });
 
-import { db } from "@apex/database";
+import { db } from "@jnj/database";
 import { sql } from "drizzle-orm";
 import {
   listSuppliersWithAPStats,

@@ -1,4 +1,4 @@
-# Apex POS Tablet Optimization Design
+﻿# JNJ POS Tablet Optimization Design
 
 > **Context**: App is primarily used on 10" Android tablets in automotive parts shops.
 > Workers may wear gloves; screen is viewed from ~18" distance (farther than phone).
