@@ -74,19 +74,13 @@ export function InventoryModals({
       {modalState.addModal && (
         <QuickAddEntityModal
           type={modalState.addModal}
-          families={inventory.families}
-          categories={inventory.filteredCategories}
           onClose={() => modalState.setAddModal(null)}
           onCreated={(type, id) => {
             modalState.setAddModal(null);
-            if (type === "family") inventory.setFamilyFilter(id);
-            else if (type === "category") inventory.setCategoryFilter(id);
-            else if (type === "subcategory") inventory.setSubCategoryFilter(id);
+            if (type === "category") inventory.setCategoryFilter(id);
             else if (type === "brand") inventory.setBrandFilter(id);
           }}
-          createFamily={quickCreate.createFamily}
           createCategory={quickCreate.createCategory}
-          createSubcategory={quickCreate.createSubcategory}
           createBrand={quickCreate.createBrand}
         />
       )}

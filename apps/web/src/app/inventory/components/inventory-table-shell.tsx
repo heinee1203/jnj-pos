@@ -28,7 +28,6 @@ interface InventoryTableShellProps {
   token: string;
   apiLocationId: string;
   stockStatusFilter: string;
-  familyFilter: string;
   categoryFilter: string;
   brandFilter: string;
   isAllLocations: boolean;
@@ -60,7 +59,6 @@ export function InventoryTableShell({
   token,
   apiLocationId,
   stockStatusFilter,
-  familyFilter,
   categoryFilter,
   brandFilter,
   isAllLocations,
@@ -197,9 +195,6 @@ export function InventoryTableShell({
               <th scope="col" className="w-[130px] px-3 py-[7px] text-left">
                 <SortableHeader label="Category" field="categoryName" activeField={sortBy} activeDir={sortDir} onSort={onSort} />
               </th>
-              <th scope="col" className="w-[120px] px-3 py-[7px] text-left">
-                <SortableHeader label="Sub-category" field="subcategoryName" activeField={sortBy} activeDir={sortDir} onSort={onSort} />
-              </th>
               {showFinancials && (
                 <>
                   <th scope="col" className="w-[75px] px-3 py-[7px] text-right">
@@ -221,7 +216,6 @@ export function InventoryTableShell({
                 stockStatus={stockStatusFilter || undefined}
                 showFinancials={showFinancials}
                 onSelectProduct={onSelectProduct}
-                familyFilter={familyFilter || undefined}
                 categoryFilter={categoryFilter || undefined}
                 brandFilter={brandFilter || undefined}
                 colCount={colCount}

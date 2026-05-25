@@ -3,7 +3,7 @@ import type { GroupByOption, ValuationGroup } from "@/hooks/use-inventory-valuat
 
 export const CHART_COLORS = ["#10B981", "#3B82F6", "#F59E0B", "#8B5CF6", "#F43F5E", "#94A3B8"];
 
-export const UNASSIGNED_GROUPS = new Set(["No Family", "No Brand", "Uncategorized"]);
+export const UNASSIGNED_GROUPS = new Set(["No Brand", "Uncategorized"]);
 
 export function fmtCurrency(value: number) {
   return "\u20B1" + value.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });

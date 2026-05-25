@@ -1,11 +1,10 @@
 "use client";
 
 import { useMemo } from "react";
-import { Car, Layers, Tag } from "lucide-react";
+import { Car, Tag } from "lucide-react";
 import {
   useGroupedCounts,
   type BrandCountRow,
-  type CategoryCountRow,
   type MakeCountRow,
 } from "@/hooks/use-grouped-counts";
 import { DrilldownGroupRow } from "./drilldown-group-row";
@@ -26,7 +25,6 @@ function sortNullLast<T extends { id?: string | null; name?: string; make?: stri
 type MakeRowsProps = {
   token: string;
   locationId: string;
-  familyId: string;
   categoryId: string;
   brandId: string;
   brandKey: string;
@@ -42,7 +40,6 @@ type MakeRowsProps = {
 function MakeRows({
   token,
   locationId,
-  familyId,
   categoryId,
   brandId,
   brandKey,
@@ -59,7 +56,6 @@ function MakeRows({
     locationId,
     "vehicleMake",
     {
-      familyId,
       categoryId,
       brandId,
       stockStatus,
@@ -97,7 +93,6 @@ function MakeRows({
             onToggle={() => onToggleMake(makeKey)}
             token={token}
             locationId={locationId}
-            familyId={familyId}
             categoryId={categoryId}
             brandId={brandId}
             vehicleMake={row.make || undefined}
@@ -120,7 +115,6 @@ type MakeRowWithItemsProps = {
   onToggle: () => void;
   token: string;
   locationId: string;
-  familyId?: string;
   categoryId?: string;
   brandId?: string;
   vehicleMake?: string;
@@ -138,7 +132,6 @@ function MakeRowWithItems({
   onToggle,
   token,
   locationId,
-  familyId,
   categoryId,
   brandId,
   vehicleMake,
@@ -153,7 +146,7 @@ function MakeRowWithItems({
       <DrilldownGroupRow
         colCount={colCount}
         icon={<Car size={11} className="shrink-0 text-muted-foreground" />}
-        indentPx={84}
+        indentPx={60}
         isExpanded={isExpanded}
         meta={`${itemCount} items`}
         name={name}
@@ -165,7 +158,6 @@ function MakeRowWithItems({
         <DrilldownItemsTable
           token={token}
           locationId={locationId}
-          familyId={familyId}
           categoryId={categoryId}
           brandId={brandId}
           vehicleMake={vehicleMake}
@@ -183,7 +175,6 @@ function MakeRowWithItems({
 type BrandRowsProps = {
   token: string;
   locationId: string;
-  familyId: string;
   categoryId: string;
   catKey: string;
   stockStatus?: string;
@@ -200,7 +191,6 @@ type BrandRowsProps = {
 function BrandRows({
   token,
   locationId,
-  familyId,
   categoryId,
   catKey,
   stockStatus,
@@ -218,7 +208,6 @@ function BrandRows({
     locationId,
     "brand",
     {
-      familyId,
       categoryId,
       stockStatus,
       allLocations,
@@ -249,7 +238,6 @@ function BrandRows({
             onToggle={() => onToggleBrand(brandKey)}
             token={token}
             locationId={locationId}
-            familyId={familyId}
             categoryId={categoryId}
             brandId={brandId}
             stockStatus={stockStatus}
@@ -275,7 +263,6 @@ type BrandRowWithChildrenProps = {
   onToggle: () => void;
   token: string;
   locationId: string;
-  familyId: string;
   categoryId: string;
   brandId: string;
   stockStatus?: string;
@@ -296,7 +283,6 @@ function BrandRowWithChildren({
   onToggle,
   token,
   locationId,
-  familyId,
   categoryId,
   brandId,
   stockStatus,
@@ -312,7 +298,7 @@ function BrandRowWithChildren({
       <DrilldownGroupRow
         colCount={colCount}
         icon={<Tag size={11} className="shrink-0 text-muted-foreground" />}
-        indentPx={60}
+        indentPx={36}
         isExpanded={isExpanded}
         meta={`${itemCount} items · ${makeCount} makes`}
         name={name}
@@ -324,7 +310,6 @@ function BrandRowWithChildren({
         <MakeRows
           token={token}
           locationId={locationId}
-          familyId={familyId}
           categoryId={categoryId}
           brandId={brandId}
           brandKey={brandKey}
@@ -341,96 +326,7 @@ function BrandRowWithChildren({
   );
 }
 
-type CategoryRowsProps = {
-  token: string;
-  locationId: string;
-  familyId: string;
-  familyKey: string;
-  stockStatus?: string;
-  showFinancials: boolean;
-  onSelectProduct: (id: string) => void;
-  colCount: number;
-  expandedCategories: Set<string>;
-  expandedBrands: Set<string>;
-  expandedMakes: Set<string>;
-  onToggleCategory: (key: string) => void;
-  onToggleBrand: (key: string) => void;
-  onToggleMake: (key: string) => void;
-  allLocations?: boolean;
-};
-
-function CategoryRows({
-  token,
-  locationId,
-  familyId,
-  familyKey,
-  stockStatus,
-  showFinancials,
-  onSelectProduct,
-  colCount,
-  expandedCategories,
-  expandedBrands,
-  expandedMakes,
-  onToggleCategory,
-  onToggleBrand,
-  onToggleMake,
-  allLocations,
-}: CategoryRowsProps) {
-  const { data, isLoading } = useGroupedCounts<CategoryCountRow>(
-    token,
-    locationId,
-    "category",
-    {
-      familyId,
-      stockStatus,
-      allLocations,
-    },
-    { enabled: true },
-  );
-
-  const rows = useMemo(() => sortNullLast(data?.data ?? []), [data]);
-
-  if (isLoading) return <DrilldownLoadingRow colCount={colCount} />;
-
-  return (
-    <>
-      {rows.map((row) => {
-        const catId = row.id ?? NONE;
-        const catKey = `${familyKey}:${catId}`;
-        const isExpanded = expandedCategories.has(catKey);
-        const name = row.id ? row.name : "No Category";
-
-        return (
-          <CategoryRowWithChildren
-            key={catKey}
-            catKey={catKey}
-            name={name}
-            color={row.color}
-            itemCount={row.itemCount}
-            brandCount={row.brandCount}
-            isExpanded={isExpanded}
-            onToggle={() => onToggleCategory(catKey)}
-            token={token}
-            locationId={locationId}
-            familyId={familyId}
-            categoryId={catId}
-            stockStatus={stockStatus}
-            showFinancials={showFinancials}
-            onSelectProduct={onSelectProduct}
-            colCount={colCount}
-            expandedBrands={expandedBrands}
-            expandedMakes={expandedMakes}
-            onToggleBrand={onToggleBrand}
-            onToggleMake={onToggleMake}
-            allLocations={allLocations}
-          />
-        );
-      })}
-    </>
-  );
-}
-
-type CategoryRowWithChildrenProps = {
+export type DrilldownCategoryRowProps = {
   catKey: string;
   name: string;
   color: string | null;
@@ -440,7 +336,6 @@ type CategoryRowWithChildrenProps = {
   onToggle: () => void;
   token: string;
   locationId: string;
-  familyId: string;
   categoryId: string;
   stockStatus?: string;
   showFinancials: boolean;
@@ -453,7 +348,7 @@ type CategoryRowWithChildrenProps = {
   allLocations?: boolean;
 };
 
-function CategoryRowWithChildren({
+export function DrilldownCategoryRow({
   catKey,
   name,
   color,
@@ -463,7 +358,6 @@ function CategoryRowWithChildren({
   onToggle,
   token,
   locationId,
-  familyId,
   categoryId,
   stockStatus,
   showFinancials,
@@ -474,7 +368,7 @@ function CategoryRowWithChildren({
   onToggleBrand,
   onToggleMake,
   allLocations,
-}: CategoryRowWithChildrenProps) {
+}: DrilldownCategoryRowProps) {
   return (
     <>
       <DrilldownGroupRow
@@ -489,19 +383,18 @@ function CategoryRowWithChildren({
             <span className="inline-block h-2.5 w-2.5 shrink-0 rounded-full bg-muted-foreground/30" />
           )
         }
-        indentPx={36}
+        indentPx={12}
         isExpanded={isExpanded}
         meta={`${itemCount} items · ${brandCount} brands`}
         name={name}
         onToggle={onToggle}
-        rowClassName="hover:bg-accent/50"
-        titleClassName="text-[12px] font-medium"
+        rowClassName="bg-muted/30 hover:bg-muted/50"
+        titleClassName="text-[13px] font-semibold"
       />
       {isExpanded && (
         <BrandRows
           token={token}
           locationId={locationId}
-          familyId={familyId}
           categoryId={categoryId}
           catKey={catKey}
           stockStatus={stockStatus}
@@ -510,87 +403,6 @@ function CategoryRowWithChildren({
           colCount={colCount}
           expandedBrands={expandedBrands}
           expandedMakes={expandedMakes}
-          onToggleBrand={onToggleBrand}
-          onToggleMake={onToggleMake}
-          allLocations={allLocations}
-        />
-      )}
-    </>
-  );
-}
-
-export type DrilldownFamilyRowProps = {
-  familyKey: string;
-  name: string;
-  itemCount: number;
-  categoryCount: number;
-  isExpanded: boolean;
-  onToggle: () => void;
-  token: string;
-  locationId: string;
-  familyId: string;
-  stockStatus?: string;
-  showFinancials: boolean;
-  onSelectProduct: (id: string) => void;
-  colCount: number;
-  expandedCategories: Set<string>;
-  expandedBrands: Set<string>;
-  expandedMakes: Set<string>;
-  onToggleCategory: (key: string) => void;
-  onToggleBrand: (key: string) => void;
-  onToggleMake: (key: string) => void;
-  allLocations?: boolean;
-};
-
-export function DrilldownFamilyRow({
-  familyKey,
-  name,
-  itemCount,
-  categoryCount,
-  isExpanded,
-  onToggle,
-  token,
-  locationId,
-  familyId,
-  stockStatus,
-  showFinancials,
-  onSelectProduct,
-  colCount,
-  expandedCategories,
-  expandedBrands,
-  expandedMakes,
-  onToggleCategory,
-  onToggleBrand,
-  onToggleMake,
-  allLocations,
-}: DrilldownFamilyRowProps) {
-  return (
-    <>
-      <DrilldownGroupRow
-        colCount={colCount}
-        icon={<Layers size={12} className="shrink-0 text-muted-foreground" />}
-        indentPx={12}
-        isExpanded={isExpanded}
-        meta={`${itemCount} items · ${categoryCount} categories`}
-        name={name}
-        onToggle={onToggle}
-        rowClassName="bg-muted/30 hover:bg-muted/50"
-        titleClassName="text-[13px] font-semibold"
-      />
-      {isExpanded && (
-        <CategoryRows
-          token={token}
-          locationId={locationId}
-          familyId={familyId}
-          familyKey={familyKey}
-          stockStatus={stockStatus}
-          showFinancials={showFinancials}
-          onSelectProduct={onSelectProduct}
-          colCount={colCount}
-          expandedCategories={expandedCategories}
-          expandedBrands={expandedBrands}
-          expandedMakes={expandedMakes}
-          onToggleCategory={onToggleCategory}
           onToggleBrand={onToggleBrand}
           onToggleMake={onToggleMake}
           allLocations={allLocations}

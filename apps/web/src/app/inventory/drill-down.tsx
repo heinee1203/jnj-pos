@@ -1,6 +1,6 @@
 "use client";
 
-import { DrilldownFamilyRow } from "./components/drilldown-hierarchy-rows";
+import { DrilldownCategoryRow } from "./components/drilldown-hierarchy-rows";
 import { DrilldownLoadingRow } from "./components/drilldown-items-table";
 import { useInventoryDrilldown } from "./lib/use-inventory-drilldown";
 
@@ -12,7 +12,6 @@ interface DrillDownViewProps {
   stockStatus?: string;
   showFinancials: boolean;
   onSelectProduct: (id: string) => void;
-  familyFilter?: string;
   categoryFilter?: string;
   brandFilter?: string;
   colCount: number;
@@ -25,26 +24,24 @@ export function DrillDownView({
   stockStatus,
   showFinancials,
   onSelectProduct,
-  familyFilter,
+  categoryFilter,
   colCount,
   allLocations,
 }: DrillDownViewProps) {
   const {
     expandedBrands,
     expandedCategories,
-    expandedFamilies,
     expandedMakes,
     isLoading,
     toggleBrand,
     toggleCategory,
-    toggleFamily,
     toggleMake,
-    visibleFamilies,
+    visibleCategories,
   } = useInventoryDrilldown({
     token,
     locationId,
     stockStatus,
-    familyFilter,
+    categoryFilter,
     allLocations,
   });
 
@@ -52,43 +49,42 @@ export function DrillDownView({
 
   return (
     <>
-      {visibleFamilies.map((fam) => {
-        const familyId = fam.id ?? NONE;
-        const familyKey = familyId;
-        const isExpanded = expandedFamilies.has(familyKey);
-        const name = fam.id ? fam.name : "No Family";
+      {visibleCategories.map((cat) => {
+        const categoryId = cat.id ?? NONE;
+        const catKey = categoryId;
+        const isExpanded = expandedCategories.has(catKey);
+        const name = cat.id ? cat.name : "No Category";
 
         return (
-          <DrilldownFamilyRow
-            key={familyKey}
-            familyKey={familyKey}
+          <DrilldownCategoryRow
+            key={catKey}
+            catKey={catKey}
             name={name}
-            itemCount={fam.itemCount}
-            categoryCount={fam.categoryCount}
+            color={cat.color}
+            itemCount={cat.itemCount}
+            brandCount={cat.brandCount}
             isExpanded={isExpanded}
-            onToggle={() => toggleFamily(familyKey)}
+            onToggle={() => toggleCategory(catKey)}
             token={token}
             locationId={locationId}
-            familyId={familyId}
+            categoryId={categoryId}
             stockStatus={stockStatus}
             showFinancials={showFinancials}
             onSelectProduct={onSelectProduct}
             colCount={colCount}
-            expandedCategories={expandedCategories}
             expandedBrands={expandedBrands}
             expandedMakes={expandedMakes}
-            onToggleCategory={toggleCategory}
             onToggleBrand={toggleBrand}
             onToggleMake={toggleMake}
             allLocations={allLocations}
           />
         );
       })}
-      {visibleFamilies.length === 0 && (
+      {visibleCategories.length === 0 && (
         <tr>
           <td className="w-9" />
           <td colSpan={colCount - 1} className="py-8 text-center text-sm text-muted-foreground">
-            No product families found
+            No categories found
           </td>
         </tr>
       )}

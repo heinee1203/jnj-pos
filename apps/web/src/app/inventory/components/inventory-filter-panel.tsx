@@ -19,9 +19,7 @@ export function InventoryFilterPanel({
     <InventoryFilters
       searchInputRef={inventory.searchInputRef}
       searchQuery={inventory.searchQuery}
-      familyFilter={inventory.familyFilter}
       categoryFilter={inventory.categoryFilter}
-      subCategoryFilter={inventory.subCategoryFilter}
       stockStatusFilter={inventory.stockStatusFilter}
       brandFilter={inventory.brandFilter}
       hideSO={inventory.hideSO}
@@ -29,23 +27,14 @@ export function InventoryFilterPanel({
       canEdit={canEdit}
       hasActiveFilters={inventory.hasActiveFilters}
       totalItems={inventory.totalItems}
-      families={inventory.families}
       filteredCategories={inventory.filteredCategories}
-      filteredSubcategories={inventory.filteredSubcategories}
       brandsList={inventory.brandsList}
       onSearchQueryChange={inventory.setSearchQuery}
       onSubmitSearch={inventory.submitSearch}
       onClearSearch={inventory.clearSearch}
-      onFamilyChange={(value) => {
-        inventory.setFamilyFilter(value);
-        inventory.setCategoryFilter("");
-        inventory.setSubCategoryFilter("");
-      }}
       onCategoryChange={(value) => {
         inventory.setCategoryFilter(value);
-        inventory.setSubCategoryFilter("");
       }}
-      onSubCategoryChange={inventory.setSubCategoryFilter}
       onStockStatusChange={inventory.setStockStatusFilter}
       onBrandChange={(value) => {
         inventory.setBrandFilter(value);

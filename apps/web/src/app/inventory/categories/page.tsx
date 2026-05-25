@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useRef } from "react";
-import { AlertTriangle, Loader2 } from "lucide-react";
+import { AlertTriangle, ChevronDown, ChevronRight, Grid3x3, Loader2, Package, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/app/auth-context";
 import { useConfirm } from "@/components/confirm-dialog";
@@ -12,30 +12,15 @@ import {
   useDeleteCategory,
   type CategoryRow,
 } from "@/hooks/use-categories";
-import {
-  useProductFamilies,
-  type ProductFamily,
-} from "@/hooks/use-products";
-import {
-  useSubcategories,
-  useCreateSubcategory,
-  useUpdateSubcategory,
-  useDeleteSubcategory,
-  type SubcategoryRow,
-} from "@/hooks/use-subcategories";
-import { useUpdateFamily, useDeleteFamily } from "@/hooks/use-families";
-import { CategoriesPageHeader } from "./components/categories-page-header";
 import { CategorySearchBar } from "./components/category-search-bar";
 import { CategoryModal } from "./components/category-modal";
-import { FamilyGroup } from "./components/category-tree";
 import { DeleteConfirmModal } from "./components/delete-confirm-modal";
-import { FamilyEditModal } from "./components/family-edit-modal";
-import { SubcategoryModal } from "./components/subcategory-modal";
 import { EMPTY_CATEGORIES } from "./constants";
+import { cn } from "@/lib/utils";
 
-/* ═══════════════════════════════════════════════════════
- * MAIN PAGE
- * ═══════════════════════════════════════════════════════ */
+/* -----------------------------------------------
+ * MAIN PAGE — flat category list
+ * ----------------------------------------------- */
 
 export default function CategoriesPage() {
   const { token, locationId, loading: authLoading } = useAuth();
@@ -43,25 +28,11 @@ export default function CategoriesPage() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [expandedFamilies, setExpandedFamilies] = useState<Set<string>>(new Set());
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
-  const [showAllCategories, setShowAllCategories] = useState<Set<string>>(new Set());
-  const [showAllSubcategories, setShowAllSubcategories] = useState<Set<string>>(new Set());
 
   // Modals
   const [modalMode, setModalMode] = useState<"closed" | "create" | "edit">("closed");
   const [editingCategory, setEditingCategory] = useState<CategoryRow | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<CategoryRow | null>(null);
-
-  // Family inline editing
-  const [editingFamily, setEditingFamily] = useState<ProductFamily | null>(null);
-  const [deleteFamilyTarget, setDeleteFamilyTarget] = useState<ProductFamily | null>(null);
-  const [createCategoryForFamily, setCreateCategoryForFamily] = useState<ProductFamily | null>(null);
-
-  // Inline subcategory editing
-  const [addingSubcategoryFor, setAddingSubcategoryFor] = useState<string | null>(null);
-  const [editingSubcategory, setEditingSubcategory] = useState<SubcategoryRow | null>(null);
-  const [deleteSubTarget, setDeleteSubTarget] = useState<SubcategoryRow | null>(null);
 
   // Debounce
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -72,140 +43,26 @@ export default function CategoriesPage() {
   };
 
   // Data
-  const { data: familiesData, isLoading: familiesLoading } = useProductFamilies(token, locationId);
-  // Fetch ALL categories (no server-side search) — search is done client-side across the full hierarchy
-  const { data: categoriesData, isLoading: categoriesLoading, isError } = useCategories(token, locationId, {});
-  const { data: subcategoriesData, isLoading: subcategoriesLoading } = useSubcategories(token, locationId);
-
+  const { data: categoriesData, isLoading, isError } = useCategories(token, locationId, {});
   const createCatMut = useCreateCategory(token, locationId);
   const updateCatMut = useUpdateCategory(token, locationId);
   const deleteCatMut = useDeleteCategory(token, locationId);
-  const createSubMut = useCreateSubcategory(token, locationId);
-  const updateSubMut = useUpdateSubcategory(token, locationId);
-  const deleteSubMut = useDeleteSubcategory(token, locationId);
-  const updateFamilyMut = useUpdateFamily(token, locationId);
-  const deleteFamilyMut = useDeleteFamily(token, locationId);
 
-  const families = familiesData?.data ?? [];
   const allCategories = categoriesData?.data ?? EMPTY_CATEGORIES;
-  const allSubcategories = subcategoriesData?.data ?? [];
 
-  const isLoading = familiesLoading || categoriesLoading || subcategoriesLoading;
-
-  // Build tree: families -> categories (by familyId) -> subcategories (by categoryId)
-  const { categoriesByFamily, ungroupedCategories, subcategoriesByCategory } = useMemo(() => {
-    const catMap = new Map<string, CategoryRow[]>();
-    const ungrouped: CategoryRow[] = [];
-
-    for (const cat of allCategories) {
-      if (cat.familyId) {
-        const list = catMap.get(cat.familyId) ?? [];
-        list.push(cat);
-        catMap.set(cat.familyId, list);
-      } else {
-        ungrouped.push(cat);
-      }
+  // Filter & sort
+  const filtered = useMemo(() => {
+    let result = [...allCategories];
+    if (debouncedSearch) {
+      const q = debouncedSearch.toLowerCase();
+      result = result.filter((c) => c.name.toLowerCase().includes(q) || c.slug.toLowerCase().includes(q));
     }
+    result.sort((a, b) => a.name.localeCompare(b.name));
+    return result;
+  }, [allCategories, debouncedSearch]);
 
-    // Sort categories by name within each group
-    for (const [, list] of catMap) {
-      list.sort((a, b) => a.name.localeCompare(b.name));
-    }
-    ungrouped.sort((a, b) => a.name.localeCompare(b.name));
-
-    // Build subcategories map
-    const subMap = new Map<string, SubcategoryRow[]>();
-    for (const sub of allSubcategories) {
-      const list = subMap.get(sub.categoryId) ?? [];
-      list.push(sub);
-      subMap.set(sub.categoryId, list);
-    }
-    for (const [, list] of subMap) {
-      list.sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name));
-    }
-
-    return {
-      categoriesByFamily: catMap,
-      ungroupedCategories: ungrouped,
-      subcategoriesByCategory: subMap,
-    };
-  }, [allCategories, allSubcategories]);
-
-  // When searching, auto-expand families/categories that have matching items or subcategories
-  const searchExpandedFamilyIds = useMemo(() => {
-    if (!debouncedSearch) return null;
-    const q = debouncedSearch.toLowerCase();
-    const ids = new Set<string>();
-    for (const family of families) {
-      const cats = categoriesByFamily.get(family.id) ?? [];
-      const familyMatches = family.name.toLowerCase().includes(q);
-      const anyCatMatches = cats.some(c => c.name.toLowerCase().includes(q));
-      // Check if any sub-category matches
-      const anySubMatches = cats.some(c => {
-        const subs = subcategoriesByCategory.get(c.id) ?? [];
-        return subs.some(s => s.name.toLowerCase().includes(q));
-      });
-      if (cats.length > 0 || familyMatches || anyCatMatches || anySubMatches) {
-        ids.add(family.id);
-      }
-    }
-    if (ungroupedCategories.length > 0) ids.add("__ungrouped__");
-    return ids;
-  }, [debouncedSearch, families, categoriesByFamily, ungroupedCategories, subcategoriesByCategory]);
-
-  const searchExpandedCategoryIds = useMemo(() => {
-    if (!debouncedSearch) return null;
-    const q = debouncedSearch.toLowerCase();
-    const ids = new Set<string>();
-    for (const cat of allCategories) {
-      const subs = subcategoriesByCategory.get(cat.id) ?? [];
-      const catMatches = cat.name.toLowerCase().includes(q);
-      const anySubMatches = subs.some(s => s.name.toLowerCase().includes(q));
-      if (subs.length > 0 || catMatches || anySubMatches) {
-        ids.add(cat.id);
-      }
-    }
-    return ids;
-  }, [debouncedSearch, allCategories, subcategoriesByCategory]);
-
-  const effectiveExpandedFamilies = searchExpandedFamilyIds ?? expandedFamilies;
-  const effectiveExpandedCategories = searchExpandedCategoryIds ?? expandedCategories;
-
-  function toggleFamily(id: string) {
-    setExpandedFamilies((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }
-
-  function toggleCategory(id: string) {
-    setExpandedCategories((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }
-
-  function toggleShowAllCategories(familyId: string) {
-    setShowAllCategories((prev) => {
-      const next = new Set(prev);
-      if (next.has(familyId)) next.delete(familyId);
-      else next.add(familyId);
-      return next;
-    });
-  }
-
-  function toggleShowAllSubcategories(categoryId: string) {
-    setShowAllSubcategories((prev) => {
-      const next = new Set(prev);
-      if (next.has(categoryId)) next.delete(categoryId);
-      else next.add(categoryId);
-      return next;
-    });
-  }
+  const totalCategories = allCategories.length;
+  const totalItems = allCategories.reduce((sum, c) => sum + c.productCount, 0);
 
   function openCreate() {
     setEditingCategory(null);
@@ -229,17 +86,10 @@ export default function CategoriesPage() {
     });
   }
 
-  function handleDeleteSubConfirm() {
-    if (!deleteSubTarget) return;
-    deleteSubMut.mutate(deleteSubTarget.id, {
-      onSuccess: () => setDeleteSubTarget(null),
-    });
-  }
-
   async function handleRemoveEmpty() {
     const ok = await confirm({
       title: "Remove empty categories?",
-      message: "This removes all categories and subcategories with 0 items. This cannot be undone.",
+      message: "This removes all categories with 0 items. This cannot be undone.",
       confirmLabel: "Remove Empty",
       variant: "danger",
     });
@@ -250,21 +100,12 @@ export default function CategoriesPage() {
         headers: { Authorization: `Bearer ${token}`, "X-Location-ID": locationId },
       });
       const data = await res.json();
-      toast.success(`Removed ${data.categoriesRemoved} empty categories and ${data.subcategoriesRemoved} empty subcategories`);
+      toast.success(`Removed ${data.categoriesRemoved} empty categories`);
       window.location.reload();
     } catch (err: any) {
       toast.error("Failed: " + (err.message || "Unknown error"));
     }
   }
-
-  // Summary stats — use unfiltered data for header totals
-  const totalFamilies = families.length;
-  const totalCategories = allCategories.length;
-  const totalSubcategories = allSubcategories.length;
-  // Items count: sum from categories + subcategories (whichever is more complete)
-  const itemsFromCategories = allCategories.reduce((sum, c) => sum + c.productCount, 0);
-  const itemsFromSubcategories = allSubcategories.reduce((sum, s: any) => sum + (s.productCount ?? 0), 0);
-  const totalItems = Math.max(itemsFromCategories, itemsFromSubcategories);
 
   if (authLoading) {
     return (
@@ -276,14 +117,57 @@ export default function CategoriesPage() {
 
   return (
     <div className="mx-auto flex h-full max-w-5xl flex-col px-2 sm:px-0">
-      <CategoriesPageHeader
-        totalFamilies={totalFamilies}
-        totalCategories={totalCategories}
-        totalSubcategories={totalSubcategories}
-        totalItems={totalItems}
-        onCreate={openCreate}
-        onRemoveEmpty={handleRemoveEmpty}
-      />
+      {/* Header */}
+      <div className="mb-5">
+        <div className="flex items-start justify-between">
+          <div>
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/[0.06]">
+                <Grid3x3 size={16} className="text-primary" />
+              </div>
+              <h1 className="text-[18px] font-semibold tracking-tight text-foreground">
+                Categories
+              </h1>
+            </div>
+            <p className="mt-1.5 text-[13px] leading-5 text-muted-foreground">
+              Manage product categories
+            </p>
+          </div>
+          <button
+            onClick={openCreate}
+            className="flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-2 text-[13px] font-medium text-primary-foreground shadow-sm transition-all hover:bg-primary/90 active:scale-[0.98]"
+          >
+            <Plus size={14} strokeWidth={2.5} />
+            Add Category
+          </button>
+        </div>
+
+        <div className="mt-4 flex gap-5">
+          <div className="flex items-center gap-2 text-[13px]">
+            <div className="flex h-5 w-5 items-center justify-center rounded bg-muted">
+              <Grid3x3 size={11} className="text-muted-foreground" />
+            </div>
+            <span className="text-muted-foreground">Categories</span>
+            <span className="font-semibold tabular-nums text-foreground">{totalCategories.toLocaleString()}</span>
+          </div>
+          <div className="h-4 w-px bg-border" />
+          <div className="flex items-center gap-2 text-[13px]">
+            <div className="flex h-5 w-5 items-center justify-center rounded bg-muted">
+              <Package size={11} className="text-muted-foreground" />
+            </div>
+            <span className="text-muted-foreground">Items</span>
+            <span className="font-semibold tabular-nums text-foreground">{totalItems.toLocaleString()}</span>
+          </div>
+          <div className="ml-auto">
+            <button
+              onClick={handleRemoveEmpty}
+              className="rounded-md border border-destructive/30 px-3 py-1.5 text-[11px] font-medium text-destructive transition-colors hover:bg-destructive/5"
+            >
+              Remove Empty
+            </button>
+          </div>
+        </div>
+      </div>
 
       <CategorySearchBar
         value={searchQuery}
@@ -306,140 +190,74 @@ export default function CategoriesPage() {
             <AlertTriangle size={20} className="text-destructive" />
             <p className="mt-2 text-[13px] text-destructive">Failed to load categories</p>
           </div>
+        ) : filtered.length === 0 ? (
+          <div className="py-16 text-center text-[13px] text-muted-foreground">
+            {debouncedSearch ? "No categories match your search" : "No categories found"}
+          </div>
         ) : (
           <div className="divide-y divide-border">
-            {/* Family groups */}
-            {families.filter((family) => {
-              // When searching, hide families with no matches
-              if (searchExpandedFamilyIds && !searchExpandedFamilyIds.has(family.id)) return false;
-              return true;
-            }).map((family) => {
-              const allFamilyCats = categoriesByFamily.get(family.id) ?? [];
-              const q = debouncedSearch?.toLowerCase();
-              const familyNameMatches = q && family.name.toLowerCase().includes(q);
-
-              // When searching, filter categories and subcategories to only matching ones
-              let familyCats = allFamilyCats;
-              let filteredSubsMap = subcategoriesByCategory;
-              if (q && !familyNameMatches) {
-                // Filter categories to those matching OR having matching subcategories
-                familyCats = allFamilyCats.filter(cat => {
-                  if (cat.name.toLowerCase().includes(q)) return true;
-                  const subs = subcategoriesByCategory.get(cat.id) ?? [];
-                  return subs.some(s => s.name.toLowerCase().includes(q));
-                });
-                // Also filter subcategories within each category
-                filteredSubsMap = new Map(
-                  familyCats.map(cat => {
-                    const subs = subcategoriesByCategory.get(cat.id) ?? [];
-                    const catMatches = cat.name.toLowerCase().includes(q);
-                    return [cat.id, catMatches ? subs : subs.filter(s => s.name.toLowerCase().includes(q))];
-                  })
-                );
-              }
-              const familyItemCount = familyCats.reduce((s, c) => s + c.productCount, 0);
-
-              return (
-                <FamilyGroup
-                  key={family.id}
-                  family={family}
-                  categories={familyCats}
-                  familyItemCount={familyItemCount}
-                  subcategoriesByCategory={filteredSubsMap}
-                  isExpanded={effectiveExpandedFamilies.has(family.id)}
-                  showAllCats={showAllCategories.has(family.id)}
-                  expandedCategories={effectiveExpandedCategories}
-                  showAllSubcategories={showAllSubcategories}
-                  onToggleFamily={() => toggleFamily(family.id)}
-                  onToggleShowAllCats={() => toggleShowAllCategories(family.id)}
-                  onToggleCategory={toggleCategory}
-                  onToggleShowAllSubs={toggleShowAllSubcategories}
-                  onEditCategory={openEdit}
-                  onDeleteCategory={(cat) => setDeleteTarget(cat)}
-                  onAddSubcategory={(catId) => setAddingSubcategoryFor(catId)}
-                  onEditSubcategory={(sub) => setEditingSubcategory(sub)}
-                  onDeleteSubcategory={(sub) => setDeleteSubTarget(sub)}
-                  onAddCategory={() => setCreateCategoryForFamily(family)}
-                  onEditFamily={() => setEditingFamily(family)}
-                  onDeleteFamily={() => setDeleteFamilyTarget(family)}
+            {filtered.map((cat) => (
+              <div
+                key={cat.id}
+                className="group flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-accent/40"
+              >
+                <div
+                  className="h-3 w-3 shrink-0 rounded-full border border-white shadow-sm"
+                  style={{ backgroundColor: cat.color || "#94A3B8" }}
                 />
-              );
-            })}
-
-            {/* Ungrouped categories (familyId === null) */}
-            {(() => {
-              const q = debouncedSearch?.toLowerCase();
-              // Filter ungrouped categories by search term
-              let filteredUngrouped = ungroupedCategories;
-              let filteredUngroupedSubsMap = subcategoriesByCategory;
-              if (q) {
-                filteredUngrouped = ungroupedCategories.filter(cat => {
-                  if (cat.name.toLowerCase().includes(q)) return true;
-                  const subs = subcategoriesByCategory.get(cat.id) ?? [];
-                  return subs.some(s => s.name.toLowerCase().includes(q));
-                });
-                filteredUngroupedSubsMap = new Map(
-                  filteredUngrouped.map(cat => {
-                    const subs = subcategoriesByCategory.get(cat.id) ?? [];
-                    const catMatches = cat.name.toLowerCase().includes(q);
-                    return [cat.id, catMatches ? subs : subs.filter(s => s.name.toLowerCase().includes(q))];
-                  })
-                );
-              }
-              if (filteredUngrouped.length === 0) return null;
-              return (
-              <FamilyGroup
-                key="__ungrouped__"
-                family={{
-                  id: "__ungrouped__",
-                  name: debouncedSearch ? "Search Results" : "Ungrouped",
-                  slug: "ungrouped",
-                  productCount: filteredUngrouped.reduce((s, c) => s + c.productCount, 0),
-                }}
-                categories={filteredUngrouped}
-                familyItemCount={filteredUngrouped.reduce((s, c) => s + c.productCount, 0)}
-                subcategoriesByCategory={filteredUngroupedSubsMap}
-                isExpanded={effectiveExpandedFamilies.has("__ungrouped__") || (!!debouncedSearch && families.length === 0)}
-                showAllCats={showAllCategories.has("__ungrouped__")}
-                expandedCategories={effectiveExpandedCategories}
-                showAllSubcategories={showAllSubcategories}
-                onToggleFamily={() => toggleFamily("__ungrouped__")}
-                onToggleShowAllCats={() => toggleShowAllCategories("__ungrouped__")}
-                onToggleCategory={toggleCategory}
-                onToggleShowAllSubs={toggleShowAllSubcategories}
-                onEditCategory={openEdit}
-                onDeleteCategory={(cat) => setDeleteTarget(cat)}
-                onAddSubcategory={(catId) => setAddingSubcategoryFor(catId)}
-                onEditSubcategory={(sub) => setEditingSubcategory(sub)}
-                onDeleteSubcategory={(sub) => setDeleteSubTarget(sub)}
-                onAddCategory={() => openCreate()}
-                onEditFamily={() => {}}
-                onDeleteFamily={() => {}}
-              />
-              );
-            })()}
-
-            {/* Empty state */}
-            {(families.length === 0 || (searchExpandedFamilyIds && searchExpandedFamilyIds.size === 0)) && ungroupedCategories.length === 0 && (
-              <div className="py-16 text-center text-[13px] text-muted-foreground">
-                {debouncedSearch ? "No categories match your search" : "No categories found"}
+                <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-foreground">
+                  {cat.name}
+                </span>
+                {cat.description && (
+                  <span className="hidden truncate text-[11px] text-muted-foreground sm:block sm:max-w-[200px]">
+                    {cat.description}
+                  </span>
+                )}
+                <span className="inline-flex shrink-0 items-center justify-center rounded-md bg-primary/[0.06] px-2 py-0.5 text-[11px] font-semibold tabular-nums text-foreground">
+                  {cat.productCount.toLocaleString()} items
+                </span>
+                <span className={cn(
+                  "inline-flex shrink-0 items-center rounded px-1.5 py-0.5 text-[10px] font-medium",
+                  cat.isActive ? "bg-emerald-50 text-emerald-600" : "bg-muted text-muted-foreground",
+                )}>
+                  {cat.isActive ? "Active" : "Inactive"}
+                </span>
+                <div className="flex shrink-0 items-center gap-0.5">
+                  <button
+                    onClick={() => openEdit(cat)}
+                    className="rounded p-1.5 text-muted-foreground opacity-0 transition-all hover:bg-muted hover:text-foreground group-hover:opacity-100"
+                    title="Edit category"
+                  >
+                    <Pencil size={12} />
+                  </button>
+                  <button
+                    onClick={() => setDeleteTarget(cat)}
+                    className={cn(
+                      "rounded p-1.5 transition-all group-hover:opacity-100",
+                      cat.productCount > 0
+                        ? "cursor-not-allowed text-muted-foreground/30 opacity-0"
+                        : "text-muted-foreground opacity-0 hover:bg-destructive/10 hover:text-destructive",
+                    )}
+                    title={cat.productCount > 0 ? `${cat.productCount} items assigned` : "Delete category"}
+                    disabled={cat.productCount > 0}
+                  >
+                    <Trash2 size={12} />
+                  </button>
+                </div>
               </div>
-            )}
+            ))}
           </div>
         )}
       </div>
 
       {/* Create / Edit Category Modal */}
-      {(modalMode !== "closed" || createCategoryForFamily) && (
+      {modalMode !== "closed" && (
         <CategoryModal
-          mode={createCategoryForFamily ? "create" : modalMode as "create" | "edit"}
+          mode={modalMode as "create" | "edit"}
           initial={editingCategory}
-          families={families}
-          lockedFamilyId={createCategoryForFamily?.id}
-          lockedFamilyName={createCategoryForFamily?.name}
-          onClose={() => { closeModal(); setCreateCategoryForFamily(null); }}
+          onClose={closeModal}
           onSubmit={(form) => {
-            if (createCategoryForFamily || modalMode === "create") {
+            if (modalMode === "create") {
               createCatMut.mutate(
                 {
                   name: form.name,
@@ -448,9 +266,8 @@ export default function CategoriesPage() {
                   color: form.color || undefined,
                   sortOrder: form.sortOrder,
                   isActive: form.isActive,
-                  familyId: createCategoryForFamily?.id || form.familyId || undefined,
                 } as any,
-                { onSuccess: () => { closeModal(); setCreateCategoryForFamily(null); } },
+                { onSuccess: closeModal },
               );
             } else if (editingCategory) {
               updateCatMut.mutate(
@@ -462,7 +279,6 @@ export default function CategoriesPage() {
                   color: form.color || undefined,
                   sortOrder: form.sortOrder,
                   isActive: form.isActive,
-                  familyId: form.familyId ?? null,
                 } as any,
                 { onSuccess: closeModal },
               );
@@ -470,92 +286,6 @@ export default function CategoriesPage() {
           }}
           submitting={createCatMut.isPending || updateCatMut.isPending}
           error={createCatMut.error?.message || updateCatMut.error?.message || null}
-        />
-      )}
-
-      {/* Edit Family Modal */}
-      {editingFamily && (
-        <FamilyEditModal
-          family={editingFamily}
-          onClose={() => setEditingFamily(null)}
-          onSubmit={(name) => {
-            updateFamilyMut.mutate(
-              { id: editingFamily.id, name },
-              { onSuccess: () => setEditingFamily(null) },
-            );
-          }}
-          submitting={updateFamilyMut.isPending}
-          error={updateFamilyMut.error?.message || null}
-        />
-      )}
-
-      {/* Delete Family Confirmation */}
-      {deleteFamilyTarget && (
-        <DeleteConfirmModal
-          title="Delete Family"
-          itemName={deleteFamilyTarget.name}
-          itemCount={categoriesByFamily.get(deleteFamilyTarget.id)?.length ?? 0}
-          warningMessage={
-            (categoriesByFamily.get(deleteFamilyTarget.id)?.length ?? 0) > 0
-              ? `This family has ${categoriesByFamily.get(deleteFamilyTarget.id)!.length} categories assigned. Move or delete them first.`
-              : undefined
-          }
-          onClose={() => setDeleteFamilyTarget(null)}
-          onConfirm={() => {
-            deleteFamilyMut.mutate(deleteFamilyTarget.id, {
-              onSuccess: () => setDeleteFamilyTarget(null),
-            });
-          }}
-          submitting={deleteFamilyMut.isPending}
-          error={deleteFamilyMut.error?.message || null}
-        />
-      )}
-
-      {/* Inline Add Subcategory Modal */}
-      {addingSubcategoryFor && (
-        <SubcategoryModal
-          mode="create"
-          categoryId={addingSubcategoryFor}
-          initial={null}
-          onClose={() => setAddingSubcategoryFor(null)}
-          onSubmit={(form) => {
-            createSubMut.mutate(
-              {
-                categoryId: addingSubcategoryFor,
-                name: form.name,
-                slug: form.slug,
-                sortOrder: form.sortOrder,
-                isActive: form.isActive,
-              },
-              { onSuccess: () => setAddingSubcategoryFor(null) },
-            );
-          }}
-          submitting={createSubMut.isPending}
-          error={createSubMut.error?.message || null}
-        />
-      )}
-
-      {/* Edit Subcategory Modal */}
-      {editingSubcategory && (
-        <SubcategoryModal
-          mode="edit"
-          categoryId={editingSubcategory.categoryId}
-          initial={editingSubcategory}
-          onClose={() => setEditingSubcategory(null)}
-          onSubmit={(form) => {
-            updateSubMut.mutate(
-              {
-                id: editingSubcategory.id,
-                name: form.name,
-                slug: form.slug,
-                sortOrder: form.sortOrder,
-                isActive: form.isActive,
-              },
-              { onSuccess: () => setEditingSubcategory(null) },
-            );
-          }}
-          submitting={updateSubMut.isPending}
-          error={updateSubMut.error?.message || null}
         />
       )}
 
@@ -569,19 +299,6 @@ export default function CategoriesPage() {
           onConfirm={handleDeleteConfirm}
           submitting={deleteCatMut.isPending}
           error={deleteCatMut.error?.message || null}
-        />
-      )}
-
-      {/* Delete Subcategory Confirmation */}
-      {deleteSubTarget && (
-        <DeleteConfirmModal
-          title="Delete Sub-category"
-          itemName={deleteSubTarget.name}
-          itemCount={deleteSubTarget.productCount}
-          onClose={() => setDeleteSubTarget(null)}
-          onConfirm={handleDeleteSubConfirm}
-          submitting={deleteSubMut.isPending}
-          error={deleteSubMut.error?.message || null}
         />
       )}
     </div>

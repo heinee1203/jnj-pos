@@ -23,9 +23,7 @@ interface ExportProduct {
   packagingUnit: string | null;
   sellingUnit: string | null;
   handle: string;
-  familyName: string | null;
   categoryName: string | null;
-  subcategoryName: string | null;
   brandName: string | null;
   supplierName: string | null;
   isSerialized: boolean;
@@ -72,9 +70,7 @@ interface UseInventoryImportExportOptions {
   sortBy: SortField;
   sortDir: SortDir;
   debouncedSearch: string;
-  familyFilter: string;
   categoryFilter: string;
-  subCategoryFilter: string;
   brandFilter: string;
 }
 
@@ -103,7 +99,7 @@ function generateHandle(name: string): string {
 function buildCSV(items: ExportProduct[], locs: Array<{ id: string; name: string }>): string {
   const staticHeaders = [
     "Handle", "Name", "SKU", "Barcode", "OEM Number",
-    "Family", "Category", "Sub-category", "Brand",
+    "Category", "Brand",
     "Default Price", "Cost", "Variable Price", "Track Stock", "Description",
     "Units per Case", "Packaging Unit",
     "Option 1 name", "Option 1 value",
@@ -138,9 +134,7 @@ function buildCSV(items: ExportProduct[], locs: Array<{ id: string; name: string
       item.sku ?? "",
       item.barcode ?? "",
       item.oemNumber ?? "",
-      item.familyName ?? "",
       sanitizeText(item.categoryName ?? ""),
-      item.subcategoryName ?? "",
       item.brandName ?? "",
       item.unitPrice ?? "0.00",
       item.costPrice ?? "0.00",
@@ -285,9 +279,7 @@ function mapCSVRowToPayload(row: Record<string, string>, rawHeaders: string[]) {
     handle: get("handle"),
     barcode: get("barcode"),
     oemNumber: get("oemnumber", "oem number"),
-    family: get("family"),
     category: get("category"),
-    subcategory: get("subcategory", "sub-category"),
     brand: get("brand"),
     unitPrice: get("defaultprice", "default price", "sellprice", "unitprice"),
     costPrice: get("cost", "costprice", "cost price"),
@@ -307,9 +299,7 @@ export function useInventoryImportExport({
   sortBy,
   sortDir,
   debouncedSearch,
-  familyFilter,
   categoryFilter,
-  subCategoryFilter,
   brandFilter,
 }: UseInventoryImportExportOptions) {
   const [importFile, setImportFile] = useState<File | null>(null);
@@ -328,9 +318,7 @@ export function useInventoryImportExport({
       params.set("includeStock", "true");
       params.set("includeCost", "true");
       if (debouncedSearch && debouncedSearch.length >= 2) params.set("search", debouncedSearch);
-      if (familyFilter) params.set("familyId", familyFilter);
       if (categoryFilter) params.set("categoryId", categoryFilter);
-      if (subCategoryFilter) params.set("subcategoryId", subCategoryFilter);
       if (brandFilter) params.set("brandId", brandFilter);
 
       const resp = await apiFetch<ExportResponse>(
@@ -343,7 +331,7 @@ export function useInventoryImportExport({
     } catch {
       // Silent fail; user can retry.
     }
-  }, [sortBy, sortDir, debouncedSearch, familyFilter, categoryFilter, subCategoryFilter, brandFilter, token, apiLocationId]);
+  }, [sortBy, sortDir, debouncedSearch, categoryFilter, brandFilter, token, apiLocationId]);
 
   const handleExportSelected = useCallback(async () => {
     if (selectedIds.size === 0) return;

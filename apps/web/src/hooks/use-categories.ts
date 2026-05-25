@@ -15,7 +15,6 @@ export interface CategoryRow {
   sortOrder: number;
   isActive: boolean;
   parentId: string | null;
-  familyId: string | null;
   productCount: number;
   createdAt: string;
   updatedAt: string;
@@ -74,7 +73,6 @@ export function useCreateCategory(token: string, locationId: string) {
       sortOrder?: number;
       isActive?: boolean;
       parentId?: string;
-      familyId?: string;
     }) =>
       apiFetch<CategoryRow>("/categories", {
         method: "POST",

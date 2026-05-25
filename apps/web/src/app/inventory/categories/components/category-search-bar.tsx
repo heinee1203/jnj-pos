@@ -15,7 +15,7 @@ export function CategorySearchBar({ value, onChange, onClear }: CategorySearchBa
           type="text"
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          placeholder="Search families, categories, and sub-categories..."
+          placeholder="Search categories..."
           className="h-9 w-full rounded-lg border border-border bg-background pr-3 text-[13px] text-foreground shadow-[0_1px_2px_0_rgba(0,0,0,0.04)] outline-none placeholder:text-muted-foreground/60 transition-colors focus:border-primary/40 focus:ring-2 focus:ring-primary/[0.08]"
           style={{ paddingLeft: "2.125rem" }}
         />

@@ -3,14 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
 
-export type GroupByLevel = "family" | "category" | "brand" | "vehicleMake";
-
-export interface FamilyCountRow {
-  id: string | null;
-  name: string;
-  itemCount: number;
-  categoryCount: number;
-}
+export type GroupByLevel = "category" | "brand" | "vehicleMake";
 
 export interface CategoryCountRow {
   id: string | null;
@@ -33,7 +26,6 @@ export interface MakeCountRow {
 }
 
 export interface GroupedCountsFilters {
-  familyId?: string;
   categoryId?: string;
   brandId?: string;
   stockStatus?: string;
@@ -48,7 +40,6 @@ export function useGroupedCounts<T>(
   options?: { enabled?: boolean },
 ) {
   const params = new URLSearchParams({ groupBy });
-  if (filters?.familyId) params.set("familyId", filters.familyId);
   if (filters?.categoryId) params.set("categoryId", filters.categoryId);
   if (filters?.brandId) params.set("brandId", filters.brandId);
   if (filters?.stockStatus) params.set("stockStatus", filters.stockStatus);

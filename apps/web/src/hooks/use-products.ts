@@ -20,12 +20,8 @@ export interface ProductRow {
   vehicleModel: string | null;
   stockLevel: number;
   reorderPoint: number;
-  familyId: string | null;
-  familyName: string | null;
-  subCategoryId: string | null;
-  subCategoryName: string | null;
-  subcategoryId: string | null;
-  subcategoryName: string | null;
+  categoryId: string | null;
+  categoryName: string | null;
   brandId: string | null;
   brandName: string | null;
   parentProductId: string | null;
@@ -62,7 +58,6 @@ export type SortField =
   | "costPrice"
   | "stockLevel"
   | "categoryName"
-  | "subcategoryName"
   | "brandName"
   | "margin";
 
@@ -70,13 +65,9 @@ export type SortDir = "asc" | "desc";
 
 export interface ProductListFilters {
   search?: string;
-  familyId?: string;
   category?: string;
   stockStatus?: string;  // "low" | "out" | ""
-  /** Category filter — canonical name after audit Bug 8
-   *  (replaced the legacy `subCategoryId` param which referred to the same column). */
   categoryId?: string;
-  subcategoryId?: string;
   brandId?: string;
   vehicleMake?: string;
   sortBy?: SortField;
@@ -101,11 +92,9 @@ export function useProducts(
 ) {
   const {
     search,
-    familyId,
     category,
     stockStatus,
     categoryId,
-    subcategoryId,
     brandId,
     vehicleMake,
     sortBy = "name",
@@ -124,11 +113,9 @@ export function useProducts(
       "products",
       locationId,
       search,
-      familyId,
       category,
       stockStatus,
       categoryId,
-      subcategoryId,
       brandId,
       vehicleMake,
       sortBy,
@@ -149,11 +136,9 @@ export function useProducts(
       params.set("sortDir", sortDir);
 
       if (search && search.length >= 2) params.set("search", search);
-      if (familyId) params.set("familyId", familyId);
       if (category) params.set("category", category);
       if (stockStatus) params.set("stockStatus", stockStatus);
       if (categoryId) params.set("categoryId", categoryId);
-      if (subcategoryId) params.set("subcategoryId", subcategoryId);
       if (brandId) params.set("brandId", brandId);
       if (vehicleMake) params.set("vehicleMake", vehicleMake);
       if (grouped) params.set("grouped", "true");
@@ -185,9 +170,7 @@ export interface CreateProductPayload {
   unitPrice?: string;
   costPrice?: string;
   barcode?: string;
-  familyId?: string | null;
   categoryId?: string | null;
-  subcategoryId?: string | null;
   brandId?: string | null;
   description?: string;
   trackInventory?: boolean;
@@ -248,9 +231,7 @@ export interface UpdateProductPayload {
   unitPrice?: string;
   costPrice?: string;
   barcode?: string;
-  familyId?: string | null;
   categoryId?: string | null;
-  subcategoryId?: string | null;
   brandId?: string | null;
   reorderPoint?: number;
   unitsPerCase?: number;
@@ -309,30 +290,6 @@ export function useProductDetail(token: string, locationId: string, productId: s
       }),
     enabled: !!token && !!locationId && !!productId,
     staleTime: 30_000,
-  });
-}
-
-/* ─────────────────────────────────────────────
- * Product Families
- * ───────────────────────────────────────────── */
-
-export interface ProductFamily {
-  id: string;
-  name: string;
-  slug: string;
-  productCount: number;
-}
-
-export function useProductFamilies(token: string, locationId: string) {
-  return useQuery<{ data: ProductFamily[] }>({
-    queryKey: ["product-families"],
-    queryFn: () =>
-      apiFetch<{ data: ProductFamily[] }>("/products/families", {
-        token,
-        locationId,
-      }),
-    enabled: !!token && !!locationId,
-    staleTime: 60_000,
   });
 }
 

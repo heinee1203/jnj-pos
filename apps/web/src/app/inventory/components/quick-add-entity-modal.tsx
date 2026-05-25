@@ -2,12 +2,7 @@
 
 import { useState } from "react";
 
-export type QuickAddEntityType = "family" | "category" | "subcategory" | "brand";
-
-interface EntityOption {
-  id: string;
-  name: string;
-}
+export type QuickAddEntityType = "category" | "brand";
 
 interface EntityCreateMutation<TInput> {
   mutateAsync: (input: TInput) => Promise<unknown>;
@@ -15,36 +10,25 @@ interface EntityCreateMutation<TInput> {
 
 interface QuickAddEntityModalProps {
   type: QuickAddEntityType;
-  families: EntityOption[];
-  categories: EntityOption[];
   onClose: () => void;
   onCreated: (type: QuickAddEntityType, id: string) => void;
-  createFamily: EntityCreateMutation<{ name: string }>;
-  createCategory: EntityCreateMutation<{ name: string; slug: string; familyId?: string }>;
-  createSubcategory: EntityCreateMutation<{ name: string; slug: string; categoryId: string }>;
+  createCategory: EntityCreateMutation<{ name: string; slug: string }>;
   createBrand: EntityCreateMutation<{ name: string; slug: string }>;
 }
 
 export function QuickAddEntityModal({
   type,
-  families,
-  categories,
   onClose,
   onCreated,
-  createFamily,
   createCategory,
-  createSubcategory,
   createBrand,
 }: QuickAddEntityModalProps) {
   const [name, setName] = useState("");
-  const [parentId, setParentId] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
   const titles: Record<QuickAddEntityType, string> = {
-    family: "Add New Family",
     category: "Add New Category",
-    subcategory: "Add New Sub-category",
     brand: "Add New Brand",
   };
 
@@ -55,17 +39,8 @@ export function QuickAddEntityModal({
     setError("");
     try {
       let result: unknown;
-      if (type === "family") {
-        result = await createFamily.mutateAsync({ name: name.trim() });
-      } else if (type === "category") {
-        result = await createCategory.mutateAsync({ name: name.trim(), slug, familyId: parentId || undefined });
-      } else if (type === "subcategory") {
-        if (!parentId) {
-          setError("Category is required");
-          setSaving(false);
-          return;
-        }
-        result = await createSubcategory.mutateAsync({ name: name.trim(), slug, categoryId: parentId });
+      if (type === "category") {
+        result = await createCategory.mutateAsync({ name: name.trim(), slug });
       } else {
         result = await createBrand.mutateAsync({ name: name.trim(), slug });
       }
@@ -94,24 +69,6 @@ export function QuickAddEntityModal({
               className={fieldClass}
             />
           </div>
-          {type === "category" && (
-            <div>
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">Family</label>
-              <select value={parentId} onChange={(e) => setParentId(e.target.value)} className={fieldClass}>
-                <option value="">No family</option>
-                {families.map((family) => <option key={family.id} value={family.id}>{family.name}</option>)}
-              </select>
-            </div>
-          )}
-          {type === "subcategory" && (
-            <div>
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">Category *</label>
-              <select value={parentId} onChange={(e) => setParentId(e.target.value)} className={fieldClass}>
-                <option value="">Select category...</option>
-                {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
-              </select>
-            </div>
-          )}
           {error && <p className="text-xs text-destructive">{error}</p>}
         </div>
         <div className="mt-4 flex justify-end gap-2">

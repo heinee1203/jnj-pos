@@ -1,19 +1,15 @@
 import type { InlineVariant, VehicleEntry } from "./types";
-import { familyToEnum } from "./utils";
 
 type BuildNewItemPayloadInput = {
   name: string;
   sku: string;
   hasInlineVariants: boolean;
-  selectedFamilyName: string;
   unitPrice: string;
   showCost: boolean;
   costPrice: string;
   barcode: string;
   oemNumber: string;
-  familyId: string;
   categoryId: string;
-  subcategoryId: string;
   brandId: string;
   description: string;
   trackInventory: boolean;
@@ -35,15 +31,12 @@ export function buildNewItemPayload({
   name,
   sku,
   hasInlineVariants,
-  selectedFamilyName,
   unitPrice,
   showCost,
   costPrice,
   barcode,
   oemNumber,
-  familyId,
   categoryId,
-  subcategoryId,
   brandId,
   description,
   trackInventory,
@@ -63,14 +56,12 @@ export function buildNewItemPayload({
   return {
     name: name.trim(),
     sku: hasInlineVariants ? "" : sku.trim(),
-    category: familyToEnum(selectedFamilyName),
+    category: "GENERAL",
     unitPrice: unitPrice || "0.00",
     costPrice: showCost ? costPrice || "0.00" : "0.00",
     barcode: hasInlineVariants ? undefined : barcode.trim() || undefined,
     oemNumber: oemNumber.trim() || undefined,
-    familyId: familyId || null,
     categoryId: categoryId || null,
-    subcategoryId: subcategoryId || null,
     brandId: brandId || undefined,
     isParent: hasInlineVariants || undefined,
     description: description || undefined,

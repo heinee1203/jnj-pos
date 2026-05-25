@@ -32,11 +32,8 @@ export function QuickAddDrawer({
     createMutation,
     enabledLocationIds,
     error,
-    families,
-    familyId,
-    filteredCategories,
+    allCategories,
     handleCategoryChange,
-    handleFamilyChange,
     handleSave,
     initialStock,
     isValid,
@@ -44,7 +41,6 @@ export function QuickAddDrawer({
     oemNumber,
     quickAddBrand,
     quickAddCategory,
-    quickAddSubcategory,
     setBarcode,
     setBrandId,
     setCostPrice,
@@ -52,13 +48,10 @@ export function QuickAddDrawer({
     setName,
     setOemNumber,
     setSku,
-    setSubcategoryId,
     setTrackInventory,
     setUnitPrice,
     showCost,
     sku,
-    subcategories,
-    subcategoryId,
     toggleAllLocations,
     toggleLocation,
     trackInventory,
@@ -113,18 +106,11 @@ export function QuickAddDrawer({
               brandId={brandId}
               brandsList={brandsList}
               categoryId={categoryId}
-              families={families}
-              familyId={familyId}
-              filteredCategories={filteredCategories}
+              allCategories={allCategories}
               handleCategoryChange={handleCategoryChange}
-              handleFamilyChange={handleFamilyChange}
               quickAddBrand={quickAddBrand}
               quickAddCategory={quickAddCategory}
-              quickAddSubcategory={quickAddSubcategory}
               setBrandId={setBrandId}
-              setSubcategoryId={setSubcategoryId}
-              subcategories={subcategories}
-              subcategoryId={subcategoryId}
             />
 
             <QuickAddPricingSection

@@ -19,7 +19,6 @@ export const STATUS_COLORS: Record<string, string> = {
 export const SCOPE_LABELS: Record<string, string> = {
   FULL_LOCATION: "Full Location",
   CATEGORY: "Category",
-  FAMILY: "Group",
   SELECTED_SKUS: "Selected SKUs",
 };
 

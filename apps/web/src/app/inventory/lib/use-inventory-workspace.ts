@@ -5,8 +5,7 @@ import { ALL_LOCATIONS } from "@/app/auth-context";
 import { useBrands } from "@/hooks/use-brands";
 import { useCategories } from "@/hooks/use-categories";
 import { useLocations, type LocationRow } from "@/hooks/use-locations";
-import { useProductFamilies, useProducts, type SortDir, type SortField } from "@/hooks/use-products";
-import { useSubcategories } from "@/hooks/use-subcategories";
+import { useProducts, type SortDir, type SortField } from "@/hooks/use-products";
 import { DEFAULT_PAGE_SIZE } from "./inventory-utils";
 
 interface UseInventoryWorkspaceOptions {
@@ -22,9 +21,7 @@ export function useInventoryWorkspace({
 }: UseInventoryWorkspaceOptions) {
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [familyFilter, setFamilyFilter] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
-  const [subCategoryFilter, setSubCategoryFilter] = useState("");
   const [stockStatusFilter, setStockStatusFilter] = useState("");
   const [brandFilter, setBrandFilter] = useState("");
   const [sortBy, setSortBy] = useState<SortField>("name");
@@ -44,30 +41,11 @@ export function useInventoryWorkspace({
     return (locationsQuery.data?.data ?? []).filter((location: LocationRow) => location.isActive);
   }, [locationsQuery.data]);
 
-  const familiesQuery = useProductFamilies(token!, apiLocationId!);
-  const families = useMemo(() => {
-    const rows = familiesQuery.data?.data ?? [];
-    return [...rows].sort((a, b) => a.name.localeCompare(b.name));
-  }, [familiesQuery.data]);
-
   const categoriesQuery = useCategories(token!, apiLocationId!);
   const filteredCategories = useMemo(() => {
     const categories = categoriesQuery.data?.data ?? [];
-    const sorted = [...categories].sort((a, b) => a.name.localeCompare(b.name));
-    if (!familyFilter) return sorted;
-    return sorted.filter((category) => category.familyId === familyFilter);
-  }, [categoriesQuery.data, familyFilter]);
-
-  const subcategoriesQuery = useSubcategories(token!, apiLocationId!, (categoryFilter && categoryFilter !== "__none__") ? categoryFilter : undefined);
-  const allSubcategoriesQuery = useSubcategories(token!, apiLocationId!);
-  const filteredSubcategories = useMemo(() => {
-    const rows = subcategoriesQuery.data?.data ?? [];
-    return [...rows].sort((a, b) => a.name.localeCompare(b.name));
-  }, [subcategoriesQuery.data]);
-  const allSubcategories = useMemo(() => {
-    const rows = allSubcategoriesQuery.data?.data ?? [];
-    return [...rows].sort((a, b) => a.name.localeCompare(b.name));
-  }, [allSubcategoriesQuery.data]);
+    return [...categories].sort((a, b) => a.name.localeCompare(b.name));
+  }, [categoriesQuery.data]);
 
   const brandsQuery = useBrands(token!, apiLocationId!);
   const brandsList = useMemo(() => {
@@ -77,13 +55,11 @@ export function useInventoryWorkspace({
 
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearch, familyFilter, categoryFilter, subCategoryFilter, stockStatusFilter, brandFilter, sortBy, sortDir, locationId, pageSize, viewMode]);
+  }, [debouncedSearch, categoryFilter, stockStatusFilter, brandFilter, sortBy, sortDir, locationId, pageSize, viewMode]);
 
   const { data, isLoading, isFetching } = useProducts(token!, apiLocationId!, {
     search: debouncedSearch,
-    familyId: familyFilter || undefined,
     categoryId: categoryFilter || undefined,
-    subcategoryId: subCategoryFilter || undefined,
     stockStatus: stockStatusFilter,
     brandId: brandFilter || undefined,
     sortBy,
@@ -133,12 +109,10 @@ export function useInventoryWorkspace({
   );
 
   const hasActiveFilters =
-    familyFilter !== "" || categoryFilter !== "" || subCategoryFilter !== "" || stockStatusFilter !== "" || brandFilter !== "" || searchQuery.trim() !== "" || hideSO || hideDC;
+    categoryFilter !== "" || stockStatusFilter !== "" || brandFilter !== "" || searchQuery.trim() !== "" || hideSO || hideDC;
 
   const clearAllFilters = useCallback(() => {
-    setFamilyFilter("");
     setCategoryFilter("");
-    setSubCategoryFilter("");
     setStockStatusFilter("");
     setBrandFilter("");
     setSearchQuery("");
@@ -166,7 +140,6 @@ export function useInventoryWorkspace({
   }, [hideDC]);
 
   return {
-    allSubcategories,
     brandFilter,
     brandsList,
     categoryFilter,
@@ -174,10 +147,7 @@ export function useInventoryWorkspace({
     clearSearch,
     debouncedSearch,
     effectiveViewMode,
-    families,
-    familyFilter,
     filteredCategories,
-    filteredSubcategories,
     handleSort,
     hasActiveFilters,
     hasMore,
@@ -194,17 +164,14 @@ export function useInventoryWorkspace({
     searchQuery,
     setBrandFilter,
     setCategoryFilter,
-    setFamilyFilter,
     setPage,
     setPageSize,
     setSearchQuery,
-    setSubCategoryFilter,
     setStockStatusFilter,
     setViewMode,
     sortBy,
     sortDir,
     stockStatusFilter,
-    subCategoryFilter,
     submitSearch,
     toggleHideDC,
     toggleHideSO,

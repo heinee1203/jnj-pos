@@ -24,7 +24,7 @@ export function InventoryValuationHeader({
         <h1 className="text-[18px] font-semibold tracking-tight text-foreground">Inventory Valuation</h1>
       </div>
       <p className="mt-1.5 text-[13px] leading-5 text-muted-foreground">
-        Total inventory value at cost and retail across all locations. Track capital allocation by category, brand, family, or branch.
+        Total inventory value at cost and retail across all locations. Track capital allocation by category, brand, or branch.
       </p>
 
       {totals && (

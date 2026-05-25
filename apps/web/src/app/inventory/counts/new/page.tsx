@@ -12,9 +12,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/app/auth-context";
 import { useCreateCount } from "@/hooks/use-inventory-counts";
-import { useProductFamilies } from "@/hooks/use-products";
 import { useCategories } from "@/hooks/use-categories";
-import { useSubcategories } from "@/hooks/use-subcategories";
 import { useBrands } from "@/hooks/use-brands";
 
 /* ═══════════════════════════════════════════════════════
@@ -32,30 +30,16 @@ export default function NewCountPage() {
   const [scope, setScope] = useState("FULL_LOCATION");
   const [label, setLabel] = useState("");
   const [notes, setNotes] = useState("");
-  const [familyId, setFamilyId] = useState("");
   const [categoryId, setCategoryId] = useState("");
-  const [subcategoryId, setSubcategoryId] = useState("");
   const [brandId, setBrandId] = useState("");
 
   const isCycle = scope !== "FULL_LOCATION";
 
   // Data for filter dropdowns
-  const familiesQuery = useProductFamilies(token, locationId);
-  const families = familiesQuery.data?.data ?? [];
   const categoriesQuery = useCategories(token, locationId, { activeOnly: true });
   const allCategories = categoriesQuery.data?.data ?? [];
-  const subcategoriesQuery = useSubcategories(token, locationId, categoryId || undefined);
-  const allSubcategories = subcategoriesQuery.data?.data ?? [];
   const brandsQuery = useBrands(token, locationId);
   const brandsList = brandsQuery.data?.data ?? [];
-
-  // Cascading filters
-  const filteredCategories = familyId
-    ? allCategories.filter((c: any) => c.familyId === familyId)
-    : allCategories;
-  const filteredSubcategories = categoryId
-    ? allSubcategories.filter((s: any) => s.categoryId === categoryId)
-    : allSubcategories;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,9 +49,7 @@ export default function NewCountPage() {
         title: label,
         notes: notes || undefined,
         filterCriteria: isCycle ? {
-          familyId: familyId || undefined,
           categoryId: categoryId || undefined,
-          subcategoryId: subcategoryId || undefined,
           brandId: brandId || undefined,
         } : undefined,
       },
@@ -158,9 +140,7 @@ export default function NewCountPage() {
                   checked={scope === "FULL_LOCATION"}
                   onChange={() => {
                     setScope("FULL_LOCATION");
-                    setFamilyId("");
                     setCategoryId("");
-                    setSubcategoryId("");
                     setBrandId("");
                   }}
                   className="sr-only"
@@ -212,49 +192,17 @@ export default function NewCountPage() {
             <div className="space-y-4 rounded-md border border-border bg-muted/30 p-4">
               <p className="text-xs font-medium text-muted-foreground">Filter items to count (all optional — leave blank to include all items at this location)</p>
               <div className="grid grid-cols-2 gap-4">
-                {/* Family */}
-                <div>
-                  <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Family</label>
-                  <div className="relative">
-                    <select
-                      value={familyId}
-                      onChange={(e) => { setFamilyId(e.target.value); setCategoryId(""); setSubcategoryId(""); }}
-                      className="h-10 w-full appearance-none rounded-md border border-border bg-background px-3 pr-8 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
-                    >
-                      <option value="">All Families</option>
-                      {families.map((f: any) => <option key={f.id} value={f.id}>{f.name}</option>)}
-                    </select>
-                    <ChevronDown size={14} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                  </div>
-                </div>
-
                 {/* Category */}
                 <div>
                   <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Category</label>
                   <div className="relative">
                     <select
                       value={categoryId}
-                      onChange={(e) => { setCategoryId(e.target.value); setSubcategoryId(""); }}
+                      onChange={(e) => setCategoryId(e.target.value)}
                       className="h-10 w-full appearance-none rounded-md border border-border bg-background px-3 pr-8 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
                     >
                       <option value="">All Categories</option>
-                      {filteredCategories.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                    </select>
-                    <ChevronDown size={14} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                  </div>
-                </div>
-
-                {/* Sub-category */}
-                <div>
-                  <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Sub-category</label>
-                  <div className="relative">
-                    <select
-                      value={subcategoryId}
-                      onChange={(e) => setSubcategoryId(e.target.value)}
-                      className="h-10 w-full appearance-none rounded-md border border-border bg-background px-3 pr-8 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
-                    >
-                      <option value="">All Sub-categories</option>
-                      {filteredSubcategories.map((s: any) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                      {allCategories.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
                     </select>
                     <ChevronDown size={14} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                   </div>

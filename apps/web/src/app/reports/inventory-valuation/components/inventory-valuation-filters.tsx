@@ -8,7 +8,7 @@ type InventoryValuationFiltersProps = {
   controller: InventoryValuationController;
 };
 
-const GROUP_OPTIONS: GroupByOption[] = ["category", "brand", "family", "location"];
+const GROUP_OPTIONS: GroupByOption[] = ["category", "brand", "location"];
 
 export function InventoryValuationFilters({ controller }: InventoryValuationFiltersProps) {
   return (

@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { Check, Loader2, X } from "lucide-react";
 
 import type { CategoryRow } from "@/hooks/use-categories";
-import type { ProductFamily } from "@/hooks/use-products";
 import { cn } from "@/lib/utils";
 import { PRESET_COLORS } from "../constants";
 
@@ -13,15 +12,11 @@ export interface CategoryFormData {
   color: string;
   sortOrder: number;
   isActive: boolean;
-  familyId: string | null;
 }
 
 type CategoryModalProps = {
   mode: "create" | "edit";
   initial: CategoryRow | null;
-  families: ProductFamily[];
-  lockedFamilyId?: string;
-  lockedFamilyName?: string;
   onClose: () => void;
   onSubmit: (form: CategoryFormData) => void;
   submitting: boolean;
@@ -31,9 +26,6 @@ type CategoryModalProps = {
 export function CategoryModal({
   mode,
   initial,
-  families,
-  lockedFamilyId,
-  lockedFamilyName,
   onClose,
   onSubmit,
   submitting,
@@ -48,7 +40,6 @@ export function CategoryModal({
         color: initial.color || "#2563EB",
         sortOrder: initial.sortOrder,
         isActive: initial.isActive,
-        familyId: initial.familyId,
       };
     }
     return {
@@ -58,7 +49,6 @@ export function CategoryModal({
       color: "#2563EB",
       sortOrder: 0,
       isActive: true,
-      familyId: lockedFamilyId ?? families[0]?.id ?? null,
     };
   });
 
@@ -111,7 +101,7 @@ export function CategoryModal({
               type="text"
               value={form.name}
               onChange={(event) => handleNameChange(event.target.value)}
-              placeholder="e.g. Brake Parts"
+              placeholder="e.g. School Supplies"
               className="h-9 w-full rounded-lg border border-border bg-background px-3 text-[13px] text-foreground outline-none placeholder:text-muted-foreground/60 focus:border-primary/40 focus:ring-2 focus:ring-primary/[0.08]"
             />
           </div>
@@ -122,31 +112,9 @@ export function CategoryModal({
               type="text"
               value={form.slug}
               onChange={(event) => handleSlugChange(event.target.value)}
-              placeholder="brake-parts"
+              placeholder="school-supplies"
               className="h-9 w-full rounded-lg border border-border bg-background px-3 font-mono text-[13px] text-foreground outline-none placeholder:text-muted-foreground/60 focus:border-primary/40 focus:ring-2 focus:ring-primary/[0.08]"
             />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-[12px] font-medium text-muted-foreground">Family</label>
-            {lockedFamilyName ? (
-              <div className="flex h-9 w-full items-center rounded-lg border border-border bg-muted/50 px-3 text-[13px] text-foreground">
-                {lockedFamilyName}
-              </div>
-            ) : (
-              <select
-                value={form.familyId ?? ""}
-                onChange={(event) => setForm((current) => ({ ...current, familyId: event.target.value || null }))}
-                className="h-9 w-full rounded-lg border border-border bg-background px-3 text-[13px] text-foreground outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/[0.08]"
-              >
-                <option value="">None (Ungrouped)</option>
-                {families.map((family) => (
-                  <option key={family.id} value={family.id}>
-                    {family.name}
-                  </option>
-                ))}
-              </select>
-            )}
           </div>
 
           <div>

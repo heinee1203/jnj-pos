@@ -45,7 +45,6 @@ const STATUS_COLORS: Record<string, string> = {
 const SCOPE_LABELS: Record<string, string> = {
   FULL_LOCATION: "Full",
   CATEGORY: "Cycle",
-  FAMILY: "Cycle",
   SELECTED_SKUS: "Cycle",
 };
 

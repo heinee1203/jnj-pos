@@ -9,20 +9,16 @@ type StockLevelsFilterState = {
   belowReorder: boolean;
   categoryFilter: string;
   debouncedSearch: string;
-  familyFilter: string;
   sortBy: SortField;
   sortDir: SortDir;
   stockStatusFilter: string;
-  subcategoryFilter: string;
 };
 
 type ActiveFilterState = {
   belowReorder: boolean;
   categoryFilter: string;
-  familyFilter: string;
   searchQuery: string;
   stockStatusFilter: string;
-  subcategoryFilter: string;
 };
 
 function activeValue(value: string): string | undefined {
@@ -59,17 +55,13 @@ export function buildProductStockLevelsFilters({
   belowReorder,
   categoryFilter,
   debouncedSearch,
-  familyFilter,
   sortBy,
   sortDir,
   stockStatusFilter,
-  subcategoryFilter,
 }: StockLevelsFilterState): StockLevelsFilters {
   return {
     search: debouncedSearch || undefined,
-    familyId: activeValue(familyFilter),
     categoryId: activeValue(categoryFilter),
-    subcategoryId: activeValue(subcategoryFilter),
     stockStatus: activeStockStatus(stockStatusFilter),
     belowReorder: belowReorder || undefined,
     sortBy,
@@ -80,15 +72,11 @@ export function buildProductStockLevelsFilters({
 export function hasActiveStockLevelsFilters({
   belowReorder,
   categoryFilter,
-  familyFilter,
   searchQuery,
   stockStatusFilter,
-  subcategoryFilter,
 }: ActiveFilterState): boolean {
   return (
-    familyFilter !== "all" ||
     categoryFilter !== "all" ||
-    subcategoryFilter !== "all" ||
     stockStatusFilter !== "all" ||
     searchQuery !== "" ||
     belowReorder

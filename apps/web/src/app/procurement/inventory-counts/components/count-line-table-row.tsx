@@ -33,9 +33,6 @@ export function CountLineTableRow({
         >
           {line.productName}
         </div>
-        {line.familyName && (
-          <div className="text-[10px] text-muted-foreground/60">{line.familyName}</div>
-        )}
       </td>
 
       <td className="whitespace-nowrap px-3 py-1.5 align-top font-mono text-[11px] text-muted-foreground">

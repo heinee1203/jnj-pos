@@ -2,8 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useBrands, useCreateBrand } from "@/hooks/use-brands";
 import { useCategories, useCreateCategory } from "@/hooks/use-categories";
 import { useLocations } from "@/hooks/use-locations";
-import { useCreateProduct, useProductFamilies } from "@/hooks/use-products";
-import { useCreateSubcategory, useSubcategories } from "@/hooks/use-subcategories";
+import { useCreateProduct } from "@/hooks/use-products";
 
 type UseQuickAddProductFormArgs = {
   token: string;
@@ -12,15 +11,6 @@ type UseQuickAddProductFormArgs = {
   isAllLocations: boolean;
   onClose: () => void;
 };
-
-function familyToEnum(familyName: string): string {
-  const n = familyName.toUpperCase();
-  if (n.includes("TIRE")) return "TIRES";
-  if (n.includes("LUBRIC") || n.includes("OIL") || n.includes("FLUID")) return "LUBRICANTS";
-  if (n.includes("ACCESSOR")) return "ACCESSORIES";
-  if (n.includes("LABOR") || n.includes("SERVICE")) return "LABOR_SERVICES";
-  return "HARD_PARTS";
-}
 
 function slugify(name: string): string {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
@@ -35,9 +25,7 @@ export function useQuickAddProductForm({
 }: UseQuickAddProductFormArgs) {
   const [name, setName] = useState("");
   const [sku, setSku] = useState("");
-  const [familyId, setFamilyId] = useState("");
   const [categoryId, setCategoryId] = useState("");
-  const [subcategoryId, setSubcategoryId] = useState("");
   const [brandId, setBrandId] = useState("");
   const [unitPrice, setUnitPrice] = useState("");
   const [costPrice, setCostPrice] = useState("");
@@ -80,45 +68,20 @@ export function useQuickAddProductForm({
   const showCost = ["ADMIN", "MANAGER"].includes(userRole);
   const createMutation = useCreateProduct(token, locationId);
 
-  const { data: familiesData } = useProductFamilies(token, locationId);
-  const families = familiesData?.data ?? [];
   const { data: categoriesData } = useCategories(token, locationId, { activeOnly: true });
   const allCategories = categoriesData?.data ?? [];
-  const filteredCategories = familyId
-    ? allCategories.filter((c) => c.familyId === familyId)
-    : [];
-  const { data: subcategoriesData } = useSubcategories(token, locationId, categoryId || undefined);
-  const subcategories = (subcategoriesData?.data ?? []).filter((s) => !categoryId || s.categoryId === categoryId);
   const { data: brandsData } = useBrands(token, locationId);
   const brandsList = brandsData?.data ?? [];
 
   const createBrandMut = useCreateBrand(token, locationId);
   const createCategoryMut = useCreateCategory(token, locationId);
-  const createSubcategoryMut = useCreateSubcategory(token, locationId);
-
-  const handleFamilyChange = (id: string) => {
-    setFamilyId(id);
-    setCategoryId("");
-    setSubcategoryId("");
-  };
 
   const handleCategoryChange = (id: string) => {
     setCategoryId(id);
-    setSubcategoryId("");
   };
 
   const quickAddCategory = async (name: string) => {
     const res: any = await createCategoryMut.mutateAsync({
-      name,
-      slug: slugify(name),
-      familyId: familyId || undefined,
-    });
-    return { id: res?.data?.id ?? res?.id ?? "" };
-  };
-
-  const quickAddSubcategory = async (name: string) => {
-    const res: any = await createSubcategoryMut.mutateAsync({
-      categoryId,
       name,
       slug: slugify(name),
     });
@@ -130,8 +93,7 @@ export function useQuickAddProductForm({
     return { id: res?.data?.id ?? res?.id ?? "" };
   };
 
-  const selectedFamily = families.find((f) => f.id === familyId);
-  const isValid = name.trim() !== "" && sku.trim() !== "" && familyId !== "";
+  const isValid = name.trim() !== "" && sku.trim() !== "";
 
   const handleSave = async (openFull = false) => {
     if (!isValid) return;
@@ -140,10 +102,8 @@ export function useQuickAddProductForm({
       const payload: any = {
         name: name.trim(),
         sku: sku.trim(),
-        category: familyToEnum(selectedFamily?.name ?? ""),
-        familyId: familyId || undefined,
+        category: "GENERAL",
         categoryId: categoryId || undefined,
-        subcategoryId: subcategoryId || undefined,
         brandId: brandId || undefined,
         unitPrice: unitPrice || "0.00",
         costPrice: showCost ? (costPrice || "0.00") : "0.00",
@@ -180,11 +140,8 @@ export function useQuickAddProductForm({
     createMutation,
     enabledLocationIds,
     error,
-    families,
-    familyId,
-    filteredCategories,
+    allCategories,
     handleCategoryChange,
-    handleFamilyChange,
     handleSave,
     initialStock,
     isValid,
@@ -192,7 +149,6 @@ export function useQuickAddProductForm({
     oemNumber,
     quickAddBrand,
     quickAddCategory,
-    quickAddSubcategory,
     setBarcode,
     setBrandId,
     setCostPrice,
@@ -200,13 +156,10 @@ export function useQuickAddProductForm({
     setName,
     setOemNumber,
     setSku,
-    setSubcategoryId,
     setTrackInventory,
     setUnitPrice,
     showCost,
     sku,
-    subcategories,
-    subcategoryId,
     toggleAllLocations,
     toggleLocation,
     trackInventory,

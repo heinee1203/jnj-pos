@@ -6,8 +6,7 @@ import { toast } from "sonner";
 import type { LocationInfo } from "@/app/auth-context";
 import { useBrands, useCreateBrand } from "@/hooks/use-brands";
 import { useCategories, useCreateCategory } from "@/hooks/use-categories";
-import { useProductFamilies, useCreateProduct } from "@/hooks/use-products";
-import { useCreateSubcategory, useSubcategories } from "@/hooks/use-subcategories";
+import { useCreateProduct } from "@/hooks/use-products";
 import { useVehicleMakes } from "@/hooks/use-vehicles";
 import { mergeVehicleMakes } from "@/lib/vehicle-makes";
 
@@ -26,7 +25,6 @@ import {
 } from "./form-helpers";
 import { mergeCopiedFitments } from "./fitment-utils";
 import { buildNewItemPayload } from "./payload";
-import { familyToEnum } from "./utils";
 import { generateVariants } from "./variant-utils";
 
 type UseNewInventoryItemFormOptions = {
@@ -45,15 +43,12 @@ export function useNewInventoryItemForm({
   onCreated,
 }: UseNewInventoryItemFormOptions) {
   const createMutation = useCreateProduct(token, locationId);
-  const familiesQuery = useProductFamilies(token, locationId);
   const categoriesQuery = useCategories(token, locationId, { activeOnly: true });
   const brandsQuery = useBrands(token, locationId);
   const createBrandMut = useCreateBrand(token, locationId);
   const createCategoryMut = useCreateCategory(token, locationId);
-  const createSubcategoryMut = useCreateSubcategory(token, locationId);
   const { data: dbMakesData } = useVehicleMakes(token, locationId);
 
-  const families = familiesQuery.data?.data ?? [];
   const allCategories = categoriesQuery.data?.data ?? [];
   const brandsList = brandsQuery.data?.data ?? [];
   const allMakes = useMemo(
@@ -64,9 +59,7 @@ export function useNewInventoryItemForm({
 
   const [name, setName] = useState("");
   const [sku, setSku] = useState("");
-  const [familyId, setFamilyId] = useState("");
   const [categoryId, setCategoryId] = useState("");
-  const [subcategoryId, setSubcategoryId] = useState("");
   const [brandId, setBrandId] = useState("");
   const [inlineVariants, setInlineVariants] = useState<InlineVariant[]>([]);
   const [description, setDescription] = useState("");
@@ -103,19 +96,11 @@ export function useNewInventoryItemForm({
   const [savingStep, setSavingStep] = useState<string | null>(null);
 
   const hasInlineVariants = inlineVariants.length > 0;
-  const filteredCategories = familyId
-    ? allCategories.filter((category) => category.familyId === familyId)
-    : [];
-  const subcategoriesQuery = useSubcategories(token, locationId, categoryId || undefined);
-  const subcategories = (subcategoriesQuery.data?.data ?? []).filter(
-    (subcategory) => !categoryId || subcategory.categoryId === categoryId,
-  );
-  const selectedFamily = families.find((family) => family.id === familyId);
 
   const isDirty = !!(
     name ||
     sku ||
-    familyId ||
+    categoryId ||
     unitPrice ||
     costPrice ||
     description ||
@@ -143,37 +128,18 @@ export function useNewInventoryItemForm({
   const isValid =
     name.trim() !== "" &&
     (hasInlineVariants || sku.trim() !== "") &&
-    familyId !== "" &&
     (!hasInlineVariants ||
       inlineVariants.every((variant) => variant.suffix.trim() && variant.sku.trim()));
 
   const isSaving = createMutation.isPending || !!savingStep;
 
-  const handleFamilyChange = (id: string) => {
-    setFamilyId(id);
-    setCategoryId("");
-    setSubcategoryId("");
-  };
-
   const handleCategoryChange = (id: string) => {
     setCategoryId(id);
-    setSubcategoryId("");
   };
 
   const quickAddCategory = async (value: string) => {
     const slug = makeSlug(value);
     const res: any = await createCategoryMut.mutateAsync({
-      name: value,
-      slug,
-      familyId: familyId || undefined,
-    });
-    return { id: res?.data?.id ?? res?.id ?? "" };
-  };
-
-  const quickAddSubcategory = async (value: string) => {
-    const slug = makeSlug(value);
-    const res: any = await createSubcategoryMut.mutateAsync({
-      categoryId,
       name: value,
       slug,
     });
@@ -302,9 +268,7 @@ export function useNewInventoryItemForm({
   const resetForAddAnother = () => {
     setName("");
     setSku("");
-    setFamilyId("");
     setCategoryId("");
-    setSubcategoryId("");
     setBrandId("");
     setUnitPrice("");
     setCostPrice("");
@@ -331,15 +295,12 @@ export function useNewInventoryItemForm({
           name,
           sku,
           hasInlineVariants,
-          selectedFamilyName: selectedFamily?.name ?? "",
           unitPrice,
           showCost,
           costPrice,
           barcode,
           oemNumber,
-          familyId,
           categoryId,
-          subcategoryId,
           brandId,
           description,
           trackInventory,
@@ -382,15 +343,9 @@ export function useNewInventoryItemForm({
       onNameChange: setName,
       sku,
       onSkuChange: setSku,
-      familyId,
-      onFamilyChange: handleFamilyChange,
-      families,
       categoryId,
       onCategoryChange: handleCategoryChange,
-      categories: filteredCategories,
-      subcategoryId,
-      onSubcategoryChange: setSubcategoryId,
-      subcategories,
+      categories: allCategories,
       brandId,
       onBrandChange: setBrandId,
       brands: brandsList,
@@ -406,7 +361,6 @@ export function useNewInventoryItemForm({
       isActive,
       onActiveChange: setIsActive,
       onQuickAddCategory: quickAddCategory,
-      onQuickAddSubcategory: quickAddSubcategory,
       onQuickAddBrand: quickAddBrand,
     },
     pricing: {
@@ -471,7 +425,6 @@ export function useNewInventoryItemForm({
       onRemoveAttribute: removeAttribute,
     },
     vehicles: {
-      selectedFamilyEnum: familyToEnum(selectedFamily?.name ?? ""),
       vehicles,
       allMakes,
       token,

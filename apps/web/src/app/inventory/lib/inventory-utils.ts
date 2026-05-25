@@ -19,11 +19,9 @@ function formatPrice(amount: number): string {
   return amount.toLocaleString("en-PH", { minimumFractionDigits: 2 });
 }
 
-/** Extract variant descriptor from product name by stripping the family prefix. */
-function getVariantDescriptor(name: string, familyName: string | null): string {
-  if (!familyName) return name;
-  const descriptor = name.replace(familyName, "").trim();
-  return descriptor || name;
+/** Extract variant descriptor from product name. */
+function getVariantDescriptor(name: string): string {
+  return name;
 }
 
 export { PAGE_SIZES, DEFAULT_PAGE_SIZE, getStockStatus, getMarginPercent, formatPrice, getVariantDescriptor };

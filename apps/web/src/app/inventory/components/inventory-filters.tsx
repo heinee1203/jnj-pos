@@ -4,19 +4,14 @@ import { startTransition, type RefObject } from "react";
 import { Plus, Search, X } from "lucide-react";
 import type { Brand } from "@/hooks/use-brands";
 import type { CategoryRow } from "@/hooks/use-categories";
-import type { ProductFamily } from "@/hooks/use-products";
-import type { SubcategoryRow } from "@/hooks/use-subcategories";
 import { cn } from "@/lib/utils";
-import { SearchableSelect } from "./searchable-select";
 
-type AddModalTarget = "family" | "category" | "subcategory" | "brand";
+type AddModalTarget = "category" | "brand";
 
 interface InventoryFiltersProps {
   searchInputRef: RefObject<HTMLInputElement | null>;
   searchQuery: string;
-  familyFilter: string;
   categoryFilter: string;
-  subCategoryFilter: string;
   stockStatusFilter: string;
   brandFilter: string;
   hideSO: boolean;
@@ -24,16 +19,12 @@ interface InventoryFiltersProps {
   canEdit: boolean;
   hasActiveFilters: boolean;
   totalItems: number;
-  families: ProductFamily[];
   filteredCategories: CategoryRow[];
-  filteredSubcategories: SubcategoryRow[];
   brandsList: Brand[];
   onSearchQueryChange: (value: string) => void;
   onSubmitSearch: () => void;
   onClearSearch: () => void;
-  onFamilyChange: (value: string) => void;
   onCategoryChange: (value: string) => void;
-  onSubCategoryChange: (value: string) => void;
   onStockStatusChange: (value: string) => void;
   onBrandChange: (value: string) => void;
   onToggleHideSO: () => void;
@@ -45,9 +36,7 @@ interface InventoryFiltersProps {
 export function InventoryFilters({
   searchInputRef,
   searchQuery,
-  familyFilter,
   categoryFilter,
-  subCategoryFilter,
   stockStatusFilter,
   brandFilter,
   hideSO,
@@ -55,16 +44,12 @@ export function InventoryFilters({
   canEdit,
   hasActiveFilters,
   totalItems,
-  families,
   filteredCategories,
-  filteredSubcategories,
   brandsList,
   onSearchQueryChange,
   onSubmitSearch,
   onClearSearch,
-  onFamilyChange,
   onCategoryChange,
-  onSubCategoryChange,
   onStockStatusChange,
   onBrandChange,
   onToggleHideSO,
@@ -113,20 +98,6 @@ export function InventoryFilters({
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <div className="flex items-center">
           <select
-            value={familyFilter}
-            onChange={(e) => onFamilyChange(e.target.value)}
-            className="h-8 rounded-lg rounded-r-none border border-border bg-background px-2.5 pr-7 text-[12px] text-foreground shadow-[0_1px_2px_0_rgba(0,0,0,0.04)] outline-none transition-colors focus:border-primary/40 focus:ring-2 focus:ring-primary/[0.08]"
-          >
-            <option value="">All Families</option>
-            {families.map((family) => (
-              <option key={family.id} value={family.id}>{family.name}</option>
-            ))}
-          </select>
-          {canEdit && <AddFilterButton label="Add Family" onClick={() => onAddModal("family")} />}
-        </div>
-
-        <div className="flex items-center">
-          <select
             value={categoryFilter}
             onChange={(e) => onCategoryChange(e.target.value)}
             className="h-8 rounded-lg rounded-r-none border border-border bg-background px-2.5 pr-7 text-[12px] text-foreground shadow-[0_1px_2px_0_rgba(0,0,0,0.04)] outline-none transition-colors focus:border-primary/40 focus:ring-2 focus:ring-primary/[0.08]"
@@ -138,19 +109,6 @@ export function InventoryFilters({
             ))}
           </select>
           {canEdit && <AddFilterButton label="Add Category" onClick={() => onAddModal("category")} />}
-        </div>
-
-        <div className="flex items-center">
-          <SearchableSelect
-            value={subCategoryFilter}
-            onChange={onSubCategoryChange}
-            options={[
-              { value: "__none__", label: "-- No Subcategory --" },
-              ...filteredSubcategories.map((subcategory) => ({ value: subcategory.id, label: subcategory.name })),
-            ]}
-            placeholder="All Sub-categories"
-          />
-          {canEdit && <AddFilterButton label="Add Sub-category" onClick={() => onAddModal("subcategory")} />}
         </div>
 
         <select

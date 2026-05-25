@@ -21,9 +21,7 @@ export function useStockLevelsController(): StockLevelsController {
 
   const [viewMode, setViewMode] = useState<StockLevelsViewMode>("product");
   const [allLocations, setAllLocations] = useState(false);
-  const [familyFilter, setFamilyFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
-  const [subcategoryFilter, setSubcategoryFilter] = useState("all");
   const [stockStatusFilter, setStockStatusFilter] = useState("all");
   const {
     clearSearch,
@@ -37,12 +35,8 @@ export function useStockLevelsController(): StockLevelsController {
 
   const {
     allCategories,
-    allFamilies,
-    filteredCategories,
-    filteredSubcategories,
   } = useStockLevelsTaxonomy({
     categoryFilter,
-    familyFilter,
     locationId,
     token,
   });
@@ -52,11 +46,9 @@ export function useStockLevelsController(): StockLevelsController {
     belowReorder,
     categoryFilter,
     debouncedSearch,
-    familyFilter,
     sortBy,
     sortDir,
     stockStatusFilter,
-    subcategoryFilter,
   };
 
   const locationQuery = useStockLevels(
@@ -120,16 +112,12 @@ export function useStockLevelsController(): StockLevelsController {
   const hasActiveFilters = hasActiveStockLevelsFilters({
     belowReorder,
     categoryFilter,
-    familyFilter,
     searchQuery,
     stockStatusFilter,
-    subcategoryFilter,
   });
 
   function clearFilters() {
-    setFamilyFilter("all");
     setCategoryFilter("all");
-    setSubcategoryFilter("all");
     setStockStatusFilter("all");
     clearSearch();
     setBelowReorder(false);
@@ -137,7 +125,6 @@ export function useStockLevelsController(): StockLevelsController {
 
   return {
     allCategories,
-    allFamilies,
     allLocations,
     authLoading,
     belowReorder,
@@ -146,12 +133,9 @@ export function useStockLevelsController(): StockLevelsController {
     createDraftPO,
     dismissModal,
     error: activeQuery.error,
-    familyFilter,
     fetchNextPage: () => {
       void activeQuery.fetchNextPage();
     },
-    filteredCategories,
-    filteredSubcategories,
     handleReorder,
     handleSearchChange,
     handleSnooze,
@@ -170,14 +154,11 @@ export function useStockLevelsController(): StockLevelsController {
     setAllLocations,
     setBelowReorder,
     setCategoryFilter,
-    setFamilyFilter,
     setStockStatusFilter,
-    setSubcategoryFilter,
     setViewMode,
     sortBy,
     sortDir,
     stockStatusFilter,
-    subcategoryFilter,
     successMessage,
     summary,
     viewExistingDraft,

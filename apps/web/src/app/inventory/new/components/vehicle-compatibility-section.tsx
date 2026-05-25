@@ -13,7 +13,6 @@ import { NewPageModelInput } from "./model-input";
 type VehicleCompatibilitySectionProps = {
   collapsed: boolean;
   onToggle: () => void;
-  selectedFamilyEnum: string;
   vehicles: VehicleEntry[];
   allMakes: string[];
   token: string;
@@ -27,7 +26,6 @@ type VehicleCompatibilitySectionProps = {
 export function VehicleCompatibilitySection({
   collapsed,
   onToggle,
-  selectedFamilyEnum,
   vehicles,
   allMakes,
   token,
@@ -37,9 +35,6 @@ export function VehicleCompatibilitySection({
   onRemoveVehicle,
   onCopyFromItem,
 }: VehicleCompatibilitySectionProps) {
-  const isOptionalFamily =
-    selectedFamilyEnum === "LABOR_SERVICES" ||
-    selectedFamilyEnum === "ACCESSORIES";
 
   return (
     <FormSection
@@ -51,7 +46,7 @@ export function VehicleCompatibilitySection({
       badge={vehicles.length > 0 ? `${vehicles.length} entries` : undefined}
     >
       <div className="space-y-3">
-        <VehicleCompatibilityHint optional={isOptionalFamily} />
+        <VehicleCompatibilityHint />
 
         {vehicles.map((vehicle) => (
           <VehicleFitmentRow
@@ -86,14 +81,12 @@ export function VehicleCompatibilitySection({
   );
 }
 
-function VehicleCompatibilityHint({ optional }: { optional: boolean }) {
+function VehicleCompatibilityHint() {
   return (
     <div className="flex items-center gap-2 rounded-lg border border-dashed border-border bg-muted/20 px-3 py-2 text-[12px] text-muted-foreground">
       <Info size={13} />
       <span>
-        {optional
-          ? "Vehicle compatibility is typically used for Hard Parts and Tires. You can still add entries if needed."
-          : "Specify which vehicles this part fits. This data is persisted and searchable."}
+        Specify which vehicles this part fits. This data is persisted and searchable.
       </span>
     </div>
   );

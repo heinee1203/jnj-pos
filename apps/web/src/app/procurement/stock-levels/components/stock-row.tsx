@@ -39,9 +39,6 @@ export function StockRow({ row, onReorder, reorderLoading }: StockRowProps) {
             </span>
           )}
         </div>
-        {row.familyName && (
-          <div className="text-[10px] text-muted-foreground">{row.familyName}</div>
-        )}
       </td>
 
       <td className="whitespace-nowrap px-4 py-1.5 font-mono text-xs text-muted-foreground">

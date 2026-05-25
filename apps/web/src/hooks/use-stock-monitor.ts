@@ -12,8 +12,6 @@ export interface StockMonitorRow {
   productSku: string;
   brandName: string | null;
   categoryName: string | null;
-  subcategoryName: string | null;
-  familyName: string | null;
   totalStock: number;
   specialOrder: boolean;
   discontinued: boolean;
@@ -114,8 +112,6 @@ export interface StockMonitorFilters {
   status?: string;
   brandId?: string;
   categoryId?: string;
-  subcategoryId?: string;
-  familyId?: string;
   hideNegativeStock?: boolean;
   hideDiscontinued?: boolean;
   hideSpecialOrder?: boolean;
@@ -153,8 +149,6 @@ export function useStockMonitor(
       if (filters.status) params.set("status", filters.status);
       if (filters.brandId) params.set("brandId", filters.brandId);
       if (filters.categoryId) params.set("categoryId", filters.categoryId);
-      if (filters.subcategoryId) params.set("subcategoryId", filters.subcategoryId);
-      if (filters.familyId) params.set("familyId", filters.familyId);
       if (filters.hideNegativeStock) params.set("hideNegativeStock", "true");
       if (filters.hideDiscontinued) params.set("hideDiscontinued", "true");
       if (filters.hideSpecialOrder) params.set("hideSpecialOrder", "true");

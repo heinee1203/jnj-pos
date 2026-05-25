@@ -66,42 +66,14 @@ function LocationScopeToggle({ controller }: StockLevelsFiltersProps) {
 
 function TaxonomyFilters({ controller }: StockLevelsFiltersProps) {
   return (
-    <>
-      <FilterSelect
-        value={controller.familyFilter}
-        onChange={(value) => {
-          controller.setFamilyFilter(value);
-          controller.setCategoryFilter("all");
-          controller.setSubcategoryFilter("all");
-        }}
-        options={[
-          { value: "all", label: "All Families" },
-          ...controller.allFamilies.map((family: any) => ({ value: family.id, label: family.name })),
-        ]}
-      />
-      <FilterSelect
-        value={controller.categoryFilter}
-        onChange={(value) => {
-          controller.setCategoryFilter(value);
-          controller.setSubcategoryFilter("all");
-        }}
-        options={[
-          { value: "all", label: "All Categories" },
-          ...controller.filteredCategories.map((category: any) => ({ value: category.id, label: category.name })),
-        ]}
-      />
-      <FilterSelect
-        value={controller.subcategoryFilter}
-        onChange={controller.setSubcategoryFilter}
-        options={[
-          { value: "all", label: "All Sub-categories" },
-          ...controller.filteredSubcategories.map((subcategory: any) => ({
-            value: subcategory.id,
-            label: subcategory.name,
-          })),
-        ]}
-      />
-    </>
+    <FilterSelect
+      value={controller.categoryFilter}
+      onChange={controller.setCategoryFilter}
+      options={[
+        { value: "all", label: "All Categories" },
+        ...controller.allCategories.map((category: any) => ({ value: category.id, label: category.name })),
+      ]}
+    />
   );
 }
 

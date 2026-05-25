@@ -96,8 +96,6 @@ interface BulkSelectionBarProps {
   deletePending: boolean;
   categoryOptions: BulkOption[];
   brandOptions: BulkOption[];
-  familyOptions: BulkOption[];
-  subcategoryOptions: BulkOption[];
   onDelete: () => void;
   onExportSelected: () => void;
   onBulkUpdate: (updates: Record<string, string | boolean>) => void;
@@ -113,8 +111,6 @@ export function BulkSelectionBar({
   deletePending,
   categoryOptions,
   brandOptions,
-  familyOptions,
-  subcategoryOptions,
   onDelete,
   onExportSelected,
   onBulkUpdate,
@@ -165,19 +161,6 @@ export function BulkSelectionBar({
         <div className="h-4 w-px shrink-0 bg-border" />
         <BulkDropdown label="Category" options={categoryOptions} onSelect={(id) => onBulkUpdate({ categoryId: id })} />
         <BulkDropdown label="Brand" options={brandOptions} onSelect={(id) => onBulkUpdate({ brandId: id })} />
-        <BulkDropdown label="Family" options={familyOptions} onSelect={(id) => onBulkUpdate({ familyId: id })} />
-        <BulkDropdown
-          label="Subcategory"
-          options={subcategoryOptions}
-          onSelect={(id) => {
-            const subcategory = subcategoryOptions.find((option) => option.id === id);
-            if (subcategory?.categoryId) {
-              onBulkUpdate({ subcategoryId: id, categoryId: subcategory.categoryId });
-            } else {
-              onBulkUpdate({ subcategoryId: id });
-            }
-          }}
-        />
         <button
           onClick={onOpenAvailability}
           className="shrink-0 whitespace-nowrap rounded bg-muted px-2.5 py-1 text-[11px] font-medium text-foreground transition-colors hover:bg-muted/80"

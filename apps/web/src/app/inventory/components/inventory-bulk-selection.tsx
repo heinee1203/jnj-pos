@@ -31,12 +31,6 @@ export function InventoryBulkSelection({
       deletePending={bulkActions.deletePending}
       categoryOptions={inventory.filteredCategories.map((category) => ({ id: category.id, name: category.name }))}
       brandOptions={inventory.brandsList.map((brand) => ({ id: brand.id, name: brand.name }))}
-      familyOptions={inventory.families.map((family) => ({ id: family.id, name: family.name }))}
-      subcategoryOptions={inventory.allSubcategories.map((subcategory) => ({
-        id: subcategory.id,
-        name: subcategory.name,
-        categoryId: subcategory.categoryId,
-      }))}
       onDelete={bulkActions.handleBulkDelete}
       onExportSelected={importExport.handleExportSelected}
       onBulkUpdate={bulkActions.handleBulkUpdate}

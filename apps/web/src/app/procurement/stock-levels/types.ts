@@ -12,7 +12,6 @@ export type StockLevelsViewMode = "product" | "location";
 
 export type StockLevelsController = {
   allCategories: any[];
-  allFamilies: any[];
   allLocations: boolean;
   authLoading: boolean;
   belowReorder: boolean;
@@ -25,10 +24,7 @@ export type StockLevelsController = {
   ) => void | Promise<void>;
   dismissModal: () => void;
   error: unknown;
-  familyFilter: string;
   fetchNextPage: () => void;
-  filteredCategories: any[];
-  filteredSubcategories: any[];
   handleReorder: (productId: string, productName: string) => void;
   handleSearchChange: (value: string) => void;
   handleSnooze: (productId: string, days: number) => void;
@@ -47,14 +43,11 @@ export type StockLevelsController = {
   setAllLocations: (value: boolean) => void;
   setBelowReorder: (value: boolean) => void;
   setCategoryFilter: (value: string) => void;
-  setFamilyFilter: (value: string) => void;
   setStockStatusFilter: (value: string) => void;
-  setSubcategoryFilter: (value: string) => void;
   setViewMode: (value: StockLevelsViewMode) => void;
   sortBy: SortField;
   sortDir: SortDir;
   stockStatusFilter: string;
-  subcategoryFilter: string;
   successMessage: string | null;
   summary: StockLevelsSummary | null;
   viewExistingDraft: (poNumber: string) => void;

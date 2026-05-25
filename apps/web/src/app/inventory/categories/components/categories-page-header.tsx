@@ -1,19 +1,15 @@
 import type { ReactNode } from "react";
-import { FolderTree, Grid3x3, Layers, Package, Plus } from "lucide-react";
+import { Grid3x3, Package, Plus } from "lucide-react";
 
 type CategoriesPageHeaderProps = {
-  totalFamilies: number;
   totalCategories: number;
-  totalSubcategories: number;
   totalItems: number;
   onCreate: () => void;
   onRemoveEmpty: () => void;
 };
 
 export function CategoriesPageHeader({
-  totalFamilies,
   totalCategories,
-  totalSubcategories,
   totalItems,
   onCreate,
   onRemoveEmpty,
@@ -31,7 +27,7 @@ export function CategoriesPageHeader({
             </h1>
           </div>
           <p className="mt-1.5 text-[13px] leading-5 text-muted-foreground">
-            Manage product families, categories, and sub-categories
+            Manage product categories
           </p>
         </div>
         <button
@@ -44,11 +40,7 @@ export function CategoriesPageHeader({
       </div>
 
       <div className="mt-4 flex gap-5">
-        <SummaryMetric icon={<Layers size={11} className="text-muted-foreground" />} label="Families" value={totalFamilies.toLocaleString()} />
-        <Divider />
         <SummaryMetric icon={<Grid3x3 size={11} className="text-muted-foreground" />} label="Categories" value={totalCategories.toLocaleString()} />
-        <Divider />
-        <SummaryMetric icon={<FolderTree size={11} className="text-muted-foreground" />} label="Sub-categories" value={totalSubcategories.toLocaleString()} />
         <Divider />
         <SummaryMetric icon={<Package size={11} className="text-muted-foreground" />} label="Items" value={totalItems.toLocaleString()} />
         <div className="ml-auto">

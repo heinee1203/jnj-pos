@@ -6,8 +6,6 @@ import { SelectWithQuickAdd } from "@/components/select-with-quick-add";
 import { cn } from "@/lib/utils";
 import type { Brand } from "@/hooks/use-brands";
 import type { CategoryRow } from "@/hooks/use-categories";
-import type { ProductFamily } from "@/hooks/use-products";
-import type { SubcategoryRow } from "@/hooks/use-subcategories";
 
 import type { InlineVariant } from "../types";
 import {
@@ -24,15 +22,9 @@ type BasicInfoSectionProps = {
   onNameChange: (value: string) => void;
   sku: string;
   onSkuChange: (value: string) => void;
-  familyId: string;
-  onFamilyChange: (value: string) => void;
-  families: ProductFamily[];
   categoryId: string;
   onCategoryChange: (value: string) => void;
   categories: CategoryRow[];
-  subcategoryId: string;
-  onSubcategoryChange: (value: string) => void;
-  subcategories: SubcategoryRow[];
   brandId: string;
   onBrandChange: (value: string) => void;
   brands: Brand[];
@@ -52,7 +44,6 @@ type BasicInfoSectionProps = {
   isActive: boolean;
   onActiveChange: (value: boolean) => void;
   onQuickAddCategory: (name: string) => Promise<{ id: string } | null>;
-  onQuickAddSubcategory: (name: string) => Promise<{ id: string } | null>;
   onQuickAddBrand: (name: string) => Promise<{ id: string } | null>;
 };
 
@@ -63,15 +54,9 @@ export function BasicInfoSection({
   onNameChange,
   sku,
   onSkuChange,
-  familyId,
-  onFamilyChange,
-  families,
   categoryId,
   onCategoryChange,
   categories,
-  subcategoryId,
-  onSubcategoryChange,
-  subcategories,
   brandId,
   onBrandChange,
   brands,
@@ -87,7 +72,6 @@ export function BasicInfoSection({
   isActive,
   onActiveChange,
   onQuickAddCategory,
-  onQuickAddSubcategory,
   onQuickAddBrand,
 }: BasicInfoSectionProps) {
   return (
@@ -124,46 +108,14 @@ export function BasicInfoSection({
           </div>
         )}
 
-        <div>
-          <FieldLabel required>Family</FieldLabel>
-          <select
-            value={familyId}
-            onChange={(event) => onFamilyChange(event.target.value)}
-            className={fieldClass}
-          >
-            <option value="">Select family{"\u2026"}</option>
-            {families.map((family) => (
-              <option key={family.id} value={family.id}>
-                {family.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
         <SelectWithQuickAdd
           label="Category"
           value={categoryId}
           onChange={onCategoryChange}
           options={categories}
           placeholder="Select category..."
-          disabledPlaceholder="Select a family first"
-          disabled={!familyId}
           labelClassName="text-[12px] font-medium text-muted-foreground"
-          canAdd={!!familyId}
           onQuickAdd={onQuickAddCategory}
-        />
-
-        <SelectWithQuickAdd
-          label="Sub-category"
-          value={subcategoryId}
-          onChange={onSubcategoryChange}
-          options={subcategories}
-          placeholder="Select sub-category..."
-          disabledPlaceholder="Select a category first"
-          disabled={!categoryId}
-          labelClassName="text-[12px] font-medium text-muted-foreground"
-          canAdd={!!categoryId}
-          onQuickAdd={onQuickAddSubcategory}
         />
 
         <SelectWithQuickAdd

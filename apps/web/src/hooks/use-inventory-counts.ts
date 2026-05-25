@@ -41,7 +41,6 @@ export interface CountLineRow {
   productSku: string;
   mnemonicSku: string;
   category: string;
-  familyName: string | null;
   inventoryId: string;
   systemQty: number;
   countedQty: number | null;
@@ -161,9 +160,7 @@ export function useCreateCount(token: string, locationId: string) {
       title?: string;
       notes?: string;
       filterCriteria?: {
-        familyId?: string;
         categoryId?: string;
-        subcategoryId?: string;
         brandId?: string;
       };
     }) =>

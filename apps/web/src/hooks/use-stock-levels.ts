@@ -12,7 +12,6 @@ export interface StockLevelRow {
   productSku: string;
   mnemonicSku: string;
   category: string;
-  familyName: string | null;
   locationId: string;
   locationName: string;
   locationType: string;
@@ -74,9 +73,7 @@ export interface StockLevelsFilters {
   locationId?: string;
   search?: string;
   category?: string;
-  familyId?: string;
   categoryId?: string;
-  subcategoryId?: string;
   stockStatus?: "IN_STOCK" | "LOW_STOCK" | "OUT_OF_STOCK";
   belowReorder?: boolean;
   sortBy?: SortField;
@@ -122,9 +119,7 @@ export function useStockLevels(
       if (filters.locationId) params.set("locationId", filters.locationId);
       if (filters.search && filters.search.length >= 2) params.set("search", filters.search);
       if (filters.category) params.set("category", filters.category);
-      if (filters.familyId) params.set("familyId", filters.familyId);
       if (filters.categoryId) params.set("categoryId", filters.categoryId);
-      if (filters.subcategoryId) params.set("subcategoryId", filters.subcategoryId);
       if (filters.stockStatus) params.set("stockStatus", filters.stockStatus);
       if (filters.belowReorder) params.set("belowReorder", "true");
       if (filters.sortBy) params.set("sortBy", filters.sortBy);
@@ -149,7 +144,6 @@ export interface ProductStockRow {
   productName: string;
   productSku: string;
   category: string;
-  familyName: string | null;
   totalStock: number;
   totalReserved: number;
   totalAvailable: number;
@@ -199,9 +193,7 @@ export function useProductStockLevels(
       "stock-levels-product",
       filters.search,
       filters.category,
-      filters.familyId,
       filters.categoryId,
-      filters.subcategoryId,
       filters.stockStatus,
       filters.belowReorder,
       filters.sortBy,
@@ -217,9 +209,7 @@ export function useProductStockLevels(
       if (pageParam) params.set("cursor", pageParam as string);
       if (filters.search && filters.search.length >= 2) params.set("search", filters.search);
       if (filters.category) params.set("category", filters.category);
-      if (filters.familyId) params.set("familyId", filters.familyId);
       if (filters.categoryId) params.set("categoryId", filters.categoryId);
-      if (filters.subcategoryId) params.set("subcategoryId", filters.subcategoryId);
       if (filters.stockStatus) params.set("stockStatus", filters.stockStatus);
       if (filters.belowReorder) params.set("belowReorder", "true");
       if (filters.sortBy) params.set("sortBy", filters.sortBy);

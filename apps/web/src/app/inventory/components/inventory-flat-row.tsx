@@ -143,15 +143,8 @@ export function FlatProductRow({
           )}
         </td>
         <td className="px-3 py-[5px]">
-          {p.subCategoryName ? (
-            <span className="text-[12px] text-muted-foreground truncate block max-w-[120px]" title={p.subCategoryName}>{p.subCategoryName}</span>
-          ) : (
-            <span className="text-[11px] text-muted-foreground/40">{"\u2014"}</span>
-          )}
-        </td>
-        <td className="px-3 py-[5px]">
-          {p.subcategoryName ? (
-            <span className="text-[12px] text-muted-foreground truncate block max-w-[110px]" title={p.subcategoryName}>{p.subcategoryName}</span>
+          {p.categoryName ? (
+            <span className="text-[12px] text-muted-foreground truncate block max-w-[120px]" title={p.categoryName}>{p.categoryName}</span>
           ) : (
             <span className="text-[11px] text-muted-foreground/40">{"\u2014"}</span>
           )}

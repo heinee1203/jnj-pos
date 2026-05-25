@@ -52,7 +52,7 @@ export interface ValuationDetailResponse {
   hasMore: boolean;
 }
 
-export type GroupByOption = "category" | "brand" | "family" | "location";
+export type GroupByOption = "category" | "brand" | "location";
 
 export interface ValuationFilterOptions {
   groupBy: GroupByOption;

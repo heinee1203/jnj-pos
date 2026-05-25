@@ -26,7 +26,6 @@ export function DrilldownLoadingRow({ colCount }: LoadingRowProps) {
 type DrilldownItemsTableProps = {
   token: string;
   locationId: string;
-  familyId?: string;
   categoryId?: string;
   brandId?: string;
   vehicleMake?: string;
@@ -40,7 +39,6 @@ type DrilldownItemsTableProps = {
 export function DrilldownItemsTable({
   token,
   locationId,
-  familyId,
   categoryId,
   brandId,
   vehicleMake,
@@ -54,7 +52,6 @@ export function DrilldownItemsTable({
   const limit = 50;
 
   const { data, isLoading } = useProducts(token, locationId, {
-    familyId,
     categoryId,
     brandId,
     vehicleMake,

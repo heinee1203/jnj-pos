@@ -4,7 +4,6 @@ import { useState, useCallback, useEffect, useMemo } from "react";
 import {
   X,
   Loader2,
-  Layers,
   Store,
   Minus,
   Check,
@@ -15,9 +14,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/app/auth-context";
-import { useProductFamilies, useUpdateProduct, type ProductRow } from "@/hooks/use-products";
+import { useUpdateProduct, type ProductRow } from "@/hooks/use-products";
 import { useCategories, useCreateCategory } from "@/hooks/use-categories";
-import { useSubcategories, useCreateSubcategory } from "@/hooks/use-subcategories";
 import { useBrands, useCreateBrand } from "@/hooks/use-brands";
 import { useProductLocations, useToggleAvailability } from "@/hooks/use-product-locations";
 import { useConfirm } from "@/components/confirm-dialog";
@@ -60,9 +58,7 @@ export function DetailDrawer({
   const [editBarcode, setEditBarcode] = useState(product.barcode ?? "");
   const [editSellPrice, setEditSellPrice] = useState(product.unitPrice);
   const [editCostPrice, setEditCostPrice] = useState(product.costPrice);
-  const [editFamilyId, setEditFamilyId] = useState(product.familyId ?? "");
-  const [editCategoryId, setEditCategoryId] = useState(product.subCategoryId ?? "");
-  const [editSubcategoryId, setEditSubcategoryId] = useState(product.subcategoryId ?? "");
+  const [editCategoryId, setEditCategoryId] = useState(product.categoryId ?? "");
   const [editBrandId, setEditBrandId] = useState(product.brandId ?? "");
   const [editReorderPoint, setEditReorderPoint] = useState(String(product.reorderPoint));
 
@@ -72,41 +68,19 @@ export function DetailDrawer({
     setEditBarcode(product.barcode ?? "");
     setEditSellPrice(product.unitPrice);
     setEditCostPrice(product.costPrice);
-    setEditFamilyId(product.familyId ?? "");
-    setEditCategoryId(product.subCategoryId ?? "");
-    setEditSubcategoryId(product.subcategoryId ?? "");
+    setEditCategoryId(product.categoryId ?? "");
     setEditBrandId(product.brandId ?? "");
     setEditReorderPoint(String(product.reorderPoint));
     setEditing(false);
   }, [product.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Taxonomy data for dropdowns
-  const { data: familiesData } = useProductFamilies(token, locationId);
-  const families = familiesData?.data ?? [];
   const { data: catsData } = useCategories(token, locationId, { activeOnly: true });
   const allCategories = catsData?.data ?? [];
-  const filteredCategories = editFamilyId
-    ? allCategories.filter((c) => c.familyId === editFamilyId)
-    : allCategories;
-  const { data: subsData } = useSubcategories(token, locationId, editCategoryId || undefined);
-  const filteredSubcategories = subsData?.data ?? [];
   const { data: brandsData } = useBrands(token, locationId);
   const allBrands = brandsData?.data ?? [];
   const detailCreateBrand = useCreateBrand(token, locationId);
   const detailCreateCategory = useCreateCategory(token, locationId);
-  const detailCreateSubcategory = useCreateSubcategory(token, locationId);
-
-  // Cascading resets
-  const handleFamilyChange = useCallback((val: string) => {
-    setEditFamilyId(val);
-    setEditCategoryId("");
-    setEditSubcategoryId("");
-  }, []);
-
-  const handleCategoryChange = useCallback((val: string) => {
-    setEditCategoryId(val);
-    setEditSubcategoryId("");
-  }, []);
 
   // Update product mutation
   const updateMut = useUpdateProduct(token, locationId);
@@ -119,13 +93,11 @@ export function DetailDrawer({
       editBarcode !== (product.barcode ?? "") ||
       editSellPrice !== product.unitPrice ||
       editCostPrice !== product.costPrice ||
-      editFamilyId !== (product.familyId ?? "") ||
-      editCategoryId !== (product.subCategoryId ?? "") ||
-      editSubcategoryId !== (product.subcategoryId ?? "") ||
+      editCategoryId !== (product.categoryId ?? "") ||
       editBrandId !== (product.brandId ?? "") ||
       editReorderPoint !== String(product.reorderPoint)
     );
-  }, [editing, editName, editBarcode, editSellPrice, editCostPrice, editFamilyId, editCategoryId, editSubcategoryId, editBrandId, editReorderPoint, product]);
+  }, [editing, editName, editBarcode, editSellPrice, editCostPrice, editCategoryId, editBrandId, editReorderPoint, product]);
 
   // Margin auto-calculation for edit mode
   const editSell = parseFloat(editSellPrice) || 0;
@@ -139,9 +111,7 @@ export function DetailDrawer({
     if (editSellPrice !== product.unitPrice) payload.unitPrice = editSellPrice;
     if (editCostPrice !== product.costPrice) payload.costPrice = editCostPrice;
     if (editBarcode !== (product.barcode ?? "")) payload.barcode = editBarcode || undefined;
-    if (editFamilyId !== (product.familyId ?? "")) payload.familyId = editFamilyId || null;
-    if (editCategoryId !== (product.subCategoryId ?? "")) payload.categoryId = editCategoryId || null;
-    if (editSubcategoryId !== (product.subcategoryId ?? "")) payload.subcategoryId = editSubcategoryId || null;
+    if (editCategoryId !== (product.categoryId ?? "")) payload.categoryId = editCategoryId || null;
     if (editBrandId !== (product.brandId ?? "")) payload.brandId = editBrandId || null;
     const rp = parseInt(editReorderPoint, 10);
     if (!isNaN(rp) && rp !== product.reorderPoint) payload.reorderPoint = rp;
@@ -152,16 +122,14 @@ export function DetailDrawer({
     } catch {
       // error handled by mutation state
     }
-  }, [product, editName, editSellPrice, editCostPrice, editBarcode, editFamilyId, editCategoryId, editSubcategoryId, editBrandId, editReorderPoint, updateMut]);
+  }, [product, editName, editSellPrice, editCostPrice, editBarcode, editCategoryId, editBrandId, editReorderPoint, updateMut]);
 
   const handleEditDiscard = useCallback(() => {
     setEditName(product.name);
     setEditBarcode(product.barcode ?? "");
     setEditSellPrice(product.unitPrice);
     setEditCostPrice(product.costPrice);
-    setEditFamilyId(product.familyId ?? "");
-    setEditCategoryId(product.subCategoryId ?? "");
-    setEditSubcategoryId(product.subcategoryId ?? "");
+    setEditCategoryId(product.categoryId ?? "");
     setEditBrandId(product.brandId ?? "");
     setEditReorderPoint(String(product.reorderPoint));
     setEditing(false);
@@ -363,39 +331,16 @@ export function DetailDrawer({
             {editing ? (
               <section className="mb-5 space-y-2.5">
                 <h4 className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Classification</h4>
-                <div>
-                  <label className="mb-1 block text-[11px] font-medium text-muted-foreground">Family</label>
-                  <select className={selectCls} value={editFamilyId} onChange={(e) => handleFamilyChange(e.target.value)}>
-                    <option value="">— None —</option>
-                    {families.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
-                  </select>
-                </div>
                 <SelectWithQuickAdd
                   label="Category"
                   value={editCategoryId}
-                  onChange={handleCategoryChange}
-                  options={filteredCategories}
+                  onChange={(v) => setEditCategoryId(v)}
+                  options={allCategories}
                   placeholder="— None —"
                   labelClassName="text-[11px] font-medium text-muted-foreground"
-                  canAdd={!!editFamilyId}
                   onQuickAdd={async (name) => {
                     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-                    const res: any = await detailCreateCategory.mutateAsync({ name, slug, familyId: editFamilyId || undefined });
-                    return { id: res?.data?.id ?? res?.id ?? "" };
-                  }}
-                />
-                <SelectWithQuickAdd
-                  label="Sub-category"
-                  value={editSubcategoryId}
-                  onChange={(v) => setEditSubcategoryId(v)}
-                  options={filteredSubcategories}
-                  placeholder="— None —"
-                  disabled={!editCategoryId}
-                  labelClassName="text-[11px] font-medium text-muted-foreground"
-                  canAdd={!!editCategoryId}
-                  onQuickAdd={async (name) => {
-                    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-                    const res: any = await detailCreateSubcategory.mutateAsync({ categoryId: editCategoryId, name, slug });
+                    const res: any = await detailCreateCategory.mutateAsync({ name, slug });
                     return { id: res?.data?.id ?? res?.id ?? "" };
                   }}
                 />
@@ -415,22 +360,10 @@ export function DetailDrawer({
               </section>
             ) : (
               <>
-                {product.familyName && (
-                  <div className="mb-3 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                    <Layers size={12} />
-                    <span>Family: <span className="font-medium text-foreground">{product.familyName}</span></span>
-                  </div>
-                )}
-                {product.subCategoryName && (
+                {product.categoryName && (
                   <div className="mb-3 flex items-center gap-1.5 text-[11px] text-muted-foreground">
                     <span className="inline-block h-3 w-3 rounded bg-muted" />
-                    <span>Category: <span className="font-medium text-foreground">{product.subCategoryName}</span></span>
-                  </div>
-                )}
-                {product.subcategoryName && (
-                  <div className="mb-3 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                    <span className="inline-block h-3 w-3 rounded bg-muted/60" />
-                    <span>Sub-category: <span className="font-medium text-foreground">{product.subcategoryName}</span></span>
+                    <span>Category: <span className="font-medium text-foreground">{product.categoryName}</span></span>
                   </div>
                 )}
                 {product.brandName && (

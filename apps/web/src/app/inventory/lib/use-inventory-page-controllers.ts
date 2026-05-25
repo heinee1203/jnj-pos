@@ -26,9 +26,7 @@ export function useInventoryPageControllers({
     sortBy: inventory.sortBy,
     sortDir: inventory.sortDir,
     debouncedSearch: inventory.debouncedSearch,
-    familyFilter: inventory.familyFilter,
     categoryFilter: inventory.categoryFilter,
-    subCategoryFilter: inventory.subCategoryFilter,
     brandFilter: inventory.brandFilter,
   });
 

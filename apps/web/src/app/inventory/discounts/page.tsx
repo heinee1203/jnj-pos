@@ -10,7 +10,6 @@ import { apiFetch } from "@/lib/api";
 import { useConfirm } from "@/components/confirm-dialog";
 import { useCategories } from "@/hooks/use-categories";
 import { useBrands } from "@/hooks/use-brands";
-import { useProductFamilies } from "@/hooks/use-products";
 import { useLocations } from "@/hooks/use-locations";
 
 /* ── Types ── */
@@ -30,7 +29,7 @@ interface CustomerTier {
 type Tab = "rules" | "tiers" | "promos";
 
 const TYPE_LABELS: Record<string, string> = { percentage: "Percentage", fixed_amount: "Fixed Amount", fixed_price: "Fixed Price", buy_x_get_y: "Buy X Get Y" };
-const SCOPE_LABELS: Record<string, string> = { all: "All Items", category: "Category", brand: "Brand", family: "Family", product: "Product" };
+const SCOPE_LABELS: Record<string, string> = { all: "All Items", category: "Category", brand: "Brand", product: "Product" };
 
 function ruleStatus(rule: DiscountRule): { label: string; color: string } {
   if (!rule.isActive) return { label: "INACTIVE", color: "bg-muted text-muted-foreground" };
@@ -110,7 +109,7 @@ export default function DiscountsPage() {
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/[0.06]"><Percent size={16} className="text-primary" /></div>
           <h1 className="text-[18px] font-semibold tracking-tight text-foreground">Discounts & Pricing Rules</h1>
         </div>
-        <p className="mt-1.5 text-[13px] leading-5 text-muted-foreground">Volume discounts, customer tiers, and promotional pricing for CBROS Autoparts.</p>
+        <p className="mt-1.5 text-[13px] leading-5 text-muted-foreground">Volume discounts, customer tiers, and promotional pricing for JNJ POS.</p>
       </div>
 
       {/* Tabs */}
@@ -416,7 +415,6 @@ function RuleFormModal({ rule, isPromo, tiers, token, locationId, onClose, onSav
               <option value="all">All Items</option>
               <option value="category">Specific Categories</option>
               <option value="brand">Specific Brands</option>
-              <option value="family">Specific Family</option>
               <option value="product">Specific Products</option>
             </select>
           </div>

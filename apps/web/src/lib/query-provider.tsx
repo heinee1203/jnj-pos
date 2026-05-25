@@ -7,7 +7,7 @@ import { useState, type ReactNode } from "react";
  * staleTime guidelines:
  * - 10s: Detail pages that may change while user is viewing (counts, job cards)
  * - 15s: List pages the user actively works with (products, sales, POs, transfers)
- * - 30s: Reference data and dashboards (stock levels, journal, categories, families)
+ * - 30s: Reference data and dashboards (stock levels, journal, categories, brands)
  * - 60s: Reports and slowly-changing lookups (service operations)
  * - 120s: Very stable reference data (location lists, employee lists)
  */

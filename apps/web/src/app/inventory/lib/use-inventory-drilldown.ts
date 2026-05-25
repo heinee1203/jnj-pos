@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useGroupedCounts, type FamilyCountRow } from "@/hooks/use-grouped-counts";
+import { useCallback, useMemo, useState } from "react";
+import { useGroupedCounts, type CategoryCountRow } from "@/hooks/use-grouped-counts";
 
 const NONE = "__none__";
 
@@ -7,7 +7,7 @@ type InventoryDrilldownArgs = {
   token: string;
   locationId: string;
   stockStatus?: string;
-  familyFilter?: string;
+  categoryFilter?: string;
   allLocations?: boolean;
 };
 
@@ -25,56 +25,12 @@ export function useInventoryDrilldown({
   token,
   locationId,
   stockStatus,
-  familyFilter,
+  categoryFilter,
   allLocations,
 }: InventoryDrilldownArgs) {
-  const [expandedFamilies, setExpandedFamilies] = useState<Set<string>>(new Set());
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [expandedBrands, setExpandedBrands] = useState<Set<string>>(new Set());
   const [expandedMakes, setExpandedMakes] = useState<Set<string>>(new Set());
-
-  useEffect(() => {
-    if (familyFilter) {
-      setExpandedFamilies((prev) => {
-        const next = new Set(prev);
-        next.add(familyFilter);
-        return next;
-      });
-    }
-  }, [familyFilter]);
-
-  const toggleFamily = useCallback((key: string) => {
-    setExpandedFamilies((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) {
-        next.delete(key);
-        setExpandedCategories((s) => {
-          const n = new Set<string>();
-          s.forEach((k) => {
-            if (!k.startsWith(`${key}:`)) n.add(k);
-          });
-          return n;
-        });
-        setExpandedBrands((s) => {
-          const n = new Set<string>();
-          s.forEach((k) => {
-            if (!k.startsWith(`${key}:`)) n.add(k);
-          });
-          return n;
-        });
-        setExpandedMakes((s) => {
-          const n = new Set<string>();
-          s.forEach((k) => {
-            if (!k.startsWith(`${key}:`)) n.add(k);
-          });
-          return n;
-        });
-      } else {
-        next.add(key);
-      }
-      return next;
-    });
-  }, []);
 
   const toggleCategory = useCallback((key: string) => {
     setExpandedCategories((prev) => {
@@ -133,29 +89,27 @@ export function useInventoryDrilldown({
     });
   }, []);
 
-  const { data: familyData, isLoading } = useGroupedCounts<FamilyCountRow>(
+  const { data: categoryData, isLoading } = useGroupedCounts<CategoryCountRow>(
     token,
     locationId,
-    "family",
+    "category",
     { stockStatus, allLocations },
   );
 
-  const families = useMemo(() => sortNullLast(familyData?.data ?? []), [familyData]);
-  const visibleFamilies = useMemo(
-    () => (familyFilter ? families.filter((fam) => fam.id === familyFilter) : families),
-    [families, familyFilter],
+  const categories = useMemo(() => sortNullLast(categoryData?.data ?? []), [categoryData]);
+  const visibleCategories = useMemo(
+    () => (categoryFilter ? categories.filter((cat) => cat.id === categoryFilter) : categories),
+    [categories, categoryFilter],
   );
 
   return {
-    expandedFamilies,
     expandedCategories,
     expandedBrands,
     expandedMakes,
     isLoading,
     toggleBrand,
     toggleCategory,
-    toggleFamily,
     toggleMake,
-    visibleFamilies,
+    visibleCategories,
   };
 }
