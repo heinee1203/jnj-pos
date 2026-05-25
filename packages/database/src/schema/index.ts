@@ -25,6 +25,7 @@ export * from "./notifications";
 export * from "./pos-devices";
 export * from "./rbac";
 export * from "./pricing-config";
+export * from "./price-tiers";
 export * from "./printers";
 export * from "./discount-rules";
 export * from "./daily-sales-summary";
