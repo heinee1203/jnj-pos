@@ -22,11 +22,7 @@ export const journalReferenceTypeEnum = pgEnum("journal_reference_type", [
   "RETURN",
   "STOCKTAKE",
   "VOID",
-  "JOB_CARD_ISSUE",
-  "JOB_CARD_RETURN",
   "OPENING_BALANCE",
-  "SUPPLIER_RETURN",
-  "SUPPLIER_RETURN_CANCEL",
 ]);
 
 export const actorTypeEnum = pgEnum("actor_type", [
@@ -40,13 +36,10 @@ export const adjustmentReasonCodeEnum = pgEnum("adjustment_reason_code", [
   "FOUND_STOCK",
   "OPENING_BALANCE",
   "COUNT_LOSS",
-  "DAMAGE_IN_TRANSIT",
-  "DAMAGE_WAREHOUSE",
+  "DAMAGED",
   "DAMAGE_SHOWROOM",
-  "WARRANTY_WRITE_OFF",
   "SHRINKAGE_MISSING",
   "OBSOLETE_WRITE_OFF",
-  "TRANSFER_SHORTAGE_CONFIRMED",
   "DATA_CORRECTION",
 ]);
 
