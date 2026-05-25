@@ -21,11 +21,13 @@ import { productSubcategories } from "./product-subcategories";
 import { suppliers } from "./suppliers";
 
 export const productCategoryEnum = pgEnum("product_category", [
-  "TIRES",
-  "LUBRICANTS",
-  "HARD_PARTS",
-  "ACCESSORIES",
-  "LABOR_SERVICES",
+  "SCHOOL_SUPPLIES",
+  "OFFICE_SUPPLIES",
+  "ART_SUPPLIES",
+  "GENERAL_MERCHANDISE",
+  "BAGS_ACCESSORIES",
+  "ELECTRONICS",
+  "OTHER",
 ]);
 
 export const products = pgTable(
@@ -72,29 +74,22 @@ export const products = pgTable(
     unitsPerCase: integer("units_per_case").notNull().default(1),
     /** Packaging label: box, case, pack, carton, drum, pail, set */
     packagingUnit: varchar("packaging_unit", { length: 50 }),
-    /** The unit stock is tracked and sold in (piece, meter, foot, liter, kg, etc.) */
+    /** The unit stock is tracked and sold in (piece, case) */
     sellingUnit: varchar("selling_unit", { length: 20 }).notNull().default("piece"),
+    /** Number of individual pieces per case/box — used for inventory deduction when selling by case */
+    piecesPerCase: integer("pieces_per_case").notNull().default(1),
     /** The unit used when ordering from suppliers (roll, box, pack, drum, etc.). NULL = same as sellingUnit */
     purchaseUnit: varchar("purchase_unit", { length: 20 }),
     /** How many sellingUnits per 1 purchaseUnit. E.g., 1 roll = 50 meters → factor = 50 */
     conversionFactor: numeric("conversion_factor", { precision: 10, scale: 4 }).notNull().default("1"),
     /** Default supplier for this product — used to pre-fill PO creation */
     primarySupplierId: uuid("primary_supplier_id").references(() => suppliers.id, { onDelete: "set null" }),
-    isSerialized: boolean("is_serialized").notNull().default(false),
-    /** Default warranty period in months (e.g. 12 for batteries, 6 for alternators) */
-    warrantyMonths: integer("warranty_months"),
-    /** Tire product — enables DOT batch tracking instead of serial tracking */
-    isTire: boolean("is_tire").notNull().default(false),
-    /** Maximum tire age in years before it's considered expired (default 5) */
-    maxTireAgeYears: integer("max_tire_age_years"),
     /** Track inventory — false for labor, counts, price adds (no stock deduction on sale) */
     trackInventory: boolean("track_inventory").notNull().default(true),
     /** Special order item — ordered on demand, zero stock is intentional */
     specialOrder: boolean("special_order").notNull().default(false),
     /** Discontinued — no longer sold or restocked */
     discontinued: boolean("discontinued").notNull().default(false),
-    /** Fixed commission per unit sold — used for installation labor. NULL = use technician's default % rate */
-    commissionAmount: numeric("commission_amount", { precision: 10, scale: 2 }),
     reorderEnabled: boolean("reorder_enabled").notNull().default(true),
     customReorderPoint: integer("custom_reorder_point"),
     /** Hide this product from Low Stock lists until this date */
