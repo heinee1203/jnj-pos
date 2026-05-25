@@ -1,0 +1,324 @@
+/**
+ * Generates a standalone HTML document for the CBROS Billing Statement.
+ * Used with window.open() + document.write() for reliable printing.
+ * Supports pagination: max 30 rows per page, all sections fit on letter size.
+ */
+
+interface SOACustomer {
+  name: string;
+  contactPerson: string | null;
+  phone: string;
+  email: string | null;
+  address: string | null;
+  paymentTermsDays: number;
+}
+
+interface SOATransaction {
+  id: string;
+  type: string;
+  amount: string;
+  balanceAfter: string;
+  referenceNumber: string | null;
+  notes: string | null;
+  recordedAt: string;
+}
+
+interface SOAInput {
+  customer: SOACustomer;
+  transactions: SOATransaction[];
+  openingBalance: number;
+  closingBalance: number;
+  from: string;
+  to: string;
+  soaNumber?: string;
+  generatedAt?: string;
+  generatedBy?: string;
+  printMode?: CustomerSOAPrintMode;
+}
+
+export type CustomerSOAPrintMode = "detailed" | "concise";
+
+/* ── Helpers ── */
+function fmt(v: number): string {
+  return v.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function fmtDate(d: string): string {
+  return new Date(d).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+}
+
+function esc(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+const ROWS_PER_PAGE = 40;          // rows per page for multi-page SOAs
+const MAX_SINGLE_PAGE_ROWS = 27;   // max data rows that fit on 1 page with all bottom sections
+
+function buildConciseSOAHtml(data: SOAInput): string {
+  const c = data.customer;
+  const f = new Date(data.from);
+  const t = new Date(data.to);
+  const period = f.getFullYear() === t.getFullYear()
+    ? `${f.toLocaleDateString("en-US", { month: "short", day: "numeric" })} - ${t.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`
+    : `${f.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })} - ${t.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`;
+  const year = String(t.getFullYear());
+  const terms = c.paymentTermsDays === 0 ? "COD" : `Net ${c.paymentTermsDays}`;
+  const phone = c.phone?.startsWith("AR-") ? "" : c.phone || "";
+  const charges = data.transactions.filter((x) => x.type === "CHARGE" || (x.type === "ADJUSTMENT" && parseFloat(x.amount) > 0));
+  const credits = data.transactions.filter((x) => x.type === "PAYMENT" || x.type === "CREDIT_NOTE" || (x.type === "ADJUSTMENT" && parseFloat(x.amount) < 0));
+  const generatedAt = new Date(data.generatedAt || Date.now()).toLocaleString("en-PH", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+  const generatedBy = data.generatedBy || "System";
+  const chargeTotal = charges.reduce((s, x) => s + Math.abs(parseFloat(x.amount)), 0);
+  const creditTotal = credits.reduce((s, x) => s + Math.abs(parseFloat(x.amount)), 0);
+  const totalPayable = chargeTotal - creditTotal;
+  const rowSlots = Math.max(5, Math.min(8, charges.length));
+  const emptyRows = Array(Math.max(0, rowSlots - charges.length))
+    .fill("<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>")
+    .join("");
+  const rows = charges.map((x) =>
+    `<tr><td>${fmtDate(x.recordedAt)}</td><td class="part">${esc(x.referenceNumber || x.notes || "Credit Sale")}</td><td class="r">${fmt(Math.abs(parseFloat(x.amount)))}</td></tr>`
+  ).join("");
+  const creditSummary = credits.length > 0
+    ? `<div class="credit"><b>Credit memo / payments:</b><span>${fmt(creditTotal)}</span></div>`
+    : `<div class="credit muted"><b>Credit memo:</b><span>-</span></div>`;
+
+  return `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Concise Billing Statement - ${esc(c.name)}</title>
+<style>
+@page { size: letter portrait; margin: 0; }
+body { font-family: Arial, sans-serif; color: #000; margin: 0; padding: 0; background: #fff; }
+.page { box-sizing: border-box; width: 8.1in; height: 5.15in; margin: 0.18in auto 0; padding: 0.04in 0.08in; overflow: hidden; }
+.brand { font-family: 'Rockwell Extra Bold', Rockwell, Georgia, serif; font-size: 13pt; font-weight: 900; text-align: center; letter-spacing: .4px; margin-bottom: 3px; }
+.top { border: 1px solid #000; display: grid; grid-template-columns: 1.2fr .9fr; font-size: 7.6pt; line-height: 1.18; }
+.top > div { padding: 3px 5px; }
+.top > div:first-child { border-right: 1px solid #000; }
+.line { display: grid; grid-template-columns: 92px 1fr; gap: 3px; align-items: end; }
+.label { font-weight: 800; white-space: nowrap; }
+.value { min-height: 12px; border-bottom: 1px solid #000; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.title { text-align: center; font-weight: 900; font-size: 10.5pt; margin: 4px 0 0; letter-spacing: .5px; }
+.meta { text-align: center; font-size: 7.2pt; color: #334155; margin-bottom: 3px; }
+table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+th, td { border: 1px solid #000; padding: 2px 6px; font-size: 8.2pt; line-height: 1.1; }
+th { background: #e8e8e8; font-weight: 900; }
+td { height: 17px; }
+.period th { text-align: left; font-size: 7.8pt; padding: 2px 5px; }
+.period th:last-child { text-align: right; }
+.date { width: 24%; }
+.part { width: 46%; text-align: center; font-weight: 700; }
+.amt { width: 30%; }
+.r { text-align: right; font-family: 'Courier New', Courier, monospace; }
+.tot td { font-weight: 900; background: #f3f4f6; font-size: 8.8pt; }
+.credit { display: flex; justify-content: space-between; border: 1px solid #000; border-top: 0; padding: 2px 8px; font-size: 8pt; line-height: 1.15; }
+.muted { color: #475569; }
+.grand { display: grid; grid-template-columns: 1fr 170px; border: 2px solid #000; margin-top: 3px; font-weight: 900; font-size: 10pt; }
+.grand div { padding: 3px 8px; }
+.grand div:first-child { text-align: right; border-right: 1px solid #000; }
+.note { text-align: center; font-size: 6.8pt; font-weight: 700; line-height: 1.18; margin: 2px 0 3px; }
+.sig { display: grid; grid-template-columns: 1.1fr .9fr .8fr; border: 1px solid #000; font-size: 7.2pt; line-height: 1.28; }
+.sig > div { min-height: 44px; padding: 3px 5px; border-right: 1px solid #000; }
+.sig > div:last-child { border-right: 0; }
+.blank { display: inline-block; min-width: 145px; border-bottom: 1px solid #000; }
+.smallblank { display: inline-block; min-width: 86px; border-bottom: 1px solid #000; }
+.footer { text-align: center; font-size: 6.6pt; color: #475569; margin-top: 2px; }
+</style></head><body><div class="page">
+<div class="brand">C-BROS GENUINE AUTOPARTS &amp; ACCESSORIES, INC.</div>
+<div class="top">
+  <div>
+    <div class="line"><span class="label">CUSTOMER:</span><span class="value"><b>${esc(c.name)}</b></span></div>
+    <div class="line"><span class="label">CONTACT:</span><span class="value">${c.contactPerson ? esc(c.contactPerson) : "&nbsp;"}</span></div>
+    <div class="line"><span class="label">ADDRESS:</span><span class="value">${c.address ? esc(c.address) : "&nbsp;"}</span></div>
+  </div>
+  <div>
+    <div class="line"><span class="label">TEL/CEL:</span><span class="value">${phone ? esc(phone) : "&nbsp;"}</span></div>
+    <div class="line"><span class="label">EMAIL:</span><span class="value">${c.email ? esc(c.email) : "&nbsp;"}</span></div>
+    <div class="line"><span class="label">TERMS:</span><span class="value">${terms}</span></div>
+  </div>
+</div>
+<div class="title">BILLING STATEMENT</div>
+<div class="meta">${data.soaNumber ? `SOA #: <b>${esc(data.soaNumber)}</b> &middot; ` : ""}Generated ${esc(generatedAt)} by ${esc(generatedBy)} &middot; ${charges.length} invoice${charges.length === 1 ? "" : "s"}</div>
+<table>
+  <thead>
+    <tr class="period"><th colspan="2">MONTH/PERIOD: ${esc(period)}</th><th>YEAR: ${esc(year)}</th></tr>
+    <tr><th class="date">DATE</th><th class="part">PARTICULARS</th><th class="amt">AMOUNT</th></tr>
+  </thead>
+  <tbody>${rows}${emptyRows}<tr class="tot"><td colspan="2" class="r">TOTAL INVOICES</td><td class="r">&#8369;${fmt(chargeTotal)}</td></tr></tbody>
+</table>
+${creditSummary}
+<div class="grand"><div>TOTAL PAYABLE</div><div class="r">&#8369;${fmt(totalPayable)}</div></div>
+<div class="note">PLEASE MAKE CHECK PAYABLE TO C-BROS GENUINE AUTOPARTS &amp; ACCESSORIES, INC. &middot; COLLECTION WITHIN 5 DAYS AFTER RECEIPT OF SOA.</div>
+<div class="sig">
+  <div><b>RECEIVED STATEMENT:</b><br>NAME: <span class="blank"></span><br>SIGN: <span class="blank"></span><br>DATE: <span class="blank"></span></div>
+  <div><b>PAYMENT DETAILS</b><br>CASH: <span class="smallblank"></span><br>CHECK: <span class="smallblank"></span><br>DATE: <span class="smallblank"></span></div>
+  <div><b>RCVD BY:</b><br><br><span class="blank" style="min-width:120px"></span></div>
+</div>
+<div class="footer">Concise half-letter SOA. Match printed copy to generated SOA before collection.</div>
+</div></body></html>`;
+}
+
+/* ── Main export ── */
+export function buildSOAHtml(data: SOAInput): string {
+  if (data.printMode === "concise") {
+    const conciseChargeCount = data.transactions.filter((x) => x.type === "CHARGE" || (x.type === "ADJUSTMENT" && parseFloat(x.amount) > 0)).length;
+    if (conciseChargeCount <= 8) return buildConciseSOAHtml(data);
+  }
+
+  const c = data.customer;
+  const f = new Date(data.from);
+  const t = new Date(data.to);
+
+  // Period
+  let period: string, year: string;
+  if (f.getFullYear() !== t.getFullYear()) {
+    period = `${f.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })} - ${t.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`;
+    year = `${f.getFullYear()}-${t.getFullYear()}`;
+  } else {
+    period = `${f.toLocaleDateString("en-US", { month: "long", day: "numeric" })} - ${t.toLocaleDateString("en-US", { month: "long", day: "numeric" })}`;
+    year = String(t.getFullYear());
+  }
+
+  const terms = c.paymentTermsDays === 0 ? "COD" : `Net ${c.paymentTermsDays}`;
+  const phone = c.phone?.startsWith("AR-") ? "______________________________" : esc(c.phone || "");
+
+  const charges = data.transactions.filter((x) => x.type === "CHARGE" || (x.type === "ADJUSTMENT" && parseFloat(x.amount) > 0));
+  const credits = data.transactions.filter((x) => x.type === "PAYMENT" || x.type === "CREDIT_NOTE" || (x.type === "ADJUSTMENT" && parseFloat(x.amount) < 0));
+  const generatedAt = new Date(data.generatedAt || Date.now()).toLocaleString("en-PH", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+  const generatedBy = data.generatedBy || "System";
+
+  const chargeTotal = charges.reduce((s, x) => s + Math.abs(parseFloat(x.amount)), 0);
+  const creditTotal = credits.reduce((s, x) => s + Math.abs(parseFloat(x.amount)), 0);
+  const totalPayable = chargeTotal - creditTotal;
+
+  // Single page if data fits within MAX_SINGLE_PAGE_ROWS, otherwise paginate at ROWS_PER_PAGE
+  const singlePage = charges.length <= MAX_SINGLE_PAGE_ROWS;
+  const totalPages = singlePage ? 1 : Math.max(1, Math.ceil(charges.length / ROWS_PER_PAGE));
+
+  // Build pages
+  let pages = "";
+  for (let pg = 0; pg < totalPages; pg++) {
+    const rowsThisPage = singlePage ? charges.length : ROWS_PER_PAGE;
+    const startIdx = singlePage ? 0 : pg * ROWS_PER_PAGE;
+    const pageCharges = charges.slice(startIdx, startIdx + rowsThisPage);
+    const isFirst = pg === 0;
+    const isLast = pg === totalPages - 1;
+    // Filler rows: on single page, fill to MAX_SINGLE_PAGE_ROWS; on multi-page last page, no fillers
+    const emptyCount = singlePage
+      ? Math.max(0, MAX_SINGLE_PAGE_ROWS - pageCharges.length)
+      : 0;
+
+    // Charge rows
+    const chargeRows = pageCharges.map((x) =>
+      `<tr><td class="c">${fmtDate(x.recordedAt)}</td><td class="ct">${esc(x.referenceNumber || "Credit Sale")}</td><td class="r">${fmt(Math.abs(parseFloat(x.amount)))}</td></tr>`
+    ).join("");
+    const emptyRows = Array(emptyCount).fill('<tr><td class="e">&nbsp;</td><td class="e">&nbsp;</td><td class="e">&nbsp;</td></tr>').join("");
+
+    // Header section
+    const LB = 'style="border:none;border-bottom:1px solid #000;padding:1px 0"';
+    const LN = 'style="border:none;padding:1px 0;font-weight:700;white-space:nowrap"';
+    const header = isFirst ? `
+<div class="hdr">C-BROS GENUINE AUTOPARTS &amp; ACCESSORIES, INC.</div>
+<table style="width:100%;border-collapse:collapse;border:1px solid #000;margin-bottom:6px;font-size:8pt;table-layout:fixed">
+<colgroup><col style="width:55%"><col style="width:45%"></colgroup>
+<tr>
+<td style="border-right:1px solid #000;padding:3px 6px;vertical-align:top">
+<table style="width:100%;border:none;border-collapse:collapse;table-layout:fixed">
+<colgroup><col style="width:130px"><col></colgroup>
+<tr><td ${LN}>CUSTOMER:</td><td ${LB}><span style="font-size:10pt;font-weight:700">${esc(c.name)}</span></td></tr>
+<tr><td ${LN}>CONTACT PERSON:</td><td ${LB}>${c.contactPerson ? esc(c.contactPerson) : "&nbsp;"}</td></tr>
+<tr><td ${LN}>ADDRESS:</td><td ${LB}>${c.address ? esc(c.address) : "&nbsp;"}</td></tr>
+<tr><td ${LN}>SALESMAN:</td><td ${LB}>&nbsp;</td></tr>
+</table>
+</td>
+<td style="padding:3px 6px;vertical-align:top">
+<table style="width:100%;border:none;border-collapse:collapse;table-layout:fixed">
+<colgroup><col style="width:80px"><col></colgroup>
+<tr><td ${LN}>TEL NOS:</td><td ${LB}>${c.phone?.startsWith("AR-") ? "&nbsp;" : esc(c.phone || "")}</td></tr>
+<tr><td ${LN}>CEL NOS:</td><td ${LB}>${c.phone?.startsWith("AR-") ? "&nbsp;" : esc(c.phone || "")}</td></tr>
+<tr><td ${LN}>EMAIL ADD:</td><td ${LB}>${c.email ? esc(c.email) : "&nbsp;"}</td></tr>
+<tr><td ${LN}>TERMS:</td><td ${LB}>${terms}</td></tr>
+</table>
+</td>
+</tr>
+</table>
+<div class="title">BILLING STATEMENT</div>${data.soaNumber ? `<div style="text-align:center;font-weight:700;font-size:9pt;margin-bottom:2px">SOA #: ${esc(data.soaNumber)}</div>` : ""}
+<div style="text-align:center;font-size:7pt;color:#334155;margin-bottom:4px">Generated ${esc(generatedAt)} by ${esc(generatedBy)} &middot; ${charges.length} invoice${charges.length === 1 ? "" : "s"} &middot; ${credits.length} credit/payment row${credits.length === 1 ? "" : "s"}</div>` : `
+<div class="hdr-sm">C-BROS GENUINE AUTOPARTS &amp; ACCESSORIES, INC.</div>
+<div style="font-size:8pt;text-align:center;margin-bottom:4px">${esc(c.name)} &mdash; ${esc(period)}, ${esc(year)}</div>
+<div class="title" style="margin-top:4px">BILLING STATEMENT (continued)</div>`;
+
+    // Footer sections (only on last page)
+    let footer = "";
+    if (isLast) {
+      const creditRows = credits.map((x) =>
+        `<tr><td class="c">${fmtDate(x.recordedAt)}</td><td class="ct">${esc(x.referenceNumber || x.type)}</td><td class="r">${fmt(Math.abs(parseFloat(x.amount)))}</td><td class="e">&nbsp;</td><td class="e">&nbsp;</td></tr>`
+      ).join("");
+      const emptyCr = Array(Math.max(0, 2 - credits.length)).fill('<tr><td class="e">&nbsp;</td><td class="e">&nbsp;</td><td class="e">&nbsp;</td><td class="e">&nbsp;</td><td class="e">&nbsp;</td></tr>').join("");
+
+      footer = `
+<div class="title" style="margin:4px 0 2px">CREDIT MEMO</div>
+<table><thead><tr><th style="width:18%">DATE</th><th style="width:28%">REFERENCE INVOICE</th><th style="width:22%">AMOUNT</th><th style="width:16%">CHECKED BY</th><th style="width:16%">APPROVED BY</th></tr></thead>
+<tbody>${creditRows}${emptyCr}
+<tr class="tot"><td colspan="2" style="text-align:right">TOTAL</td><td class="r">${creditTotal > 0 ? fmt(creditTotal) : "\u2013"}</td><td class="e">&nbsp;</td><td class="e">&nbsp;</td></tr></tbody></table>
+
+<table style="margin-top:4px"><tr class="tp"><td style="width:65%;text-align:right">TOTAL PAYABLE</td><td style="width:35%" class="r">\u20B1${fmt(totalPayable)}</td></tr></table>
+
+<div style="text-align:center;font-size:7pt;font-weight:700;margin:2px 0;line-height:1.3">PLEASE MAKE CHECK PAYABLE TO C-BROS GENUINE AUTOPARTS &amp; ACCESSORIES, INC.<br>PAYMENTS WILL BE COLLECTED WITHIN 5 DAYS AFTER RECEIPT OF SOA.</div>
+
+<table style="width:100%;border-collapse:collapse;margin-top:2px;font-size:7pt"><tr>
+<td style="border:1px solid #000;padding:2px 4px;width:45%;vertical-align:top;line-height:1.4"><b>RECEIVED THE ABOVE STATEMENT OF ACCOUNT:</b><br>PRINTED NAME: ________________________<br>SIGNATURE: ________________________<br>DATE RECEIVED: ________________________</td>
+<td style="border:1px solid #000;padding:2px 4px;width:30%;vertical-align:top;line-height:1.4"><b>PAYMENT DETAILS</b><br>CASH: ________________<br>CHECK: _______________<br>DATE: ________________</td>
+<td style="border:1px solid #000;padding:2px 4px;width:25%;vertical-align:top;line-height:1.4"><b>RCVD BY:</b><br><br>________________________</td>
+</tr></table>`;
+    } else {
+      footer = `<div style="text-align:right;font-size:7pt;color:#666;margin-top:2px">Continued on next page...</div>`;
+    }
+
+    const pageFooter = `<div class="pgf">Page ${pg + 1} of ${totalPages}</div>`;
+
+    pages += `<div class="page">
+${header}
+<table>
+<thead><tr><th style="text-align:left" colspan="2">MONTH/PERIOD: ${esc(period)}</th><th style="text-align:right">YEAR: ${esc(year)}</th></tr>
+<tr><th style="width:28%">DATE</th><th style="width:37%">PARTICULARS</th><th style="width:35%">AMOUNT</th></tr></thead>
+<tbody>${chargeRows}${emptyRows}
+${isLast ? `<tr class="tot"><td colspan="2" style="text-align:right">TOTAL</td><td class="r">\u20B1${fmt(chargeTotal)}</td></tr>` : ""}
+</tbody></table>
+${footer}
+${pageFooter}
+</div>`;
+  }
+
+  return `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Billing Statement - ${esc(c.name)}</title>
+<style>
+@page { size: letter portrait; margin: 20mm 10mm 8mm 10mm; }
+body { font-family: Arial, sans-serif; font-size: 8.5pt; color: #000; margin: 0; padding: 0; background: #fff; }
+table { border-collapse: collapse; width: 100%; }
+td, th { border: 1px solid #000; padding: 2px 6px; font-size: 8.5pt; }
+th { background: #e8e8e8; font-weight: 700; font-size: 8pt; }
+.c { vertical-align: middle; }
+.ct { vertical-align: middle; text-align: center; }
+.r { text-align: right; font-family: 'Courier New', Courier, monospace; vertical-align: middle; }
+.e { height: 15px; padding: 1px 6px; }
+.tot td { font-weight: 700; font-size: 9pt; background: #e8e8e8; }
+.tot .r { font-family: 'Courier New', Courier, monospace; }
+.tp td { font-weight: 700; font-size: 10pt; background: #e8e8e8; }
+.title { text-align: center; font-weight: 700; font-size: 11pt; margin: 4px 0 2px; }
+.hdr { font-family: 'Rockwell Extra Bold', Rockwell, Georgia, serif; font-weight: 900; font-size: 15pt; text-align: center; letter-spacing: 0.5px; margin-bottom: 4px; }
+.hdr-sm { font-family: 'Rockwell Extra Bold', Rockwell, Georgia, serif; font-weight: 900; font-size: 11pt; text-align: center; margin-bottom: 2px; }
+.page { page-break-after: always; }
+.page:last-child { page-break-after: auto; }
+.pgf { text-align: center; font-size: 7pt; color: #666; margin-top: 3px; }
+</style></head><body>${pages}</body></html>`;
+}
