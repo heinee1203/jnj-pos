@@ -19,12 +19,6 @@ importers:
 
   apps/api:
     dependencies:
-      '@apex/database':
-        specifier: workspace:*
-        version: link:../../packages/database
-      '@apex/types':
-        specifier: workspace:*
-        version: link:../../packages/types
       '@fastify/cors':
         specifier: ^11.2.0
         version: 11.2.0
@@ -37,6 +31,12 @@ importers:
       '@fastify/sensible':
         specifier: ^6.0.4
         version: 6.0.4
+      '@jnj/database':
+        specifier: workspace:*
+        version: link:../../packages/database
+      '@jnj/types':
+        specifier: workspace:*
+        version: link:../../packages/types
       bcryptjs:
         specifier: ^3.0.3
         version: 3.0.3
@@ -162,7 +162,7 @@ importers:
 
   apps/web:
     dependencies:
-      '@apex/types':
+      '@jnj/types':
         specifier: workspace:*
         version: link:../../packages/types
       '@tanstack/react-query':
@@ -232,7 +232,7 @@ importers:
 
   packages/database:
     dependencies:
-      '@apex/types':
+      '@jnj/types':
         specifier: workspace:*
         version: link:../types
       dotenv:
@@ -279,10 +279,10 @@ importers:
 
   tools/loyverse-import:
     dependencies:
-      '@apex/database':
+      '@jnj/database':
         specifier: workspace:*
         version: link:../../packages/database
-      '@apex/types':
+      '@jnj/types':
         specifier: workspace:*
         version: link:../../packages/types
       csv-parse:
@@ -310,10 +310,10 @@ importers:
 
   tools/migration:
     dependencies:
-      '@apex/database':
+      '@jnj/database':
         specifier: workspace:*
         version: link:../../packages/database
-      '@apex/types':
+      '@jnj/types':
         specifier: workspace:*
         version: link:../../packages/types
       csv-parse:
