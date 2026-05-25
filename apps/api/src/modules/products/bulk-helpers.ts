@@ -1,8 +1,6 @@
 export interface BulkProductUpdateInput {
   categoryId?: string;
   brandId?: string;
-  familyId?: string;
-  subcategoryId?: string;
   specialOrder?: boolean;
   isSerialized?: boolean;
   warrantyMonths?: number | null;
@@ -22,8 +20,6 @@ export function buildBulkProductUpdateFields(
   if (updates.specialOrder !== undefined) updateFields.specialOrder = updates.specialOrder;
   if (updates.discontinued !== undefined) updateFields.discontinued = updates.discontinued;
   if (updates.brandId !== undefined) updateFields.brandId = updates.brandId;
-  if (updates.familyId !== undefined) updateFields.familyId = updates.familyId;
-  if (updates.subcategoryId !== undefined) updateFields.subcategoryId = updates.subcategoryId;
   if (updates.isSerialized !== undefined) updateFields.isSerialized = updates.isSerialized;
   if (updates.warrantyMonths !== undefined) updateFields.warrantyMonths = updates.warrantyMonths;
   if (updates.isTire !== undefined) updateFields.isTire = updates.isTire;

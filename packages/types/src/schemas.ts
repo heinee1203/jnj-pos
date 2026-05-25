@@ -113,9 +113,7 @@ export const createProductSchema = z.object({
   ),
   barcode: z.string().min(1).max(50).optional(),
   oemNumber: z.string().max(100).nullable().optional(),
-  familyId: z.string().uuid().nullable().optional(),
   categoryId: z.string().uuid().nullable().optional(),
-  subcategoryId: z.string().uuid().nullable().optional(),
   brandId: z.string().uuid().nullable().optional(),
   isParent: z.boolean().default(false),
   parentProductId: z.string().uuid().nullable().optional(),
@@ -160,13 +158,8 @@ export const listProductsQuerySchema = z.object({
   includeInactive: boolLike.optional(),
   excludeSO: boolLike.optional(),
   excludeDC: boolLike.optional(),
-  // Taxonomy — canonical names after Bug 8. `categoryId` replaces the
-  // legacy `subCategoryId` param (both referred to the same column —
-  // `products.category_id`). `subcategoryId` remains the granular-level
-  // filter on `products.subcategory_id`.
-  familyId: z.string().optional(),
+  // Taxonomy filters
   categoryId: z.string().optional(),
-  subcategoryId: z.string().optional(),
   brandId: z.string().optional(),
   category: z.string().optional(),
   stockStatus: z.enum(["low", "out", "special_order", "not_special_order"]).optional(),
@@ -188,9 +181,7 @@ export const updateProductSchema = z.object({
   ).optional(),
   barcode: z.string().min(1).max(50).optional(),
   oemNumber: z.string().max(100).nullable().optional(),
-  familyId: z.string().uuid().nullable().optional(),
   categoryId: z.string().uuid().nullable().optional(),
-  subcategoryId: z.string().uuid().nullable().optional(),
   brandId: z.string().uuid().nullable().optional(),
   isParent: z.boolean().optional(),
   parentProductId: z.string().uuid().nullable().optional(),
@@ -234,9 +225,7 @@ const importRowSchema = z.object({
   handle: z.string().max(100).optional(),
   barcode: z.string().max(50).optional(),
   oemNumber: z.string().max(100).optional(),
-  family: z.string().max(255).optional(),
   category: z.string().max(255).optional(),
-  subcategory: z.string().max(255).optional(),
   brand: z.string().max(255).optional(),
   unitPrice: z.string().optional(),
   costPrice: z.string().optional(),
@@ -254,14 +243,6 @@ export const bulkImportSchema = z.object({
 });
 export type BulkImportInput = z.infer<typeof bulkImportSchema>;
 export type ImportRow = z.infer<typeof importRowSchema>;
-
-// ── Product Family ──
-export const productFamilySchema = z.object({
-  name: z.string().min(1).max(255),
-  slug: z.string().min(1).max(255).regex(/^[a-z0-9-]+$/),
-});
-export type ProductFamilyInput = z.infer<typeof productFamilySchema>;
-
 
 // ══════════════════════════════════════════════
 // Adjustment Schemas
@@ -461,9 +442,7 @@ export const createCountSchema = z.object({
   title: z.string().min(1).max(255).optional(),
   notes: z.string().max(2000).optional(),
   filterCriteria: z.object({
-    familyId: z.string().uuid().optional(),
     categoryId: z.string().uuid().optional(),
-    subcategoryId: z.string().uuid().optional(),
     brandId: z.string().uuid().optional(),
   }).optional(),
 });
@@ -524,7 +503,6 @@ export const createCategorySchema = z.object({
   sortOrder: z.number().int().min(0).default(0),
   isActive: z.boolean().default(true),
   parentId: z.string().uuid().optional(),
-  familyId: z.string().uuid().nullable().optional(),
 });
 export type CreateCategoryInput = z.infer<typeof createCategorySchema>;
 
@@ -537,31 +515,8 @@ export const updateCategorySchema = z.object({
   sortOrder: z.number().int().min(0).optional(),
   isActive: z.boolean().optional(),
   parentId: z.string().uuid().nullable().optional(),
-  familyId: z.string().uuid().nullable().optional(),
 });
 export type UpdateCategoryInput = z.infer<typeof updateCategorySchema>;
-
-// ══════════════════════════════════════════════
-// Sub-categories
-// ══════════════════════════════════════════════
-
-export const createSubcategorySchema = z.object({
-  categoryId: z.string().uuid(),
-  name: z.string().min(1).max(255),
-  slug: z.string().min(1).max(255).regex(/^[a-z0-9-]+$/, "Slug must be lowercase alphanumeric with hyphens"),
-  sortOrder: z.number().int().min(0).default(0),
-  isActive: z.boolean().default(true),
-});
-export type CreateSubcategoryInput = z.infer<typeof createSubcategorySchema>;
-
-export const updateSubcategorySchema = z.object({
-  name: z.string().min(1).max(255).optional(),
-  slug: z.string().min(1).max(255).regex(/^[a-z0-9-]+$/).optional(),
-  categoryId: z.string().uuid().optional(),
-  sortOrder: z.number().int().min(0).optional(),
-  isActive: z.boolean().optional(),
-});
-export type UpdateSubcategoryInput = z.infer<typeof updateSubcategorySchema>;
 
 // ══════════════════════════════════════════════
 // Product Option Types & Variants

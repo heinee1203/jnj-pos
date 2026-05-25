@@ -90,21 +90,9 @@ export async function createCount(
     ];
 
     if (input.countType === "CYCLE" && input.filterCriteria) {
-      if (input.filterCriteria.familyId) {
-        conditions.push(
-          sql`(${products.familyId} = ${input.filterCriteria.familyId} OR EXISTS (
-            SELECT 1 FROM categories c WHERE c.id = ${products.categoryId} AND c.family_id = ${input.filterCriteria.familyId}
-          ))`,
-        );
-      }
       if (input.filterCriteria.categoryId) {
         conditions.push(
           eq(products.categoryId, input.filterCriteria.categoryId),
-        );
-      }
-      if (input.filterCriteria.subcategoryId) {
-        conditions.push(
-          eq(products.subcategoryId, input.filterCriteria.subcategoryId),
         );
       }
       if (input.filterCriteria.brandId) {

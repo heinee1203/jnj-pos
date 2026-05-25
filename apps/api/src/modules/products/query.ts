@@ -11,7 +11,6 @@ type ProductListQueryBasics = {
   categoryId?: string;
   excludeDC?: string;
   excludeSO?: string;
-  familyId?: string;
   grouped?: string;
   hasVehicles?: string;
   includeInactive?: string;
@@ -24,7 +23,6 @@ type ProductListQueryBasics = {
   sortBy?: string;
   sortDir?: string;
   stockStatus?: string;
-  subcategoryId?: string;
   vehicleEngine?: string;
   vehicleMake?: string;
   vehicleModel?: string;
@@ -108,7 +106,6 @@ export function buildStandardProductListConditions({
 
 export type ProductBulkFilter = {
   search?: string;
-  familyId?: string;
   categoryId?: string;
   brandId?: string;
 };
@@ -118,7 +115,6 @@ export function buildBulkProductFilterConditions(orgId: string, filter: ProductB
   if (filter.search && filter.search.length >= 2) {
     conditions.push(ilike(products.name, `%${filter.search}%`));
   }
-  if (filter.familyId) conditions.push(eq(products.familyId, filter.familyId));
   if (filter.categoryId) conditions.push(eq(products.categoryId, filter.categoryId));
   if (filter.brandId) conditions.push(eq(products.brandId, filter.brandId));
   return conditions;
@@ -265,27 +261,11 @@ function addStandardProductTaxonomyConditions(conditions: SQL[], q: ProductListQ
     );
   }
 
-  if (q.familyId) {
-    if (q.familyId === "__none__") {
-      conditions.push(sql`${products.familyId} IS NULL`);
-    } else {
-      conditions.push(eq(products.familyId, q.familyId));
-    }
-  }
-
   if (q.categoryId) {
     if (q.categoryId === "__none__") {
       conditions.push(sql`${products.categoryId} IS NULL`);
     } else {
       conditions.push(eq(products.categoryId, q.categoryId));
-    }
-  }
-
-  if (q.subcategoryId) {
-    if (q.subcategoryId === "__none__") {
-      conditions.push(sql`${products.subcategoryId} IS NULL`);
-    } else {
-      conditions.push(eq(products.subcategoryId, q.subcategoryId));
     }
   }
 

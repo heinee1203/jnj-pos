@@ -1,6 +1,6 @@
 ﻿import type { FastifyInstance } from "fastify";
 import { db } from "@jnj/database";
-import { brands, categories, inventory, locations, productFamilies, productOptionTypes, productOptionValues, productSubcategories, productVariantOptions, products, suppliers } from "@jnj/database/schema";
+import { brands, categories, inventory, locations, productOptionTypes, productOptionValues, productVariantOptions, products, suppliers } from "@jnj/database/schema";
 import { and, asc, desc, eq, ilike, inArray, sql, type SQL } from "drizzle-orm";
 import { bulkImportSchema, generateEan13 } from "@jnj/types";
 
@@ -20,25 +20,21 @@ export function registerProductImportExportRoutes(app: FastifyInstance) {
   // GET /products/export - Denormalized export with per-location inventory
   //
   // Query params:
-  //   search, familyId, categoryId, subcategoryId, brandId, sortBy, sortDir
+  //   search, categoryId, brandId, sortBy, sortDir
   //   includeCost=true   -> include costPrice in response (default: stripped)
   //   includeStock=true  -> include per-location inventory (default: stripped)
-  //   includeNonItems=true -> include Non-Items family (default: excluded)
   //   active=true|false  -> filter by active+not-discontinued status
   // --------------------------------------------------------------------
   app.get("/export", async (request, reply) => {
     const { orgId } = request.storeContext!;
     const {
       search,
-      familyId,
       categoryId,
-      subcategoryId,
       brandId,
       sortBy,
       sortDir,
       includeCost,
       includeStock,
-      includeNonItems,
       activeFilter,
     } = parseProductExportQuery(request.query as Record<string, string | undefined>);
 
@@ -58,17 +54,8 @@ export function registerProductImportExportRoutes(app: FastifyInstance) {
     if (search && search.length >= 2) {
       conditions.push(ilike(products.name, `%${search}%`));
     }
-    if (familyId) conditions.push(eq(products.familyId, familyId));
     if (categoryId) conditions.push(eq(products.categoryId, categoryId));
-    if (subcategoryId) conditions.push(eq(products.subcategoryId, subcategoryId));
     if (brandId) conditions.push(eq(products.brandId, brandId));
-
-    // Exclude Non-Items family by default
-    if (!includeNonItems) {
-      conditions.push(
-        sql`(${productFamilies.name} IS NULL OR ${productFamilies.name} != 'Non-Items')`,
-      );
-    }
 
     // Fetch all active locations for the org
     const orgLocations = await db
@@ -92,9 +79,7 @@ export function registerProductImportExportRoutes(app: FastifyInstance) {
         isParent: products.isParent,
         parentProductId: products.parentProductId,
         isActive: products.isActive,
-        familyName: productFamilies.name,
         categoryName: categories.name,
-        subcategoryName: productSubcategories.name,
         brandName: brands.name,
         supplierName: suppliers.name,
         unitsPerCase: products.unitsPerCase,
@@ -110,9 +95,7 @@ export function registerProductImportExportRoutes(app: FastifyInstance) {
         updatedAt: products.updatedAt,
       })
       .from(products)
-      .leftJoin(productFamilies, eq(products.familyId, productFamilies.id))
       .leftJoin(categories, eq(products.categoryId, categories.id))
-      .leftJoin(productSubcategories, eq(products.subcategoryId, productSubcategories.id))
       .leftJoin(brands, eq(products.brandId, brands.id))
       .leftJoin(suppliers, eq(products.primarySupplierId, suppliers.id))
       .where(and(...conditions))
@@ -209,16 +192,12 @@ export function registerProductImportExportRoutes(app: FastifyInstance) {
     }
 
     // 2. Load taxonomy lookups -> Map<lowercase_name, id>
-    const [allFamilies, allCategories, allSubcategories, allBrands] = await Promise.all([
-      db.select({ id: productFamilies.id, name: productFamilies.name }).from(productFamilies).where(eq(productFamilies.orgId, orgId)),
+    const [allCategories, allBrands] = await Promise.all([
       db.select({ id: categories.id, name: categories.name }).from(categories).where(eq(categories.orgId, orgId)),
-      db.select({ id: productSubcategories.id, name: productSubcategories.name }).from(productSubcategories).where(eq(productSubcategories.orgId, orgId)),
       db.select({ id: brands.id, name: brands.name }).from(brands).where(eq(brands.orgId, orgId)),
     ]);
 
-    const familyMap = new Map(allFamilies.map((f) => [f.name.toLowerCase(), f.id]));
     const categoryMap = new Map(allCategories.map((c) => [c.name.toLowerCase(), c.id]));
-    const subcategoryMap = new Map(allSubcategories.map((s) => [s.name.toLowerCase(), s.id]));
     const brandMap = new Map(allBrands.map((b) => [b.name.toLowerCase(), b.id]));
 
     // 2b. Load location name -> id map
@@ -239,9 +218,7 @@ export function registerProductImportExportRoutes(app: FastifyInstance) {
         for (let i = 0; i < rows.length; i++) {
           const row = rows[i];
           try {
-            const familyId = row.family ? familyMap.get(row.family.toLowerCase()) ?? null : null;
             const categoryId = row.category ? categoryMap.get(row.category.toLowerCase()) ?? null : null;
-            const subcategoryId = row.subcategory ? subcategoryMap.get(row.subcategory.toLowerCase()) ?? null : null;
             const brandId = row.brand ? brandMap.get(row.brand.toLowerCase()) ?? null : null;
 
             const existingId = skuMap.get(row.sku.toLowerCase());
@@ -257,9 +234,7 @@ export function registerProductImportExportRoutes(app: FastifyInstance) {
               if (row.description !== undefined) updateValues.description = row.description;
               if (row.unitsPerCase !== undefined) updateValues.unitsPerCase = row.unitsPerCase;
               if (row.packagingUnit !== undefined) updateValues.packagingUnit = row.packagingUnit;
-              if (familyId) updateValues.familyId = familyId;
               if (categoryId) updateValues.categoryId = categoryId;
-              if (subcategoryId) updateValues.subcategoryId = subcategoryId;
               if (brandId) updateValues.brandId = brandId;
 
               await tx
@@ -321,9 +296,7 @@ export function registerProductImportExportRoutes(app: FastifyInstance) {
                   description: row.description || null,
                   unitsPerCase: row.unitsPerCase ?? 1,
                   packagingUnit: row.packagingUnit || null,
-                  familyId,
                   categoryId,
-                  subcategoryId,
                   brandId,
                 })
                 .returning();

@@ -1,6 +1,5 @@
 import type { FastifyPluginAsync } from "fastify";
 import { registerProductListRoutes } from "./list-routes";
-import { registerProductFamilyRoutes } from "./families-routes";
 import { registerProductVehicleRoutes } from "./vehicles-routes";
 import { registerProductBulkRoutes } from "./bulk-routes";
 import { registerProductImportExportRoutes } from "./import-export-routes";
@@ -22,7 +21,6 @@ export const productRoutes: FastifyPluginAsync = async (app) => {
   registerProductDetailReadRoutes(app);
   registerProductDeleteRoutes(app);
   registerProductBarcodeRoutes(app);
-  registerProductFamilyRoutes(app);
   registerProductVehicleRoutes(app);
   registerProductImportExportRoutes(app);
   registerProductPendingRoutes(app);

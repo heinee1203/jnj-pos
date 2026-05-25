@@ -1,4 +1,4 @@
-﻿import { db } from "@jnj/database";
+import { db } from "@jnj/database";
 import { sql } from "drizzle-orm";
 
 import type { SortField } from "./sorting";
@@ -6,11 +6,8 @@ import type { SortField } from "./sorting";
 /**
  * Grouped query handler.
  *
- * Deduplicates products within families by variant name:
- * - Family products: GROUP BY (familyId, name) -> one row per variant with aggregated stock
- * - Standalone products: no grouping, returned as-is
- *
- * When search is active: expands to include ALL family siblings when any variant matches.
+ * With families removed, this is now a flat product query with optional
+ * aggregation when allLocations=true.
  */
 export async function handleGroupedQuery(
   reply: any,
@@ -25,8 +22,6 @@ export async function handleGroupedQuery(
   category?: string,
   stockStatus?: string,
   subCategoryId?: string,
-  familyId?: string,
-  subcategoryId?: string,
   brandId?: string,
   allLocations?: boolean,
   excludeSO?: boolean,
@@ -39,14 +34,6 @@ export async function handleGroupedQuery(
   // Build filter fragments
   const brandFilter = brandId
     ? brandId === "__none__" ? sql`AND p.brand_id IS NULL` : sql`AND p.brand_id = ${brandId}::uuid`
-    : sql``;
-
-  const subcategoryFilter = subcategoryId
-    ? subcategoryId === "__none__" ? sql`AND p.subcategory_id IS NULL` : sql`AND p.subcategory_id = ${subcategoryId}::uuid`
-    : sql``;
-
-  const familyFilter = familyId
-    ? familyId === "__none__" ? sql`AND p.family_id IS NULL` : sql`AND p.family_id = ${familyId}::uuid`
     : sql``;
 
   const searchFilter = (() => {
@@ -155,25 +142,6 @@ export async function handleGroupedQuery(
     ? sql`AND EXISTS (SELECT 1 FROM locations loc WHERE loc.id = i.location_id AND loc.is_active = true)`
     : sql``;
 
-  // When search matches a family product, expand to include ALL variants in that family.
-  // This lets the frontend show the complete family context around matching children.
-  const familySearchExpansion = search && search.length >= 2
-    ? sql`
-      OR p.family_id IN (
-        SELECT DISTINCT p2.family_id
-        FROM inventory i2
-        INNER JOIN products p2 ON i2.product_id = p2.id
-        WHERE ${allLocations ? sql`TRUE` : sql`i2.location_id = ${locationId}`}
-          AND p2.org_id = ${orgId}
-          AND p2.family_id IS NOT NULL
-          AND (p2.name ILIKE ${"%" + search + "%"} OR p2.sku ILIKE ${"%" + search + "%"} OR p2.oem_number ILIKE ${"%" + search + "%"}
-               OR EXISTS (SELECT 1 FROM vehicle_compatibility vc2 WHERE vc2.product_id = p2.id AND (vc2.make ILIKE ${"%" + search + "%"} OR vc2.model ILIKE ${"%" + search + "%"}))
-               OR EXISTS (SELECT 1 FROM product_tags pt2 JOIN tags t2 ON pt2.tag_id = t2.id WHERE pt2.product_id = p2.id AND t2.name ILIKE ${"%" + search + "%"})
-          )
-      )
-    `
-    : sql``;
-
   // Build sort expression
   const GROUPED_SORT_MAP: Record<string, ReturnType<typeof sql>> = {
     stockLevel: sql`stock_level`,
@@ -181,68 +149,17 @@ export async function handleGroupedQuery(
     costPrice: sql`cost_price`,
     category: sql`category`,
     sku: sql`sku`,
-    categoryName: sql`sub_category_name`,
+    categoryName: sql`category_name`,
     brandName: sql`brand_name`,
     margin: sql`CASE WHEN CAST(unit_price AS numeric) > 0 THEN (CAST(unit_price AS numeric) - CAST(cost_price AS numeric)) / CAST(unit_price AS numeric) * 100 ELSE 0 END`,
   };
-  const sortExpr = GROUPED_SORT_MAP[sortBy] ?? sql`sort_key`;
+  const sortExpr = GROUPED_SORT_MAP[sortBy] ?? sql`name`;
 
   const dirExpr = sortDir === "desc" ? sql`DESC` : sql`ASC`;
 
-  // Execute grouped query using raw SQL for the UNION ALL + aggregation
+  // Flat query — no family grouping
   const result = await db.execute(sql`
     WITH grouped_data AS (
-      -- Part 1: Family products — one row per (family, variant_name) with aggregated stock
-      SELECT
-        (array_agg(p.id ORDER BY p.sku))[1] AS id,
-        p.name AS name,
-        (array_agg(p.sku ORDER BY p.sku))[1] AS sku,
-        (array_agg(p.mnemonic_sku ORDER BY p.sku))[1] AS mnemonic_sku,
-        p.category::text AS category,
-        (array_agg(p.unit_price ORDER BY p.sku))[1]::text AS unit_price,
-        (array_agg(p.cost_price ORDER BY p.sku))[1]::text AS cost_price,
-        (array_agg(p.barcode ORDER BY p.sku))[1] AS barcode,
-        (array_agg(p.oem_number ORDER BY p.sku))[1] AS oem_number,
-        bool_or(p.is_variable_price) AS is_variable_price,
-        GREATEST(COALESCE(SUM(i.stock_level), 0), 0)::int AS stock_level,
-        COALESCE(MAX(i.reorder_point), 0)::int AS reorder_point,
-        p.family_id AS family_id,
-        pf.name AS family_name,
-        (array_agg(p.category_id ORDER BY p.sku))[1] AS sub_category_id,
-        (array_agg(cat.name ORDER BY p.sku))[1] AS sub_category_name,
-        (array_agg(p.subcategory_id ORDER BY p.sku))[1] AS subcategory_id,
-        (array_agg(psub.name ORDER BY p.sku))[1] AS subcategory_name,
-        (array_agg(p.brand_id ORDER BY p.sku))[1] AS brand_id,
-        (array_agg(b.name ORDER BY p.sku))[1] AS brand_name,
-        bool_or(p.special_order) AS special_order,
-        bool_or(p.discontinued) AS discontinued,
-        bool_or(p.is_serialized) AS is_serialized,
-        bool_or(p.is_tire) AS is_tire,
-        COALESCE(pf.name, p.name) AS sort_key
-      FROM inventory i
-      INNER JOIN products p ON i.product_id = p.id
-      INNER JOIN product_families pf ON p.family_id = pf.id
-      LEFT JOIN categories cat ON p.category_id = cat.id
-      LEFT JOIN product_subcategories psub ON p.subcategory_id = psub.id
-      LEFT JOIN brands b ON p.brand_id = b.id
-      WHERE p.org_id = ${orgId}
-        ${locationFilter}
-        ${availabilityFilter}
-        ${activeLocationFilter}
-        ${familyFilter}
-        ${categoryFilter}
-        ${stockFilter}
-        ${subCategoryFilter}
-        ${subcategoryFilter}
-        ${brandFilter}
-        ${excludeSOFilter}
-        ${excludeDCFilter}
-        AND (TRUE ${searchFilter} ${familySearchExpansion})
-      GROUP BY p.family_id, pf.name, p.name, p.category
-
-      UNION ALL
-
-      -- Part 2: Standalone products — no grouping
       SELECT
         p.id,
         p.name,
@@ -256,41 +173,32 @@ export async function handleGroupedQuery(
         p.is_variable_price,
         ${allLocations ? sql`GREATEST(COALESCE(SUM(i.stock_level), 0), 0)::int` : sql`GREATEST(i.stock_level, 0)`} AS stock_level,
         ${allLocations ? sql`COALESCE(MAX(i.reorder_point), 0)::int` : sql`i.reorder_point`} AS reorder_point,
-        NULL::uuid AS family_id,
-        NULL::text AS family_name,
-        p.category_id AS sub_category_id,
-        cat.name AS sub_category_name,
-        p.subcategory_id AS subcategory_id,
-        psub.name AS subcategory_name,
+        p.category_id,
+        cat.name AS category_name,
         p.brand_id AS brand_id,
         b.name AS brand_name,
         p.special_order,
         p.discontinued,
         p.is_serialized,
-        p.is_tire,
-        p.name AS sort_key
+        p.is_tire
       FROM inventory i
       INNER JOIN products p ON i.product_id = p.id
       LEFT JOIN categories cat ON p.category_id = cat.id
-      LEFT JOIN product_subcategories psub ON p.subcategory_id = psub.id
       LEFT JOIN brands b ON p.brand_id = b.id
       WHERE p.org_id = ${orgId}
         ${locationFilter}
         ${availabilityFilter}
         ${activeLocationFilter}
-        AND p.family_id IS NULL
-        ${familyFilter}
         ${searchFilter}
         ${categoryFilter}
         ${stockFilter}
         ${subCategoryFilter}
-        ${subcategoryFilter}
         ${brandFilter}
         ${excludeSOFilter}
         ${excludeDCFilter}
       ${allLocations ? sql`GROUP BY p.id, p.name, p.sku, p.mnemonic_sku, p.category,
                p.unit_price, p.cost_price, p.barcode, p.oem_number, p.is_variable_price,
-               p.category_id, cat.name, p.subcategory_id, psub.name,
+               p.category_id, cat.name,
                p.brand_id, b.name, p.special_order, p.discontinued, p.is_serialized, p.is_tire` : sql``}
     )
     SELECT *, count(*) OVER() AS _total_count
@@ -316,12 +224,8 @@ export async function handleGroupedQuery(
     isVariablePrice: row.is_variable_price,
     stockLevel: row.stock_level,
     reorderPoint: row.reorder_point,
-    familyId: row.family_id,
-    familyName: row.family_name,
-    subCategoryId: row.sub_category_id,
-    subCategoryName: row.sub_category_name,
-    subcategoryId: row.subcategory_id,
-    subcategoryName: row.subcategory_name,
+    categoryId: row.category_id,
+    categoryName: row.category_name,
     brandId: row.brand_id,
     brandName: row.brand_name,
     specialOrder: row.special_order ?? false,

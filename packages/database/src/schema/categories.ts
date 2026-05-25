@@ -9,7 +9,6 @@ import {
   index,
 } from "drizzle-orm/pg-core";
 import { organizations } from "./organizations";
-import { productFamilies } from "./product-families";
 
 /**
  * Categories — master data for product catalog organization.
@@ -56,9 +55,6 @@ export const categories = pgTable(
     /** Self-referencing FK for future hierarchy support */
     parentId: uuid("parent_id"),
 
-    /** FK to product family for taxonomy grouping */
-    familyId: uuid("family_id").references(() => productFamilies.id, { onDelete: "set null" }),
-
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -72,6 +68,5 @@ export const categories = pgTable(
     uniqueIndex("idx_categories_org_code").on(table.orgId, table.code),
     index("idx_categories_org_id").on(table.orgId),
     index("idx_categories_parent_id").on(table.parentId),
-    index("idx_categories_family_id").on(table.familyId),
   ],
 );

@@ -14,10 +14,8 @@ import {
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { organizations } from "./organizations";
-import { productFamilies } from "./product-families";
 import { brands } from "./brands";
 import { categories } from "./categories";
-import { productSubcategories } from "./product-subcategories";
 import { suppliers } from "./suppliers";
 
 export const productCategoryEnum = pgEnum("product_category", [
@@ -61,10 +59,8 @@ export const products = pgTable(
     isVariablePrice: boolean("is_variable_price").notNull().default(false),
     /** Granular category FK from Loyverse import (separate from the broad enum) */
     categoryId: uuid("category_id").references(() => categories.id, { onDelete: "set null" }),
-    subcategoryId: uuid("subcategory_id").references(() => productSubcategories.id, { onDelete: "set null" }),
     parentProductId: uuid("parent_product_id").references((): any => products.id, { onDelete: "cascade" }),
     isParent: boolean("is_parent").notNull().default(false),
-    familyId: uuid("family_id").references(() => productFamilies.id, { onDelete: "set null" }),
     brandId: uuid("brand_id").references(() => brands.id, { onDelete: "set null" }),
     /** OEM part number — manufacturer's reference code for cross-referencing */
     oemNumber: varchar("oem_number", { length: 100 }),
@@ -112,10 +108,8 @@ export const products = pgTable(
     // Enforce exactly 10 characters for mnemonic SKU at DB level
     check("chk_mnemonic_sku_length", sql`char_length(mnemonic_sku) = 10`),
     check("chk_conversion_factor_positive", sql`conversion_factor > 0`),
-    index("idx_products_family_id").on(table.familyId),
     index("idx_products_barcode").on(table.barcode),
     index("idx_products_category_id").on(table.categoryId),
-    index("idx_products_subcategory_id").on(table.subcategoryId),
     index("idx_products_parent_id").on(table.parentProductId),
     index("idx_products_is_active").on(table.isActive),
     index("idx_products_brand_id").on(table.brandId),

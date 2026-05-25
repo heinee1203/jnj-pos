@@ -1,14 +1,11 @@
 export type ProductExportQuery = {
   search: string;
-  familyId: string;
   categoryId: string;
-  subcategoryId: string;
   brandId: string;
   sortBy: string;
   sortDir: string;
   includeCost: boolean;
   includeStock: boolean;
-  includeNonItems: boolean;
   activeFilter?: string;
 };
 
@@ -49,16 +46,12 @@ export function parseProductExportQuery(
 ): ProductExportQuery {
   return {
     search: query.search || "",
-    familyId: query.familyId || "",
-    // Keep export aligned to canonical categoryId; legacy subCategoryId is not accepted.
     categoryId: query.categoryId || "",
-    subcategoryId: query.subcategoryId || "",
     brandId: query.brandId || "",
     sortBy: query.sortBy || "name",
     sortDir: query.sortDir || "asc",
     includeCost: query.includeCost === "true",
     includeStock: query.includeStock === "true",
-    includeNonItems: query.includeNonItems === "true",
     activeFilter: query.active,
   };
 }

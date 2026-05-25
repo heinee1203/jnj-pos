@@ -1,6 +1,6 @@
 ﻿import type { FastifyInstance } from "fastify";
 import { db } from "@jnj/database";
-import { products, inventory, productFamilies, categories, productSubcategories, brands } from "@jnj/database/schema";
+import { products, inventory, categories, brands } from "@jnj/database/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { listProductsQuerySchema } from "@jnj/types";
 
@@ -40,9 +40,7 @@ export function registerProductListRoutes(app: FastifyInstance) {
         q.search,
         q.category,
         q.stockStatus,
-        q.categoryId, // was q.subCategoryId — Bug 8 canonicalisation
-        q.familyId,
-        q.subcategoryId,
+        q.categoryId,
         q.brandId,
         allLocations,
         q.excludeSO === "true",
@@ -103,12 +101,8 @@ export function registerProductListRoutes(app: FastifyInstance) {
             ), 0) ELSE ${inventory.stockLevel} END, 0)`.as("stock_level")
           : inventory.stockLevel,
         reorderPoint: inventory.reorderPoint,
-        familyId: products.familyId,
-        familyName: productFamilies.name,
-        subCategoryId: products.categoryId,
-        subCategoryName: categories.name,
-        subcategoryId: products.subcategoryId,
-        subcategoryName: productSubcategories.name,
+        categoryId: products.categoryId,
+        categoryName: categories.name,
         brandId: products.brandId,
         brandName: brands.name,
         parentProductId: products.parentProductId,
@@ -134,9 +128,7 @@ export function registerProductListRoutes(app: FastifyInstance) {
       })
       .from(products)
       .leftJoin(inventory, eq(inventory.productId, products.id))
-      .leftJoin(productFamilies, eq(products.familyId, productFamilies.id))
       .leftJoin(categories, eq(products.categoryId, categories.id))
-      .leftJoin(productSubcategories, eq(products.subcategoryId, productSubcategories.id))
       .leftJoin(brands, eq(products.brandId, brands.id))
       .where(where)
       .orderBy(...orderClauses)

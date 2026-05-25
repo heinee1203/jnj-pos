@@ -1,6 +1,6 @@
 ﻿import type { FastifyInstance } from "fastify";
 import { db } from "@jnj/database";
-import { inventory, productSubcategories, products } from "@jnj/database/schema";
+import { inventory, products } from "@jnj/database/schema";
 import { and, eq, inArray, sql } from "drizzle-orm";
 
 import { logAction } from "./product-audit-service";
@@ -34,18 +34,6 @@ export function registerProductBulkRoutes(app: FastifyInstance) {
 
     const updateFields = buildBulkProductUpdateFields(body.updates);
 
-    let autoFillCategoryId: string | null = null;
-    if (body.updates.subcategoryId && !body.updates.categoryId) {
-      const [sub] = await db
-        .select({ categoryId: productSubcategories.categoryId })
-        .from(productSubcategories)
-        .where(eq(productSubcategories.id, body.updates.subcategoryId))
-        .limit(1);
-      if (sub?.categoryId) {
-        autoFillCategoryId = sub.categoryId;
-      }
-    }
-
     let updated = 0;
 
     if (body.productIds && body.productIds.length > 0) {
@@ -60,17 +48,6 @@ export function registerProductBulkRoutes(app: FastifyInstance) {
           inArray(products.id, body.productIds),
         ));
       updated = (result as any).rowCount ?? body.productIds.length;
-
-      if (autoFillCategoryId) {
-        await db
-          .update(products)
-          .set({ categoryId: autoFillCategoryId })
-          .where(and(
-            eq(products.orgId, orgId),
-            inArray(products.id, body.productIds),
-            sql`${products.categoryId} IS NULL`,
-          ));
-      }
     } else if (body.filter) {
       const conditions = buildBulkProductFilterConditions(orgId, body.filter);
 
@@ -80,13 +57,6 @@ export function registerProductBulkRoutes(app: FastifyInstance) {
         .where(and(...conditions));
 
       updated = (result as any).rowCount ?? 0;
-
-      if (autoFillCategoryId) {
-        await db
-          .update(products)
-          .set({ categoryId: autoFillCategoryId })
-          .where(and(...conditions, sql`${products.categoryId} IS NULL`));
-      }
     } else {
       return reply.status(400).send({ error: "Provide productIds or filter" });
     }

@@ -1,6 +1,6 @@
 ﻿import type { FastifyInstance } from "fastify";
 import { db } from "@jnj/database";
-import { brands, categories, inventory, productFamilies, productSubcategories, products } from "@jnj/database/schema";
+import { brands, categories, inventory, products } from "@jnj/database/schema";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { generateEan13, isValidBarcode, updateProductSchema, type VariantItem } from "@jnj/types";
 
@@ -77,26 +77,6 @@ export function registerProductUpdateRoutes(app: FastifyInstance) {
     }
 
     const result = await db.transaction(async (tx) => {
-      // Auto-populate category from subcategory's parent when subcategory is set
-      if (productUpdates.subcategoryId && !productUpdates.categoryId) {
-        const [sub] = await tx
-          .select({ categoryId: productSubcategories.categoryId })
-          .from(productSubcategories)
-          .where(eq(productSubcategories.id, productUpdates.subcategoryId as string))
-          .limit(1);
-        if (sub?.categoryId) {
-          // Only auto-fill if product currently has no category
-          const [currentProduct] = await tx
-            .select({ categoryId: products.categoryId })
-            .from(products)
-            .where(eq(products.id, id))
-            .limit(1);
-          if (currentProduct && !currentProduct.categoryId) {
-            productUpdates.categoryId = sub.categoryId;
-          }
-        }
-      }
-
       // Log price changes before update
       if (productUpdates.unitPrice !== undefined || productUpdates.costPrice !== undefined) {
         const [oldProduct] = await tx.select({ unitPrice: products.unitPrice, costPrice: products.costPrice }).from(products).where(eq(products.id, id)).limit(1);
@@ -169,9 +149,7 @@ export function registerProductUpdateRoutes(app: FastifyInstance) {
                 oemNumber: parent.oemNumber || null,
                 isParent: false,
                 parentProductId: id,
-                familyId: parent.familyId || null,
                 categoryId: parent.categoryId || null,
-                subcategoryId: parent.subcategoryId || null,
                 brandId: parent.brandId || null,
               })
               .returning();
@@ -210,12 +188,8 @@ export function registerProductUpdateRoutes(app: FastifyInstance) {
           isParent: products.isParent,
           stockLevel: inventory.stockLevel,
           reorderPoint: inventory.reorderPoint,
-          familyId: products.familyId,
-          familyName: productFamilies.name,
           categoryId: products.categoryId,
           categoryName: categories.name,
-          subcategoryId: products.subcategoryId,
-          subcategoryName: productSubcategories.name,
           brandId: products.brandId,
           brandName: brands.name,
           unitsPerCase: products.unitsPerCase,
@@ -230,9 +204,7 @@ export function registerProductUpdateRoutes(app: FastifyInstance) {
           eq(inventory.productId, products.id),
           ...(locationId ? [eq(inventory.locationId, locationId)] : []),
         ))
-        .leftJoin(productFamilies, eq(products.familyId, productFamilies.id))
         .leftJoin(categories, eq(products.categoryId, categories.id))
-        .leftJoin(productSubcategories, eq(products.subcategoryId, productSubcategories.id))
         .leftJoin(brands, eq(products.brandId, brands.id))
         .where(eq(products.id, id))
         .limit(1);

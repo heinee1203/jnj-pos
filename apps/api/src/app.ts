@@ -17,7 +17,6 @@ import { stockJournalRoutes } from "./modules/stock-journal/routes";
 import { stockLevelsRoutes } from "./modules/stock-levels/routes";
 import { inventoryCountRoutes } from "./modules/inventory-counts/routes";
 import { categoryRoutes } from "./modules/categories/routes";
-import { subcategoryRoutes } from "./modules/subcategories/routes";
 import { productOptionsRoutes } from "./modules/product-options/routes";
 import { variantRoutes } from "./modules/variants/routes";
 import { locationRoutes } from "./modules/locations/routes";
@@ -80,7 +79,6 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(stockLevelsRoutes, { prefix: "/inventory/stock-levels" });
   await app.register(inventoryCountRoutes, { prefix: "/inventory/counts" });
   await app.register(categoryRoutes, { prefix: "/categories" });
-  await app.register(subcategoryRoutes, { prefix: "/subcategories" });
   await app.register(productOptionsRoutes, { prefix: "/product-options" });
   await app.register(variantRoutes, { prefix: "/variants" });
   await app.register(locationRoutes, { prefix: "/locations" });

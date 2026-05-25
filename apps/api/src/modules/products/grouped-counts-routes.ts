@@ -7,10 +7,10 @@ export function registerProductGroupedCountRoutes(app: FastifyInstance) {
     const q = request.query as Record<string, string | undefined>;
     const { orgId, locationId } = request.storeContext!;
     const allLocations = q.allLocations === "true";
-    const groupBy = q.groupBy as "family" | "category" | "brand" | "vehicleMake" | undefined;
+    const groupBy = q.groupBy as "category" | "brand" | "vehicleMake" | undefined;
 
-    if (!groupBy || !["family", "category", "brand", "vehicleMake"].includes(groupBy)) {
-      return reply.status(400).send({ error: "groupBy is required: family | category | brand | vehicleMake" });
+    if (!groupBy || !["category", "brand", "vehicleMake"].includes(groupBy)) {
+      return reply.status(400).send({ error: "groupBy is required: category | brand | vehicleMake" });
     }
 
     // Optional stock status filter fragment
@@ -25,40 +25,7 @@ export function registerProductGroupedCountRoutes(app: FastifyInstance) {
       ? sql`AND EXISTS (SELECT 1 FROM locations loc WHERE loc.id = i.location_id AND loc.is_active = true)`
       : sql`AND i.location_id = ${locationId} AND i.available_for_sale = true`;
 
-    if (groupBy === "family") {
-      const result = await db.execute(sql`
-        SELECT pf.id, pf.name,
-               COUNT(DISTINCT p.id)::int AS item_count,
-               COUNT(DISTINCT p.category_id)::int AS category_count
-        FROM inventory i
-          INNER JOIN products p ON i.product_id = p.id
-          LEFT JOIN product_families pf ON p.family_id = pf.id
-        WHERE p.org_id = ${orgId}
-          ${locFilter}
-          AND p.is_active = true
-          ${stockFilter}
-        GROUP BY pf.id, pf.name
-        ORDER BY pf.name ASC NULLS LAST
-      `);
-
-      const data = (result as any[]).map((r) => ({
-        id: r.id ?? null,
-        name: r.name ?? "No Family",
-        itemCount: r.item_count,
-        categoryCount: r.category_count,
-      }));
-
-      return reply.send({ data });
-    }
-
     if (groupBy === "category") {
-      if (!q.familyId) {
-        return reply.status(400).send({ error: "familyId is required when groupBy=category" });
-      }
-      const familyCondition = q.familyId === "__none__"
-        ? sql`AND p.family_id IS NULL`
-        : sql`AND p.family_id = ${q.familyId}::uuid`;
-
       const result = await db.execute(sql`
         SELECT c.id, c.name, c.color,
                COUNT(DISTINCT p.id)::int AS item_count,
@@ -69,7 +36,6 @@ export function registerProductGroupedCountRoutes(app: FastifyInstance) {
         WHERE p.org_id = ${orgId}
           ${locFilter}
           AND p.is_active = true
-          ${familyCondition}
           ${stockFilter}
         GROUP BY c.id, c.name, c.color
         ORDER BY c.name ASC NULLS LAST

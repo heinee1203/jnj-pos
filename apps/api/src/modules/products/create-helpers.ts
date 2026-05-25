@@ -31,9 +31,7 @@ export function buildCreateProductInsertValues({
     oemNumber: data.oemNumber || null,
     isParent: hasVariants ? true : (data.isParent ?? false),
     parentProductId: data.parentProductId || null,
-    familyId: data.familyId || null,
     categoryId: data.categoryId || null,
-    subcategoryId: data.subcategoryId || null,
     brandId: data.brandId || null,
     description: data.description || null,
     unitsPerCase: data.unitsPerCase ?? 1,
@@ -76,9 +74,7 @@ export function buildCreateVariantProductInsertValues({
     oemNumber: data.oemNumber || null,
     isParent: false,
     parentProductId,
-    familyId: data.familyId || null,
     categoryId: data.categoryId || null,
-    subcategoryId: data.subcategoryId || null,
     brandId: data.brandId || null,
   };
 }

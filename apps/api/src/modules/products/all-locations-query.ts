@@ -123,10 +123,6 @@ export async function handleAllLocationsQuery(
     )`;
   })();
 
-  const familyFilter = q.familyId
-    ? q.familyId === "__none__" ? sql`AND p.family_id IS NULL` : sql`AND p.family_id = ${q.familyId}::uuid`
-    : sql``;
-
   const categoryFilter = q.category
     ? sql`AND p.category = ${q.category}`
     : sql``;
@@ -137,10 +133,6 @@ export async function handleAllLocationsQuery(
   // separate `categoryFilter` (free-text legacy `p.category` column) above.
   const subCategoryFilter = q.categoryId
     ? q.categoryId === "__none__" ? sql`AND p.category_id IS NULL` : sql`AND p.category_id = ${q.categoryId}::uuid`
-    : sql``;
-
-  const subcategoryFilter = q.subcategoryId
-    ? q.subcategoryId === "__none__" ? sql`AND p.subcategory_id IS NULL` : sql`AND p.subcategory_id = ${q.subcategoryId}::uuid`
     : sql``;
 
   const brandFilter = q.brandId
@@ -194,7 +186,7 @@ export async function handleAllLocationsQuery(
     costPrice: sql`cost_price`,
     category: sql`category`,
     sku: sql`sku`,
-    categoryName: sql`sub_category_name`,
+    categoryName: sql`category_name`,
     brandName: sql`brand_name`,
     margin: sql`CASE WHEN CAST(unit_price AS numeric) > 0 THEN (CAST(unit_price AS numeric) - CAST(cost_price AS numeric)) / CAST(unit_price AS numeric) * 100 ELSE 0 END`,
   };
@@ -220,9 +212,7 @@ export async function handleAllLocationsQuery(
           WHERE p2.parent_product_id = p.id
         ), 0) ELSE COALESCE(SUM(i.stock_level), 0) END, 0)::int AS stock_level,
         COALESCE(MAX(i.reorder_point), 0)::int AS reorder_point,
-        p.family_id, pf.name AS family_name,
-        p.category_id AS sub_category_id, cat.name AS sub_category_name,
-        p.subcategory_id, psub.name AS subcategory_name,
+        p.category_id, cat.name AS category_name,
         p.brand_id, b.name AS brand_name,
         p.parent_product_id, p.is_parent,
         (SELECT pp.name FROM products pp WHERE pp.id = p.parent_product_id) AS parent_name,
@@ -231,9 +221,7 @@ export async function handleAllLocationsQuery(
       FROM products p
         LEFT JOIN inventory i ON i.product_id = p.id
           AND EXISTS (SELECT 1 FROM locations loc WHERE loc.id = i.location_id AND loc.is_active = true)
-        LEFT JOIN product_families pf ON p.family_id = pf.id
         LEFT JOIN categories cat ON p.category_id = cat.id
-        LEFT JOIN product_subcategories psub ON p.subcategory_id = psub.id
         LEFT JOIN brands b ON p.brand_id = b.id
       WHERE p.org_id = ${orgId}
         ${activeFilter}
@@ -242,17 +230,14 @@ export async function handleAllLocationsQuery(
         ${excludeSOFilter}
         ${excludeDCFilter}
         ${searchFilter}
-        ${familyFilter}
         ${categoryFilter}
         ${subCategoryFilter}
-        ${subcategoryFilter}
         ${brandFilter}
         ${oemFilter}
         ${vehicleFilter}
       GROUP BY p.id, p.name, p.sku, p.mnemonic_sku, p.category,
                p.unit_price, p.cost_price, p.barcode, p.oem_number, p.is_variable_price,
-               p.family_id, pf.name, p.category_id, cat.name,
-               p.subcategory_id, psub.name, p.brand_id, b.name,
+               p.category_id, cat.name, p.brand_id, b.name,
                p.parent_product_id, p.is_parent, p.is_serialized, p.is_tire,
                (SELECT pp.name FROM products pp WHERE pp.id = p.parent_product_id)
       ${stockHaving}
@@ -279,12 +264,8 @@ export async function handleAllLocationsQuery(
     isVariablePrice: row.is_variable_price,
     stockLevel: row.stock_level,
     reorderPoint: row.reorder_point,
-    familyId: row.family_id,
-    familyName: row.family_name,
-    subCategoryId: row.sub_category_id,
-    subCategoryName: row.sub_category_name,
-    subcategoryId: row.subcategory_id,
-    subcategoryName: row.subcategory_name,
+    categoryId: row.category_id,
+    categoryName: row.category_name,
     brandId: row.brand_id,
     brandName: row.brand_name,
     parentProductId: row.parent_product_id,

@@ -1,6 +1,6 @@
 ﻿import type { FastifyInstance } from "fastify";
 import { db } from "@jnj/database";
-import { brands, categories, inventory, locations, productFamilies, productSubcategories, products, vehicleCompatibility } from "@jnj/database/schema";
+import { brands, categories, inventory, locations, products, vehicleCompatibility } from "@jnj/database/schema";
 import { and, asc, eq, sql } from "drizzle-orm";
 
 export function registerProductSearchRoutes(app: FastifyInstance) {
@@ -148,12 +148,8 @@ export function registerProductDetailReadRoutes(app: FastifyInstance) {
         isParent: products.isParent,
         stockLevel: inventory.stockLevel,
         reorderPoint: inventory.reorderPoint,
-        familyId: products.familyId,
-        familyName: productFamilies.name,
         categoryId: products.categoryId,
         categoryName: categories.name,
-        subcategoryId: products.subcategoryId,
-        subcategoryName: productSubcategories.name,
         brandId: products.brandId,
         brandName: brands.name,
         parentProductId: products.parentProductId,
@@ -174,9 +170,7 @@ export function registerProductDetailReadRoutes(app: FastifyInstance) {
         eq(inventory.productId, products.id),
         ...(locationId ? [eq(inventory.locationId, locationId)] : []),
       ))
-      .leftJoin(productFamilies, eq(products.familyId, productFamilies.id))
       .leftJoin(categories, eq(products.categoryId, categories.id))
-      .leftJoin(productSubcategories, eq(products.subcategoryId, productSubcategories.id))
       .leftJoin(brands, eq(products.brandId, brands.id))
       .where(and(eq(products.id, id), eq(products.orgId, orgId)))
       .limit(1);
@@ -307,8 +301,6 @@ export function registerProductBarcodeRoutes(app: FastifyInstance) {
         oemNumber: products.oemNumber,
         stockLevel: inventory.stockLevel,
         reorderPoint: inventory.reorderPoint,
-        familyId: products.familyId,
-        familyName: productFamilies.name,
         brandId: products.brandId,
         brandName: brands.name,
       })
@@ -317,7 +309,6 @@ export function registerProductBarcodeRoutes(app: FastifyInstance) {
         eq(inventory.productId, products.id),
         ...(locationId ? [eq(inventory.locationId, locationId)] : []),
       ))
-      .leftJoin(productFamilies, eq(products.familyId, productFamilies.id))
       .leftJoin(brands, eq(products.brandId, brands.id))
       .where(and(eq(products.orgId, orgId), eq(products.barcode, barcode)))
       .limit(1);

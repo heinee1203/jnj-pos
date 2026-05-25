@@ -15,7 +15,6 @@ export interface CategoryRow {
   sortOrder: number;
   isActive: boolean;
   parentId: string | null;
-  familyId: string | null;
   productCount: number;
   createdAt: string;
   updatedAt: string;
@@ -54,7 +53,6 @@ export async function listCategories(opts: {
       sortOrder: categories.sortOrder,
       isActive: categories.isActive,
       parentId: categories.parentId,
-      familyId: categories.familyId,
       createdAt: categories.createdAt,
       updatedAt: categories.updatedAt,
       productCount: sql<number>`COALESCE(
@@ -93,7 +91,6 @@ export async function getCategoryById(
       sortOrder: categories.sortOrder,
       isActive: categories.isActive,
       parentId: categories.parentId,
-      familyId: categories.familyId,
       createdAt: categories.createdAt,
       updatedAt: categories.updatedAt,
       productCount: sql<number>`COALESCE(
@@ -157,7 +154,6 @@ export async function createCategory(
       sortOrder: input.sortOrder ?? 0,
       isActive: input.isActive ?? true,
       parentId: input.parentId ?? null,
-      familyId: input.familyId ?? null,
     })
     .returning();
 
@@ -171,7 +167,6 @@ export async function createCategory(
     sortOrder: row.sortOrder,
     isActive: row.isActive,
     parentId: row.parentId,
-    familyId: row.familyId,
     productCount: 0,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
@@ -221,8 +216,6 @@ export async function updateCategory(
   if (input.sortOrder !== undefined) updateValues.sortOrder = input.sortOrder;
   if (input.isActive !== undefined) updateValues.isActive = input.isActive;
   if (input.parentId !== undefined) updateValues.parentId = input.parentId;
-  if (input.familyId !== undefined) updateValues.familyId = input.familyId;
-
   if (Object.keys(updateValues).length === 0) {
     throw new Error("No fields to update");
   }
@@ -278,22 +271,9 @@ export async function deleteCategory(
 }
 
 /**
- * Remove all empty categories and subcategories (0 products assigned).
- * Only deletes categories that have no products AND no non-empty subcategories.
+ * Remove all empty categories (0 products assigned).
  */
-export async function removeEmptyCategories(orgId: string): Promise<{ categoriesRemoved: number; subcategoriesRemoved: number }> {
-  // Step 1: Delete empty subcategories first
-  const emptySubsResult = await db.execute(sql`
-    DELETE FROM product_subcategories
-    WHERE org_id = ${orgId}
-      AND id NOT IN (
-        SELECT DISTINCT subcategory_id FROM products
-        WHERE subcategory_id IS NOT NULL AND org_id = ${orgId}
-      )
-  `);
-  const subcategoriesRemoved = (emptySubsResult as any).rowCount ?? 0;
-
-  // Step 2: Delete empty categories (no products AND no remaining subcategories)
+export async function removeEmptyCategories(orgId: string): Promise<{ categoriesRemoved: number }> {
   const emptyCatsResult = await db.execute(sql`
     DELETE FROM categories
     WHERE org_id = ${orgId}
@@ -301,12 +281,8 @@ export async function removeEmptyCategories(orgId: string): Promise<{ categories
         SELECT DISTINCT category_id FROM products
         WHERE category_id IS NOT NULL AND org_id = ${orgId}
       )
-      AND id NOT IN (
-        SELECT DISTINCT category_id FROM product_subcategories
-        WHERE category_id IS NOT NULL AND org_id = ${orgId}
-      )
   `);
   const categoriesRemoved = (emptyCatsResult as any).rowCount ?? 0;
 
-  return { categoriesRemoved, subcategoriesRemoved };
+  return { categoriesRemoved };
 }
