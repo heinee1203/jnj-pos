@@ -8,20 +8,16 @@ import {
   locations,
   products,
   customers,
-  customerVehicles,
   users,
-  historicalSales,
 } from "@jnj/database/schema";
 import { eq, and, or, sql, desc, ilike, inArray, type SQL, asc } from "drizzle-orm";
 import type { CreateSaleInput, CompleteSaleInput, RefundSaleInput } from "@jnj/types";
 import { SaleStatus, isValidSaleTransition, REFUND_ROLES } from "@jnj/types";
-import { getOrCreateShift } from "../shifts/service";
 import { chargeCustomerAccount, CreditLimitError } from "../customers/service";
 import {
   checkAndNotifyStockout,
   checkAndNotifyLowStock,
 } from "../notifications/service";
-import { createWarrantyRecordsForSale } from "../warranties/service";
 
 // ── Helpers ──
 
@@ -172,29 +168,6 @@ export async function createSale(
       if (!customer) throw new Error("Customer not found");
     }
 
-    // Validate vehicle if provided — must belong to customer
-    if (input.customerVehicleId) {
-      if (!input.customerId) {
-        throw new Error("Cannot attach vehicle without a customer");
-      }
-      const [vehicle] = await tx
-        .select()
-        .from(customerVehicles)
-        .where(
-          and(
-            eq(customerVehicles.id, input.customerVehicleId),
-            eq(customerVehicles.customerId, input.customerId),
-            eq(customerVehicles.orgId, orgId),
-          ),
-        )
-        .limit(1);
-      if (!vehicle) {
-        throw new Error(
-          "Vehicle not found or does not belong to the selected customer",
-        );
-      }
-    }
-
     const saleNo = await generateSaleNo(tx, orgId, location.code);
 
     // Look up product prices and compute line totals
@@ -232,7 +205,6 @@ export async function createSale(
         discountAmount: discount.toFixed(2),
         lineTotal: lineTotal.toFixed(2),
         notes: line.notes ?? null,
-        technicianId: (line as any).technicianId ?? null,
       });
     }
 
@@ -247,7 +219,6 @@ export async function createSale(
         locationId,
         status: "OPEN",
         customerId: input.customerId ?? null,
-        customerVehicleId: input.customerVehicleId ?? null,
         subtotal: subtotal.toFixed(2),
         discountTotal: discountTotal.toFixed(2),
         taxTotal: "0.00",
@@ -444,16 +415,7 @@ export async function completeSale(
     const stockAlerts: { productId: string; productName: string; locationName: string; newBalance: number; reorderPoint: number }[] = [];
 
     // For each line: lock inventory, validate, deduct, journal
-    // POS MERGE GUARDRAIL (Phase 7): lines tagged with job_card_part_id
-    // skip inventory deduction — stock was already deducted via JOB_CARD_ISSUE.
     for (const line of lines) {
-      if (line.jobCardPartId) {
-        // Job card part line — stock already issued via JOB_CARD_ISSUE journal.
-        // Skip inventory deduction entirely. Still record a SALE journal for
-        // financial audit trail but with zero changeQuantity.
-        continue;
-      }
-
       // Non-inventory items (labor, counts, price adds) — skip stock operations entirely
       const [productCheck] = await tx
         .select({ trackInventory: products.trackInventory, name: products.name })
@@ -564,13 +526,6 @@ export async function completeSale(
       );
     }
 
-    // Auto-create/find shift and link sale to it
-    const shift = await getOrCreateShift(tx, orgId, sale.location_id, userId);
-    await tx
-      .update(sales)
-      .set({ shiftId: shift.id })
-      .where(eq(sales.id, saleId));
-
     return {
       sale: updated,
       stockAlerts,
@@ -602,23 +557,6 @@ export async function completeSale(
         } else {
           await checkAndNotifyLowStock(orgId, alert.productId, alert.productName, locationName, alert.newBalance, alert.reorderPoint);
         }
-      }
-    });
-  }
-
-  // Fire-and-forget: create warranty records for warranted items
-  if (result.saleLines.length > 0) {
-    setImmediate(async () => {
-      try {
-        await createWarrantyRecordsForSale(
-          orgId,
-          saleId,
-          result.saleLines,
-          result.customerId,
-          result.customerName,
-        );
-      } catch (err) {
-        console.error("[WARRANTY] Auto-creation error:", err);
       }
     });
   }
@@ -878,17 +816,6 @@ async function buildSaleDetail(sale: typeof sales.$inferSelect) {
     customer = c ?? null;
   }
 
-  // Fetch vehicle if attached
-  let vehicle = null;
-  if (sale.customerVehicleId) {
-    const [v] = await db
-      .select()
-      .from(customerVehicles)
-      .where(eq(customerVehicles.id, sale.customerVehicleId))
-      .limit(1);
-    vehicle = v ?? null;
-  }
-
   // Fetch payments
   const payments = await db
     .select()
@@ -899,7 +826,6 @@ async function buildSaleDetail(sale: typeof sales.$inferSelect) {
     ...sale,
     location,
     customer,
-    vehicle,
     lines: rawLines,
     payments,
   };
@@ -1026,228 +952,4 @@ export async function getSaleJournal(saleId: string, orgId: string) {
   return entries;
 }
 
-// ══════════════════════════════════════════════════════
-// HISTORICAL SALES (Imported from Loyverse Receipts CSV)
-// ══════════════════════════════════════════════════════
-
-export async function listHistoricalSales(
-  orgId: string,
-  opts: {
-    locationId?: string;
-    from?: string;
-    to?: string;
-    q?: string;
-    cursor?: string;
-    limit: number;
-  },
-) {
-  const conditions: SQL[] = [
-    eq(historicalSales.orgId, orgId),
-    sql`${historicalSales.reasonType} IN ('SALE', 'REFUND')`,
-  ];
-
-  if (opts.locationId) {
-    conditions.push(eq(historicalSales.locationId, opts.locationId));
-  }
-  if (opts.from) {
-    conditions.push(sql`${historicalSales.movementDate} >= ${opts.from}`);
-  }
-  if (opts.to) {
-    conditions.push(sql`${historicalSales.movementDate} <= ${opts.to}`);
-  }
-  if (opts.q && opts.q.length >= 1) {
-    conditions.push(
-      or(
-        ilike(historicalSales.reasonReference, `%${opts.q}%`),
-        ilike(historicalSales.productName, `%${opts.q}%`),
-        ilike(historicalSales.sku, `%${opts.q}%`),
-      )!,
-    );
-  }
-  if (opts.cursor) {
-    conditions.push(sql`${historicalSales.id} < ${opts.cursor}`);
-  }
-
-  const rows = await db
-    .select({
-      id: historicalSales.id,
-      sku: historicalSales.sku,
-      productName: historicalSales.productName,
-      productId: historicalSales.productId,
-      locationName: historicalSales.locationName,
-      employeeName: historicalSales.employeeName,
-      reasonType: historicalSales.reasonType,
-      reasonReference: historicalSales.reasonReference,
-      quantity: historicalSales.quantity,
-      direction: historicalSales.direction,
-      movementDate: historicalSales.movementDate,
-    })
-    .from(historicalSales)
-    .where(and(...conditions))
-    .orderBy(desc(historicalSales.movementDate), desc(historicalSales.id))
-    .limit(opts.limit + 1);
-
-  const hasMore = rows.length > opts.limit;
-  const data = hasMore ? rows.slice(0, opts.limit) : rows;
-  const nextCursor = hasMore ? data[data.length - 1].id : null;
-
-  return {
-    data: data.map((r) => ({
-      ...r,
-      movementDate: r.movementDate.toISOString(),
-      source: "imported" as const,
-    })),
-    nextCursor,
-    hasMore,
-  };
-}
-
-/**
- * Get all line items for a specific imported receipt number.
- */
-export async function getHistoricalReceipt(orgId: string, receiptNumber: string) {
-  const rows = await db
-    .select({
-      id: historicalSales.id,
-      sku: historicalSales.sku,
-      productName: historicalSales.productName,
-      productId: historicalSales.productId,
-      locationName: historicalSales.locationName,
-      employeeName: historicalSales.employeeName,
-      reasonType: historicalSales.reasonType,
-      quantity: historicalSales.quantity,
-      unitPrice: historicalSales.unitPrice,
-      netSales: historicalSales.netSales,
-      costAmount: historicalSales.costAmount,
-      discountAmount: historicalSales.discountAmount,
-      customerName: historicalSales.customerName,
-      direction: historicalSales.direction,
-      movementDate: historicalSales.movementDate,
-    })
-    .from(historicalSales)
-    .where(
-      and(
-        eq(historicalSales.orgId, orgId),
-        eq(historicalSales.reasonReference, receiptNumber),
-      ),
-    )
-    .orderBy(historicalSales.id);
-
-  if (rows.length === 0) return null;
-
-  const first = rows[0];
-  const receiptTotal = rows.reduce((sum, r) => sum + parseFloat(r.netSales || "0"), 0);
-  return {
-    receiptNumber,
-    date: first.movementDate.toISOString(),
-    store: first.locationName,
-    cashier: first.employeeName,
-    customer: first.customerName,
-    type: first.reasonType,
-    source: "imported" as const,
-    lines: rows.map((r) => ({
-      id: r.id,
-      productName: r.productName,
-      sku: r.sku,
-      productId: r.productId,
-      quantity: r.quantity,
-      unitPrice: r.unitPrice ? parseFloat(r.unitPrice) : null,
-      netSales: r.netSales ? parseFloat(r.netSales) : null,
-      costAmount: r.costAmount ? parseFloat(r.costAmount) : null,
-      direction: r.direction,
-    })),
-    totalItems: rows.reduce((sum, r) => sum + r.quantity, 0),
-    lineCount: rows.length,
-    receiptTotal,
-  };
-}
-
-/**
- * List imported receipts aggregated by receipt number (one row per receipt).
- */
-export async function listHistoricalReceipts(
-  orgId: string,
-  opts: {
-    locationId?: string;
-    from?: string;
-    to?: string;
-    q?: string;
-    employeeName?: string;
-    cursor?: string;
-    offset?: number;
-    limit: number;
-  },
-) {
-  const limit = opts.limit;
-  const offset = opts.offset ?? 0;
-
-  // Build conditions (parameterized to prevent SQL injection)
-  const conditions: SQL[] = [
-    sql`hs.org_id = ${orgId}`,
-    sql`hs.reason_type IN ('SALE', 'REFUND')`,
-  ];
-
-  if (opts.locationId) conditions.push(sql`hs.location_id = ${opts.locationId}::uuid`);
-  if (opts.employeeName) conditions.push(sql`hs.employee_name = ${opts.employeeName}`);
-  if (opts.from) conditions.push(sql`hs.movement_date >= ${opts.from}`);
-  if (opts.to) conditions.push(sql`hs.movement_date <= ${opts.to}`);
-
-  if (opts.q && opts.q.length >= 1) {
-    const pattern = `%${opts.q}%`;
-    conditions.push(sql`(hs.reason_reference ILIKE ${pattern} OR hs.employee_name ILIKE ${pattern} OR hs.location_name ILIKE ${pattern} OR hs.product_name ILIKE ${pattern})`);
-  }
-
-  const where = sql.join(conditions, sql` AND `);
-
-  // Get total count + total revenue for KPIs
-  const [totalsRow] = await db.execute(sql`
-    SELECT COUNT(*)::int AS total_count, COALESCE(SUM(receipt_total), 0)::numeric(14,2) AS total_revenue
-    FROM (
-      SELECT hs.reason_reference,
-        COALESCE(SUM(CASE WHEN hs.reason_type = 'SALE' THEN hs.net_sales::numeric ELSE -hs.net_sales::numeric END), 0) AS receipt_total
-      FROM historical_sales hs
-      WHERE ${where}
-      GROUP BY hs.reason_reference, hs.location_name, hs.employee_name, hs.reason_type
-    ) sub
-  `) as any[];
-
-  // Get page of data
-  const rows = await db.execute(sql`
-    SELECT
-      hs.reason_reference AS receipt_number,
-      MAX(hs.movement_date) AS receipt_date,
-      hs.location_name AS store,
-      hs.employee_name AS cashier,
-      hs.reason_type AS type,
-      COUNT(*)::int AS line_count,
-      SUM(hs.quantity)::int AS total_qty,
-      COALESCE(SUM(hs.net_sales::numeric), 0)::numeric(14,2) AS receipt_total,
-      MAX(hs.customer_name) AS customer_name
-    FROM historical_sales hs
-    WHERE ${where}
-    GROUP BY hs.reason_reference, hs.location_name, hs.employee_name, hs.reason_type
-    ORDER BY MAX(hs.movement_date) DESC, hs.reason_reference DESC
-    LIMIT ${limit}
-    OFFSET ${offset}
-  `);
-
-  const total = (totalsRow as any)?.total_count ?? 0;
-
-  return {
-    data: (rows as any[]).map((r: any) => ({
-      receiptNumber: r.receipt_number,
-      date: new Date(r.receipt_date).toISOString(),
-      store: r.store,
-      cashier: r.cashier,
-      type: r.type,
-      lineCount: r.line_count,
-      totalQty: r.total_qty,
-      receiptTotal: parseFloat(r.receipt_total) || 0,
-      customerName: r.customer_name || null,
-      source: "imported" as const,
-    })),
-    total,
-    totalRevenue: parseFloat((totalsRow as any)?.total_revenue ?? "0"),
-    hasMore: offset + limit < total,
-  };
-}
+// Historical sales functions removed — historicalSales schema was deleted

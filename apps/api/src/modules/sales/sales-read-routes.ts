@@ -3,11 +3,6 @@ import { sql } from "drizzle-orm";
 import { db } from "@jnj/database";
 import { parseQuery, salesQuerySchema } from "../../lib/validate-query";
 import {
-  getHistoricalReceipt,
-  listHistoricalReceipts,
-  listHistoricalSales,
-} from "./sale-history-service";
-import {
   getSale,
   getSaleByIdempotencyKey,
   getSaleByNumber,
@@ -45,116 +40,7 @@ export async function registerSalesReadRoutes(app: FastifyInstance) {
     return reply.send(result);
   });
 
-  // List imported historical sales (from Loyverse Receipts CSV)
-  app.get("/history", async (request, reply) => {
-    const { orgId, locationId } = request.storeContext!;
-    const q = request.query as {
-      from?: string;
-      to?: string;
-      q?: string;
-      cursor?: string;
-      limit?: string;
-    };
-    const result = await listHistoricalSales(orgId, {
-      locationId: locationId || undefined,
-      from: q.from,
-      to: q.to,
-      q: q.q,
-      cursor: q.cursor,
-      limit: q.limit ? parseInt(q.limit) : 50,
-    });
-    return reply.send(result);
-  });
-
-  // List imported receipts aggregated (one row per receipt)
-  app.get("/history/receipts", async (request, reply) => {
-    const { orgId, locationId } = request.storeContext!;
-    const q = request.query as {
-      from?: string;
-      to?: string;
-      q?: string;
-      locationId?: string;
-      employeeName?: string;
-      cursor?: string;
-      offset?: string;
-      limit?: string;
-    };
-    const result = await listHistoricalReceipts(orgId, {
-      locationId: q.locationId || locationId || undefined,
-      from: q.from,
-      to: q.to,
-      q: q.q,
-      employeeName: q.employeeName || undefined,
-      cursor: q.cursor,
-      offset: q.offset ? parseInt(q.offset) : undefined,
-      limit: q.limit ? parseInt(q.limit) : 50,
-    });
-    return reply.send(result);
-  });
-
-  // Get all line items for a specific imported receipt
-  app.get("/history/receipt/:receiptNumber", async (request, reply) => {
-    const { orgId } = request.storeContext!;
-    const { receiptNumber } = request.params as { receiptNumber: string };
-    const receipt = await getHistoricalReceipt(orgId, receiptNumber);
-    if (!receipt) return reply.status(404).send({ error: "Receipt not found" });
-    return reply.send(receipt);
-  });
-
-  // Remove duplicate imported sales records
-  app.post("/history/deduplicate", async (request, reply) => {
-    const { orgId } = request.storeContext!;
-    const { role } = request.user;
-    if (!["ADMIN", "MANAGER"].includes(role)) {
-      return reply.status(403).send({ error: "Admin or Manager required" });
-    }
-
-    const body = request.body as { dryRun?: boolean } | undefined;
-    const dryRun = body?.dryRun !== false;
-
-    const totalResult = await db.execute(
-      sql`SELECT COUNT(*)::int AS total FROM historical_sales WHERE org_id = ${orgId}`
-    );
-    const totalCount = (totalResult[0] as any)?.total ?? 0;
-
-    const uniqueResult = await db.execute(
-      sql`SELECT COUNT(*)::int AS unique_count FROM (
-        SELECT DISTINCT ON (reason_reference, sku, movement_date, reason_type, quantity)
-          id FROM historical_sales WHERE org_id = ${orgId}
-        ORDER BY reason_reference, sku, movement_date, reason_type, quantity, id ASC
-      ) t`
-    );
-    const uniqueCount = (uniqueResult[0] as any)?.unique_count ?? 0;
-    const dupCount = totalCount - uniqueCount;
-
-    if (dryRun) {
-      return reply.send({
-        dryRun: true,
-        totalRecords: totalCount,
-        duplicates: dupCount,
-        uniqueRecords: uniqueCount,
-      });
-    }
-
-    const deleteResult = await db.execute(
-      sql`WITH dups AS (
-        SELECT id, ROW_NUMBER() OVER (
-          PARTITION BY reason_reference, sku, movement_date, reason_type, quantity
-          ORDER BY id
-        ) AS rn
-        FROM historical_sales
-        WHERE org_id = ${orgId}
-      )
-      DELETE FROM historical_sales
-      WHERE id IN (SELECT id FROM dups WHERE rn > 1)`
-    );
-
-    return reply.send({
-      dryRun: false,
-      removed: (deleteResult as any).rowCount ?? dupCount,
-      remaining: totalCount - dupCount,
-    });
-  });
+  // Historical sales routes removed (historical_sales schema deleted)
 
   // Auto-increment receipt number for BIR compliance
   app.get("/next-receipt-number", async (request, reply) => {

@@ -13,7 +13,6 @@ import {
 } from "drizzle-orm/pg-core";
 import { organizations } from "./organizations";
 import { suppliers } from "./suppliers";
-import { supplierSoaRecords } from "./supplier-soa-records";
 
 // ── Enums ──
 
@@ -45,7 +44,7 @@ export const supplierDisbursementVouchers = pgTable(
       .notNull()
       .references(() => suppliers.id),
     /** Nullable — standalone DVs (utilities, rent) don't reference an SOA */
-    soaId: uuid("soa_id").references(() => supplierSoaRecords.id),
+    soaId: uuid("soa_id"),
     /** Net disbursed amount (gross - deductions). Equals payments[] sum. */
     amount: numeric("amount", { precision: 14, scale: 2 }).notNull(),
     /** SOA total before deductions */
@@ -205,8 +204,7 @@ export const supplierDvSoas = pgTable(
       .notNull()
       .references(() => supplierDisbursementVouchers.id, { onDelete: "cascade" }),
     soaId: uuid("soa_id")
-      .notNull()
-      .references(() => supplierSoaRecords.id),
+      .notNull(),
     allocatedAmount: numeric("allocated_amount", { precision: 12, scale: 2 }).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   },

@@ -1,4 +1,4 @@
-﻿import dotenv from "dotenv";
+import dotenv from "dotenv";
 dotenv.config({ path: "../../.env" });
 
 import { drizzle } from "drizzle-orm/postgres-js";
@@ -21,54 +21,63 @@ function generateMnemonicSku(): string {
   return sku;
 }
 
-// ── Realistic automotive product names ──
-const TIRE_BRANDS = [
-  "Hankook", "Nitto", "Continental", "Bridgestone", "Michelin",
-  "Goodyear", "Yokohama", "Toyo", "Pirelli", "BFGoodrich",
+// ── Realistic school supply product names ──
+const NOTEBOOK_BRANDS = [
+  "Cattleya", "Sterling", "National Book Store", "Mongol", "Orions",
+  "Herlitz", "Mead", "Five Star", "Moleskine", "Oxford",
 ];
-const TIRE_TYPES = [
-  "All-Season", "Performance", "Mud-Terrain", "Highway",
-  "Winter", "All-Terrain", "Touring", "Sport",
+const NOTEBOOK_TYPES = [
+  "Spiral Notebook", "Composition Notebook", "Pad Paper", "Yellow Pad",
+  "Sketch Pad", "Graph Paper Notebook", "Record Book", "Steno Notebook",
 ];
-const TIRE_SIZES = [
-  "195/65R15", "205/55R16", "215/60R16", "225/45R17", "235/55R18",
-  "245/40R18", "255/35R19", "265/70R17", "275/55R20", "285/45R22",
-  "185/60R15", "225/65R17", "245/75R16", "315/70R17",
-];
-
-const OIL_BRANDS = [
-  "Mobil 1", "Castrol", "Valvoline", "Pennzoil",
-  "Shell Rotella", "Royal Purple", "Amsoil", "Liqui Moly",
-];
-const OIL_WEIGHTS = ["0W-20", "5W-30", "10W-40", "15W-40", "5W-20", "0W-40", "10W-30"];
-const OIL_TYPES = ["Full Synthetic", "Synthetic Blend", "High Mileage", "Conventional", "Diesel"];
-
-const HARD_PARTS = [
-  "Brake Pad Set", "Brake Rotor", "Spark Plug", "Oil Filter", "Air Filter",
-  "Cabin Filter", "Alternator", "Starter Motor", "Water Pump", "Thermostat",
-  "Fuel Pump", "Ignition Coil", "CV Axle", "Tie Rod End", "Ball Joint",
-  "Wheel Bearing", "Shock Absorber", "Strut Assembly", "Control Arm",
-  "Serpentine Belt", "Timing Belt Kit", "Clutch Kit", "Radiator",
-  "AC Compressor", "Power Steering Pump",
-];
-const HARD_PART_BRANDS = [
-  "Bosch", "Denso", "ACDelco", "Moog", "Monroe",
-  "KYB", "Dorman", "TRW", "Gates", "Dayco",
+const NOTEBOOK_SIZES = [
+  "Small (5x7)", "Medium (7x10)", "Large (8.5x11)", "A4", "A5",
+  "Half-Crosswise", "Crosswise", "Lengthwise",
 ];
 
-const ACCESSORIES = [
-  "Floor Mat Set", "Seat Cover", "Phone Mount", "Dash Cam", "LED Light Bar",
-  "Roof Rack", "Cargo Net", "Mud Flaps", "Fender Flares", "Bug Deflector",
-  "Tonneau Cover", "Running Boards", "Tow Hitch", "Wheel Lock Set", "Valve Stem Caps",
+const PEN_BRANDS = [
+  "Pilot", "Pentel", "Stabilo", "Faber-Castell", "Dong-A",
+  "Uni", "G-Tech", "HBW", "Panda", "Kilometrico",
+];
+const PEN_TYPES = [
+  "Ballpoint Pen", "Gel Pen", "Sign Pen", "Marker", "Highlighter",
+  "Mechanical Pencil", "Colored Pen Set", "Whiteboard Marker",
+  "Permanent Marker", "Felt-Tip Pen",
 ];
 
-const LABOR_SERVICES = [
-  "Tire Mounting", "Wheel Alignment", "Oil Change Service", "Brake Inspection",
-  "Engine Diagnostic", "AC Recharge", "Transmission Flush", "Coolant Flush",
-  "Battery Test & Replace", "Headlight Restoration",
+const ART_SUPPLIES = [
+  "Watercolor Set", "Oil Pastel Set", "Crayon Set", "Colored Pencil Set",
+  "Acrylic Paint Set", "Paint Brush Set", "Drawing Paper Pack",
+  "Canvas Board", "Modeling Clay Set", "Origami Paper Pack",
+  "Charcoal Pencil Set", "Sketch Pencil Set", "Palette Tray",
+  "Easel Stand", "Art Portfolio Bag",
+];
+const ART_BRANDS = [
+  "Faber-Castell", "Crayola", "Pentel", "Sakura", "Staedtler",
+  "Prang", "Winsor & Newton", "Canson", "Lyra", "Holbein",
 ];
 
-type Category = "TIRES" | "LUBRICANTS" | "HARD_PARTS" | "ACCESSORIES" | "LABOR_SERVICES";
+const GENERAL_MERCH = [
+  "Ruler Set", "Scissors", "Glue Stick", "White Glue", "Tape Dispenser",
+  "Masking Tape", "Transparent Tape", "Paper Clips Box", "Binder Clips",
+  "Stapler", "Stapler Wire", "Push Pins", "Thumbtacks", "Index Cards",
+  "Correction Tape", "Correction Fluid", "Pencil Sharpener",
+  "Eraser Set", "Sticky Notes Pack", "Folder Set",
+];
+
+const BAGS = [
+  "School Backpack", "Trolley Bag", "Drawstring Bag", "Pencil Case",
+  "Lunch Bag", "Laptop Sleeve", "Document Envelope", "Expandable Folder",
+  "Art Supply Organizer", "Messenger Bag",
+];
+
+const ELECTRONICS = [
+  "Scientific Calculator", "Basic Calculator", "USB Flash Drive",
+  "Earbuds", "Laptop Stand", "Desk Lamp", "Power Bank",
+  "Wireless Mouse", "Keyboard Protector", "Screen Cleaner Kit",
+];
+
+type Category = "SCHOOL_SUPPLIES" | "OFFICE_SUPPLIES" | "ART_SUPPLIES" | "GENERAL_MERCHANDISE" | "BAGS_ACCESSORIES" | "ELECTRONICS" | "OTHER";
 
 function randomFrom<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
@@ -83,55 +92,62 @@ function generateProduct(index: number): {
   const roll = Math.random();
 
   if (roll < 0.3) {
-    const brand = randomFrom(TIRE_BRANDS);
-    const type = randomFrom(TIRE_TYPES);
-    const size = randomFrom(TIRE_SIZES);
-    const unitPrice = (2500 + Math.random() * 12000).toFixed(2);
+    const brand = randomFrom(NOTEBOOK_BRANDS);
+    const type = randomFrom(NOTEBOOK_TYPES);
+    const size = randomFrom(NOTEBOOK_SIZES);
+    const unitPrice = (15 + Math.random() * 185).toFixed(2);
     return {
       name: `${brand} ${type} ${size}`,
-      category: "TIRES",
-      unitPrice,
-      costPrice: (Number(unitPrice) * 0.65).toFixed(2),
-    };
-  } else if (roll < 0.5) {
-    const brand = randomFrom(OIL_BRANDS);
-    const weight = randomFrom(OIL_WEIGHTS);
-    const type = randomFrom(OIL_TYPES);
-    const liters = randomFrom([1, 4, 5, 6]);
-    const unitPrice = (250 + Math.random() * 2500).toFixed(2);
-    return {
-      name: `${brand} ${type} ${weight} ${liters}L`,
-      category: "LUBRICANTS",
+      category: "SCHOOL_SUPPLIES",
       unitPrice,
       costPrice: (Number(unitPrice) * 0.6).toFixed(2),
     };
-  } else if (roll < 0.8) {
-    const part = randomFrom(HARD_PARTS);
-    const brand = randomFrom(HARD_PART_BRANDS);
-    const unitPrice = (150 + Math.random() * 8000).toFixed(2);
+  } else if (roll < 0.5) {
+    const brand = randomFrom(PEN_BRANDS);
+    const type = randomFrom(PEN_TYPES);
+    const unitPrice = (8 + Math.random() * 250).toFixed(2);
     return {
-      name: `${brand} ${part} - ${faker.vehicle.manufacturer()} ${faker.vehicle.model()}`,
-      category: "HARD_PARTS",
+      name: `${brand} ${type}`,
+      category: "OFFICE_SUPPLIES",
+      unitPrice,
+      costPrice: (Number(unitPrice) * 0.55).toFixed(2),
+    };
+  } else if (roll < 0.7) {
+    const item = randomFrom(ART_SUPPLIES);
+    const brand = randomFrom(ART_BRANDS);
+    const unitPrice = (25 + Math.random() * 800).toFixed(2);
+    return {
+      name: `${brand} ${item}`,
+      category: "ART_SUPPLIES",
+      unitPrice,
+      costPrice: (Number(unitPrice) * 0.5).toFixed(2),
+    };
+  } else if (roll < 0.85) {
+    const item = randomFrom(GENERAL_MERCH);
+    const unitPrice = (10 + Math.random() * 150).toFixed(2);
+    return {
+      name: `${item} #${index}`,
+      category: "GENERAL_MERCHANDISE",
       unitPrice,
       costPrice: (Number(unitPrice) * 0.55).toFixed(2),
     };
   } else if (roll < 0.95) {
-    const acc = randomFrom(ACCESSORIES);
-    const unitPrice = (200 + Math.random() * 5000).toFixed(2);
+    const bag = randomFrom(BAGS);
+    const unitPrice = (80 + Math.random() * 2000).toFixed(2);
     return {
-      name: `${acc} - Universal Fit #${index}`,
-      category: "ACCESSORIES",
+      name: `${bag} - Style #${index}`,
+      category: "BAGS_ACCESSORIES",
       unitPrice,
       costPrice: (Number(unitPrice) * 0.5).toFixed(2),
     };
   } else {
-    const svc = randomFrom(LABOR_SERVICES);
-    const unitPrice = (300 + Math.random() * 3000).toFixed(2);
+    const elec = randomFrom(ELECTRONICS);
+    const unitPrice = (150 + Math.random() * 3000).toFixed(2);
     return {
-      name: `${svc} (Standard)`,
-      category: "LABOR_SERVICES",
+      name: `${elec}`,
+      category: "ELECTRONICS",
       unitPrice,
-      costPrice: "0.00",
+      costPrice: (Number(unitPrice) * 0.6).toFixed(2),
     };
   }
 }
@@ -150,7 +166,7 @@ async function seed() {
   console.log("  Creating organization...");
   const [org] = await db
     .insert(schema.organizations)
-    .values({ name: "JNJ Auto Parts Inc.", slug: "JNJ-auto-parts" })
+    .values({ name: "JNJ School Supplies & Merchandise", slug: "jnj-school-supplies" })
     .returning();
 
   // ── 2. Create Locations ──
@@ -205,8 +221,8 @@ async function seed() {
   console.log("  Creating supplier...");
   await db.insert(schema.suppliers).values({
     orgId: org.id,
-    name: "PhilParts Distributor",
-    contactEmail: "orders@philparts.com",
+    name: "National Book Store Wholesale",
+    contactEmail: "wholesale@nbs.com",
     contactPhone: "+63-2-8888-1234",
     avgLeadTimeDays: 5,
   });

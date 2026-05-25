@@ -6,7 +6,6 @@ import {
   poReceipts,
   products,
   purchaseOrders,
-  serialNumbers,
   stockJournal,
 } from "@jnj/database/schema";
 import { and, eq, inArray, sql } from "drizzle-orm";
@@ -16,7 +15,6 @@ import {
   PurchaseOrderStatus,
   type ReceivePOInput,
 } from "@jnj/types";
-import { autoFulfillBackordersForPO } from "../backorders/service";
 import {
   applyReceiptResultToPoLine,
   buildProductCostMap,
@@ -241,141 +239,7 @@ export async function receivePO(
         .where(inArray(poReceiptEvents.id, receiptEventIds));
     }
 
-    const trackingProductIds = [
-      ...new Set(receiptResults.map((r) => r.productId)),
-    ];
-    const serialFlagRows =
-      trackingProductIds.length > 0
-        ? await tx.execute(
-            sql`SELECT id, is_serialized, is_tire FROM products WHERE id IN (${sql.join(
-              trackingProductIds.map((id) => sql`${id}`),
-              sql`, `,
-            )})`,
-          )
-        : [];
-    const serializedIds = new Set(
-      (serialFlagRows as any[])
-        .filter((p: any) => p.is_serialized && !p.is_tire)
-        .map((p: any) => p.id),
-    );
-    const tireIds = new Set(
-      (serialFlagRows as any[])
-        .filter((p: any) => p.is_tire)
-        .map((p: any) => p.id),
-    );
-
-    {
-      if (serializedIds.size > 0) {
-        const allSerialValues: any[] = [];
-        const allSerialStrings = new Set<string>();
-
-        for (const result of receiptResults) {
-          if (!serializedIds.has(result.productId) || result.acceptedQty === 0)
-            continue;
-          const lineInput = input.lines.find(
-            (l) => l.poLineId === result.poLineId,
-          );
-          const serials = lineInput?.serialNumbers ?? [];
-
-          if (serials.length !== result.acceptedQty) {
-            throw new Error(
-              `Serial count mismatch for PO line: expected ${result.acceptedQty} serials, got ${serials.length}`,
-            );
-          }
-
-          for (const sn of serials) {
-            const key = `${result.productId}:${sn.serialNumber}`;
-            if (allSerialStrings.has(key)) {
-              throw new Error(
-                `Duplicate serial number in batch: ${sn.serialNumber}`,
-              );
-            }
-            allSerialStrings.add(key);
-
-            const values: any = {
-              orgId,
-              productId: result.productId,
-              serialNumber: sn.serialNumber,
-              status: "IN_STOCK",
-              locationId: destinationLocationId,
-              receivedVia: "PO_RECEIPT",
-              receivedReferenceId: result.receiptEventId,
-              receivedAt: new Date(),
-            };
-
-            if (sn.dotCode) {
-              const ww = parseInt(sn.dotCode.slice(0, 2), 10);
-              const yy = parseInt(sn.dotCode.slice(2, 4), 10);
-              if (ww >= 1 && ww <= 53 && yy >= 0 && yy <= 99) {
-                const fullYear = yy >= 90 ? 1900 + yy : 2000 + yy;
-                values.dotCode = sn.dotCode;
-                values.manufactureWeek = ww;
-                values.manufactureYear = fullYear;
-                values.manufactureDate = new Date(
-                  fullYear,
-                  0,
-                  1 + (ww - 1) * 7,
-                );
-              }
-            }
-
-            allSerialValues.push(values);
-          }
-        }
-
-        if (allSerialValues.length > 0) {
-          const existingCheck = await tx.execute(
-            sql`SELECT serial_number, product_id FROM serial_numbers
-                WHERE org_id = ${orgId}
-                AND serial_number IN (${sql.join(
-                  allSerialValues.map((v) => sql`${v.serialNumber}`),
-                  sql`, `,
-                )})`,
-          );
-          if ((existingCheck as any[]).length > 0) {
-            const dupes = (existingCheck as any[])
-              .map((r: any) => r.serial_number)
-              .join(", ");
-            throw new Error(`Serial numbers already exist: ${dupes}`);
-          }
-
-          await tx.insert(serialNumbers).values(allSerialValues);
-        }
-      }
-    }
-
-    if (tireIds.size > 0) {
-      const { receiveDotBatches } = await import("../dot-batches/service");
-
-      for (const result of receiptResults) {
-        if (!tireIds.has(result.productId) || result.acceptedQty === 0)
-          continue;
-        const lineInput = input.lines.find(
-          (l) => l.poLineId === result.poLineId,
-        );
-        const batches = lineInput?.dotBatches ?? [];
-
-        const batchTotal = batches.reduce((s, b) => s + b.quantity, 0);
-        if (batchTotal !== result.acceptedQty) {
-          throw new Error(
-            `DOT batch quantity mismatch: expected ${result.acceptedQty} units, got ${batchTotal}`,
-          );
-        }
-
-        await receiveDotBatches(tx, {
-          orgId,
-          productId: result.productId,
-          locationId: destinationLocationId,
-          purchaseOrderId: poId,
-          poNumber: po.po_no,
-          supplierId: po.supplier_id,
-          supplierName: "",
-          costPrice: result.unitCost,
-          userId,
-          batches,
-        });
-      }
-    }
+    // Serial tracking and DOT batch handling removed (automotive features)
 
     const acceptedResults = receiptResults.filter((r) => r.acceptedQty > 0);
 
@@ -497,10 +361,6 @@ export async function receivePO(
       .set(updateSet)
       .where(eq(purchaseOrders.id, poId))
       .returning();
-
-    if (isFullyReceived) {
-      await autoFulfillBackordersForPO(orgId, poId);
-    }
 
     return {
       po: updatedPO,
