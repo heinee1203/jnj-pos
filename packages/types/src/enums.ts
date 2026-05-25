@@ -17,28 +17,22 @@ export const UserRole = {
 export type UserRole = (typeof UserRole)[keyof typeof UserRole];
 
 export const ProductCategory = {
-  TIRES: "TIRES",
-  LUBRICANTS: "LUBRICANTS",
-  HARD_PARTS: "HARD_PARTS",
-  ACCESSORIES: "ACCESSORIES",
-  LABOR_SERVICES: "LABOR_SERVICES",
+  SCHOOL_SUPPLIES: "SCHOOL_SUPPLIES",
+  OFFICE_SUPPLIES: "OFFICE_SUPPLIES",
+  ART_SUPPLIES: "ART_SUPPLIES",
+  GENERAL_MERCHANDISE: "GENERAL_MERCHANDISE",
+  BAGS_ACCESSORIES: "BAGS_ACCESSORIES",
+  ELECTRONICS: "ELECTRONICS",
+  OTHER: "OTHER",
 } as const;
 export type ProductCategory =
   (typeof ProductCategory)[keyof typeof ProductCategory];
 
-export const TransferStatus = {
-  DRAFT: "DRAFT",
-  APPROVED: "APPROVED",
-  PICKING: "PICKING",
-  DISPATCHED: "DISPATCHED",
-  PARTIALLY_RECEIVED: "PARTIALLY_RECEIVED",
-  DISCREPANCY_REVIEW: "DISCREPANCY_REVIEW",
-  RECEIVED: "RECEIVED",
-  CLOSED_WITH_VARIANCE: "CLOSED_WITH_VARIANCE",
-  CANCELLED: "CANCELLED",
+export const SellingUnit = {
+  PIECE: "piece",
+  CASE: "case",
 } as const;
-export type TransferStatus =
-  (typeof TransferStatus)[keyof typeof TransferStatus];
+export type SellingUnit = (typeof SellingUnit)[keyof typeof SellingUnit];
 
 export const JournalReferenceType = {
   SALE: "SALE",
@@ -49,11 +43,7 @@ export const JournalReferenceType = {
   RETURN: "RETURN",
   STOCKTAKE: "STOCKTAKE",
   VOID: "VOID",
-  JOB_CARD_ISSUE: "JOB_CARD_ISSUE",
-  JOB_CARD_RETURN: "JOB_CARD_RETURN",
   OPENING_BALANCE: "OPENING_BALANCE",
-  SUPPLIER_RETURN: "SUPPLIER_RETURN",
-  SUPPLIER_RETURN_CANCEL: "SUPPLIER_RETURN_CANCEL",
 } as const;
 export type JournalReferenceType =
   (typeof JournalReferenceType)[keyof typeof JournalReferenceType];
@@ -72,13 +62,10 @@ export const AdjustmentReasonCode = {
   OPENING_BALANCE: "OPENING_BALANCE",
   // Negative-only
   COUNT_LOSS: "COUNT_LOSS",
-  DAMAGE_IN_TRANSIT: "DAMAGE_IN_TRANSIT",
-  DAMAGE_WAREHOUSE: "DAMAGE_WAREHOUSE",
+  DAMAGED: "DAMAGED",
   DAMAGE_SHOWROOM: "DAMAGE_SHOWROOM",
-  WARRANTY_WRITE_OFF: "WARRANTY_WRITE_OFF",
   SHRINKAGE_MISSING: "SHRINKAGE_MISSING",
   OBSOLETE_WRITE_OFF: "OBSOLETE_WRITE_OFF",
-  TRANSFER_SHORTAGE_CONFIRMED: "TRANSFER_SHORTAGE_CONFIRMED",
   // Restricted (admin/owner only, notes mandatory)
   DATA_CORRECTION: "DATA_CORRECTION",
 } as const;
@@ -159,31 +146,6 @@ export const PurchaseOrderStatus = {
 export type PurchaseOrderStatus =
   (typeof PurchaseOrderStatus)[keyof typeof PurchaseOrderStatus];
 
-export const JobCardStatus = {
-  SCHEDULED: "SCHEDULED",
-  CHECKED_IN: "CHECKED_IN",
-  ESTIMATING: "ESTIMATING",
-  APPROVED: "APPROVED",
-  WAITING_FOR_PARTS: "WAITING_FOR_PARTS",
-  READY_FOR_BAY: "READY_FOR_BAY",
-  IN_PROGRESS: "IN_PROGRESS",
-  WORK_COMPLETED: "WORK_COMPLETED",
-  INVOICED: "INVOICED",
-  CLOSED: "CLOSED",
-  CANCELLED: "CANCELLED",
-} as const;
-export type JobCardStatus = (typeof JobCardStatus)[keyof typeof JobCardStatus];
-
-export const ServiceOperationCategory = {
-  MECHANICAL: "MECHANICAL",
-  ELECTRICAL: "ELECTRICAL",
-  BODY: "BODY",
-  TIRE_SERVICE: "TIRE_SERVICE",
-  DIAGNOSTIC: "DIAGNOSTIC",
-  OTHER: "OTHER",
-} as const;
-export type ServiceOperationCategory =
-  (typeof ServiceOperationCategory)[keyof typeof ServiceOperationCategory];
 
 export const CountStatus = {
   DRAFT: "DRAFT",
@@ -236,38 +198,6 @@ export const REFUND_ROLES = [UserRole.ADMIN, UserRole.MANAGER] as const;
 /** Roles allowed to manage procurement */
 export const PROCUREMENT_ROLES = [UserRole.ADMIN, UserRole.MANAGER, UserRole.WAREHOUSE_STAFF] as const;
 
-export const SupplierReturnStatus = {
-  DRAFT: "DRAFT",
-  SUBMITTED: "SUBMITTED",
-  ACKNOWLEDGED: "ACKNOWLEDGED",
-  CREDIT_RECEIVED: "CREDIT_RECEIVED",
-  CLOSED: "CLOSED",
-  CLOSED_WITHOUT_CREDIT: "CLOSED_WITHOUT_CREDIT",
-  CANCELLED: "CANCELLED",
-} as const;
-export type SupplierReturnStatus =
-  (typeof SupplierReturnStatus)[keyof typeof SupplierReturnStatus];
-
-/** Roles allowed to manage supplier returns */
-export const SUPPLIER_RETURN_ROLES = [UserRole.ADMIN, UserRole.MANAGER] as const;
-
-export const BackorderStatus = {
-  PENDING: "PENDING",
-  INCLUDED_IN_PO: "INCLUDED_IN_PO",
-  FULFILLED: "FULFILLED",
-  CANCELLED: "CANCELLED",
-} as const;
-export type BackorderStatus = (typeof BackorderStatus)[keyof typeof BackorderStatus];
-
-export const BackorderPriority = {
-  HIGH: "HIGH",
-  NORMAL: "NORMAL",
-  LOW: "LOW",
-} as const;
-export type BackorderPriority = (typeof BackorderPriority)[keyof typeof BackorderPriority];
-
-/** Roles allowed to manage backorders */
-export const BACKORDER_ROLES = [UserRole.ADMIN, UserRole.MANAGER] as const;
 
 /** Valid status transitions for purchase orders */
 export const PO_TRANSITIONS: Record<PurchaseOrderStatus, PurchaseOrderStatus[]> = {
@@ -305,13 +235,10 @@ export const POSITIVE_ONLY_REASON_CODES: AdjustmentReasonCode[] = [
 /** Reason codes that ONLY allow negative (OUT) adjustments */
 export const NEGATIVE_ONLY_REASON_CODES: AdjustmentReasonCode[] = [
   AdjustmentReasonCode.COUNT_LOSS,
-  AdjustmentReasonCode.DAMAGE_IN_TRANSIT,
-  AdjustmentReasonCode.DAMAGE_WAREHOUSE,
+  AdjustmentReasonCode.DAMAGED,
   AdjustmentReasonCode.DAMAGE_SHOWROOM,
-  AdjustmentReasonCode.WARRANTY_WRITE_OFF,
   AdjustmentReasonCode.SHRINKAGE_MISSING,
   AdjustmentReasonCode.OBSOLETE_WRITE_OFF,
-  AdjustmentReasonCode.TRANSFER_SHORTAGE_CONFIRMED,
 ];
 
 /** Reason codes restricted to admin/owner roles */
@@ -319,29 +246,6 @@ export const RESTRICTED_REASON_CODES: AdjustmentReasonCode[] = [
   AdjustmentReasonCode.DATA_CORRECTION,
 ];
 
-/** Reason codes valid for variance reporting on transfers */
-export const VARIANCE_REASON_CODES: AdjustmentReasonCode[] = [
-  AdjustmentReasonCode.DAMAGE_IN_TRANSIT,
-  AdjustmentReasonCode.TRANSFER_SHORTAGE_CONFIRMED,
-];
-
-/** Valid status transitions for transfers */
-export const TRANSFER_TRANSITIONS: Record<TransferStatus, TransferStatus[]> = {
-  [TransferStatus.DRAFT]: [TransferStatus.APPROVED, TransferStatus.CANCELLED],
-  [TransferStatus.APPROVED]: [TransferStatus.PICKING, TransferStatus.DISPATCHED, TransferStatus.CANCELLED],
-  [TransferStatus.PICKING]: [TransferStatus.DISPATCHED, TransferStatus.CANCELLED],
-  [TransferStatus.DISPATCHED]: [TransferStatus.PARTIALLY_RECEIVED, TransferStatus.RECEIVED, TransferStatus.DISCREPANCY_REVIEW],
-  [TransferStatus.PARTIALLY_RECEIVED]: [TransferStatus.RECEIVED, TransferStatus.DISCREPANCY_REVIEW, TransferStatus.CLOSED_WITH_VARIANCE],
-  [TransferStatus.DISCREPANCY_REVIEW]: [TransferStatus.PARTIALLY_RECEIVED, TransferStatus.RECEIVED, TransferStatus.CLOSED_WITH_VARIANCE],
-  [TransferStatus.RECEIVED]: [],
-  [TransferStatus.CLOSED_WITH_VARIANCE]: [],
-  [TransferStatus.CANCELLED]: [],
-};
-
-/** Check if a transfer status transition is valid */
-export function isValidTransferTransition(from: TransferStatus, to: TransferStatus): boolean {
-  return TRANSFER_TRANSITIONS[from]?.includes(to) ?? false;
-}
 
 /** Check if reason code direction matches request direction */
 export function isReasonCodeValidForDirection(
@@ -357,67 +261,3 @@ export function isReasonCodeValidForDirection(
   return NEGATIVE_ONLY_REASON_CODES.includes(reasonCode);
 }
 
-// ── Phase 7: Job Card Transitions ──
-
-/** Valid status transitions for job cards */
-export const JOB_CARD_TRANSITIONS: Record<JobCardStatus, JobCardStatus[]> = {
-  [JobCardStatus.SCHEDULED]: [JobCardStatus.CHECKED_IN, JobCardStatus.CANCELLED],
-  [JobCardStatus.CHECKED_IN]: [JobCardStatus.ESTIMATING, JobCardStatus.CANCELLED],
-  [JobCardStatus.ESTIMATING]: [JobCardStatus.APPROVED, JobCardStatus.CANCELLED],
-  [JobCardStatus.APPROVED]: [
-    JobCardStatus.WAITING_FOR_PARTS,
-    JobCardStatus.READY_FOR_BAY,
-    JobCardStatus.CANCELLED,
-  ],
-  [JobCardStatus.WAITING_FOR_PARTS]: [
-    JobCardStatus.READY_FOR_BAY,
-    JobCardStatus.CANCELLED,
-  ],
-  [JobCardStatus.READY_FOR_BAY]: [JobCardStatus.IN_PROGRESS, JobCardStatus.CANCELLED],
-  [JobCardStatus.IN_PROGRESS]: [JobCardStatus.WORK_COMPLETED, JobCardStatus.CANCELLED],
-  [JobCardStatus.WORK_COMPLETED]: [JobCardStatus.INVOICED, JobCardStatus.CANCELLED],
-  [JobCardStatus.INVOICED]: [JobCardStatus.CLOSED],
-  [JobCardStatus.CLOSED]: [],
-  [JobCardStatus.CANCELLED]: [],
-};
-
-/** Check if a job card status transition is valid */
-export function isValidJobCardTransition(
-  from: JobCardStatus,
-  to: JobCardStatus,
-): boolean {
-  return JOB_CARD_TRANSITIONS[from]?.includes(to) ?? false;
-}
-
-/** Statuses that are pre-INVOICED (eligible for cancellation if net_issued = 0) */
-export const PRE_INVOICED_STATUSES: JobCardStatus[] = [
-  JobCardStatus.SCHEDULED,
-  JobCardStatus.CHECKED_IN,
-  JobCardStatus.ESTIMATING,
-  JobCardStatus.APPROVED,
-  JobCardStatus.WAITING_FOR_PARTS,
-  JobCardStatus.READY_FOR_BAY,
-  JobCardStatus.IN_PROGRESS,
-  JobCardStatus.WORK_COMPLETED,
-];
-
-/** Statuses where parts can be added or modified */
-export const PARTS_EDITABLE_STATUSES: JobCardStatus[] = [
-  JobCardStatus.ESTIMATING,
-  JobCardStatus.APPROVED,
-  JobCardStatus.WAITING_FOR_PARTS,
-  JobCardStatus.READY_FOR_BAY,
-  JobCardStatus.IN_PROGRESS,
-];
-
-/** Statuses where parts can be issued */
-export const PARTS_ISSUABLE_STATUSES: JobCardStatus[] = [
-  JobCardStatus.IN_PROGRESS,
-];
-
-/** Roles allowed to manage job cards */
-export const SERVICE_ROLES = [
-  UserRole.ADMIN,
-  UserRole.MANAGER,
-  UserRole.CASHIER,
-] as const;

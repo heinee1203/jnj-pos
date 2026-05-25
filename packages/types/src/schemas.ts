@@ -57,7 +57,7 @@ export const stockJournalEntrySchema = z.object({
   productId: z.string().uuid(),
   locationId: z.string().uuid(),
   changeQuantity: z.number().int(),
-  referenceType: z.enum(["SALE", "RECEIVING", "TRANSFER_IN", "TRANSFER_OUT", "ADJUSTMENT", "RETURN", "STOCKTAKE", "VOID", "JOB_CARD_ISSUE", "JOB_CARD_RETURN", "OPENING_BALANCE", "SUPPLIER_RETURN", "SUPPLIER_RETURN_CANCEL"]),
+  referenceType: z.enum(["SALE", "RECEIVING", "TRANSFER_IN", "TRANSFER_OUT", "ADJUSTMENT", "RETURN", "STOCKTAKE", "VOID", "OPENING_BALANCE"]),
   referenceId: z.string().uuid(),
   referenceLineId: z.string().uuid().optional(),
   unitCostSnapshot: z.string().optional(),
@@ -69,11 +69,13 @@ export type StockJournalEntry = z.infer<typeof stockJournalEntrySchema>;
 
 // ── Product: Create ──
 const PRODUCT_CATEGORIES = [
-  "TIRES",
-  "LUBRICANTS",
-  "HARD_PARTS",
-  "ACCESSORIES",
-  "LABOR_SERVICES",
+  "SCHOOL_SUPPLIES",
+  "OFFICE_SUPPLIES",
+  "ART_SUPPLIES",
+  "GENERAL_MERCHANDISE",
+  "BAGS_ACCESSORIES",
+  "ELECTRONICS",
+  "OTHER",
 ] as const;
 
 // Variant definition for inline variant creation
@@ -124,7 +126,6 @@ export const createProductSchema = z.object({
   purchaseUnit: z.string().max(20).nullable().optional(),
   conversionFactor: z.number().positive().max(999999).default(1),
   primarySupplierId: z.string().uuid().nullable().optional(),
-  isSerialized: z.boolean().default(false),
   trackInventory: z.boolean().default(true),
   specialOrder: z.boolean().default(false),
   discontinued: z.boolean().default(false),
@@ -133,18 +134,6 @@ export const createProductSchema = z.object({
   leadTimeDays: z.number().int().min(0).default(7),
   initialStock: z.number().int().min(0).default(0),
   locationIds: z.array(z.string().uuid()).optional(), // locations to seed inventory
-  vehicleCompatibility: z
-    .array(
-      z.object({
-        make: z.string().min(1).max(100),
-        model: z.string().min(1).max(100),
-        yearStart: z.number().int().min(1900).max(2100),
-        yearEnd: z.number().int().min(1900).max(2100),
-        engine: z.string().max(100).optional(),
-        notes: z.string().max(255).optional(),
-      }),
-    )
-    .optional(),
   // Inline variant creation — when present, product becomes a parent
   variants: z.array(variantItemSchema).optional(),
 });
@@ -169,7 +158,6 @@ export const listProductsQuerySchema = z.object({
   grouped: boolLike.optional(),
   parentOnly: boolLike.optional(),
   includeInactive: boolLike.optional(),
-  hasVehicles: boolLike.optional(),
   excludeSO: boolLike.optional(),
   excludeDC: boolLike.optional(),
   // Taxonomy — canonical names after Bug 8. `categoryId` replaces the
@@ -184,11 +172,6 @@ export const listProductsQuerySchema = z.object({
   stockStatus: z.enum(["low", "out", "special_order", "not_special_order"]).optional(),
   // Relations
   parentProductId: z.string().uuid().optional(),
-  // Vehicle fitment
-  vehicleMake: z.string().optional(),
-  vehicleModel: z.string().optional(),
-  vehicleYear: z.string().optional(),
-  vehicleEngine: z.string().optional(),
 }).strict();
 export type ListProductsQuery = z.infer<typeof listProductsQuerySchema>;
 
@@ -218,21 +201,11 @@ export const updateProductSchema = z.object({
   purchaseUnit: z.string().max(20).nullable().optional(),
   conversionFactor: z.number().positive().max(999999).optional(),
   primarySupplierId: z.string().uuid().nullable().optional(),
-  isSerialized: z.boolean().optional(),
   reorderPoint: z.number().int().min(0).optional(),
   specialOrder: z.boolean().optional(),
   discontinued: z.boolean().optional(),
   reorderEnabled: z.boolean().optional(),
   customReorderPoint: z.number().int().min(0).nullable().optional(),
-  // Tire-specific & warranty fields (accepted by /bulk-update; added here
-  // so the single-edit drawer has parity with bulk-update — Audit Bug 12)
-  isTire: z.boolean().optional(),
-  maxTireAgeYears: z.number().int().min(0).nullable().optional(),
-  warrantyMonths: z.number().int().min(0).nullable().optional(),
-  commissionAmount: z.string().refine(
-    (val) => /^\d+(\.\d{1,2})?$/.test(val),
-    { message: "Commission amount must be a non-negative decimal (e.g. '10.00')" },
-  ).nullable().optional(),
   // Add new variants to an existing parent product
   newVariants: z.array(variantItemSchema).optional(),
 }).refine(
@@ -289,33 +262,9 @@ export const productFamilySchema = z.object({
 });
 export type ProductFamilyInput = z.infer<typeof productFamilySchema>;
 
-// ── Vehicle Compatibility ──
-export const vehicleCompatibilitySchema = z.object({
-  productId: z.string().uuid(),
-  make: z.string().min(1).max(100),
-  model: z.string().min(1).max(100),
-  yearStart: z.number().int().min(1900).max(2100).optional(),
-  yearEnd: z.number().int().min(1900).max(2100).optional(),
-  engine: z.string().max(100).optional(),
-  notes: z.string().max(255).optional(),
-});
-export type VehicleCompatibilityInput = z.infer<typeof vehicleCompatibilitySchema>;
-
-export const addVehicleSchema = z.object({
-  make: z.string().min(1).max(100),
-  model: z.string().min(1).max(100),
-  yearStart: z.number().int().min(1900).max(2100).optional(),
-  yearEnd: z.number().int().min(1900).max(2100).optional(),
-  engine: z.string().max(100).optional(),
-  notes: z.string().max(255).optional(),
-});
-export type AddVehicleInput = z.infer<typeof addVehicleSchema>;
-
-export const updateVehicleSchema = addVehicleSchema.partial();
-export type UpdateVehicleInput = z.infer<typeof updateVehicleSchema>;
 
 // ══════════════════════════════════════════════
-// Phase 3: Transfer & Adjustment Schemas
+// Adjustment Schemas
 // ══════════════════════════════════════════════
 
 const ADJUSTMENT_REASON_CODES = [
@@ -323,123 +272,12 @@ const ADJUSTMENT_REASON_CODES = [
   "FOUND_STOCK",
   "OPENING_BALANCE",
   "COUNT_LOSS",
-  "DAMAGE_IN_TRANSIT",
-  "DAMAGE_WAREHOUSE",
+  "DAMAGED",
   "DAMAGE_SHOWROOM",
-  "WARRANTY_WRITE_OFF",
   "SHRINKAGE_MISSING",
   "OBSOLETE_WRITE_OFF",
-  "TRANSFER_SHORTAGE_CONFIRMED",
   "DATA_CORRECTION",
 ] as const;
-
-const VARIANCE_REASON_CODES = [
-  "DAMAGE_IN_TRANSIT",
-  "TRANSFER_SHORTAGE_CONFIRMED",
-] as const;
-
-// ── Transfer: Create Draft ──
-export const createTransferSchema = z.object({
-  sourceLocationId: z.string().uuid(),
-  destinationLocationId: z.string().uuid(),
-  notes: z.string().max(1000).optional(),
-  authorizationCredential: z.string().min(1).max(255).optional(),
-  authorizationMethod: z.enum(["pin", "barcode", "card"]).optional(),
-  items: z
-    .array(
-      z.object({
-        productId: z.string().uuid(),
-        requestedQty: z.number().int().min(1),
-      }),
-    )
-    .min(1, "At least one transfer line is required"),
-});
-export type CreateTransferInput = z.infer<typeof createTransferSchema>;
-
-// ── Transfer: Update (DRAFT only) ──
-export const updateTransferSchema = z.object({
-  notes: z.string().max(1000).optional(),
-});
-export type UpdateTransferInput = z.infer<typeof updateTransferSchema>;
-
-// ── Transfer: Add Line Item (DRAFT only) ──
-export const addTransferItemSchema = z.object({
-  productId: z.string().uuid(),
-  requestedQty: z.number().int().min(1),
-});
-export type AddTransferItemInput = z.infer<typeof addTransferItemSchema>;
-
-// ── Transfer: Update Line Item (DRAFT only) ──
-export const updateTransferItemSchema = z.object({
-  requestedQty: z.number().int().min(1),
-});
-export type UpdateTransferItemInput = z.infer<typeof updateTransferItemSchema>;
-
-// ── Transfer: Approve ──
-export const approveTransferSchema = z.object({
-  idempotencyKey: z.string().min(1).max(255),
-  notes: z.string().max(1000).optional(),
-});
-export type ApproveTransferInput = z.infer<typeof approveTransferSchema>;
-
-// ── Transfer: Start Picking ──
-export const startPickingSchema = z.object({
-  idempotencyKey: z.string().min(1).max(255),
-});
-export type StartPickingInput = z.infer<typeof startPickingSchema>;
-
-// ── Transfer: Dispatch ──
-export const dispatchTransferSchema = z.object({
-  idempotencyKey: z.string().min(1).max(255),
-  lines: z
-    .array(
-      z.object({
-        transferItemId: z.string().uuid(),
-        dispatchQty: z.number().int().min(1),
-      }),
-    )
-    .min(1),
-  notes: z.string().max(1000).optional(),
-});
-export type DispatchTransferInput = z.infer<typeof dispatchTransferSchema>;
-
-// ── Transfer: Receive ──
-export const receiveTransferSchema = z.object({
-  idempotencyKey: z.string().min(1).max(255),
-  lines: z
-    .array(
-      z.object({
-        transferItemId: z.string().uuid(),
-        receiveQty: z.number().int().min(1),
-      }),
-    )
-    .min(1),
-  notes: z.string().max(1000).optional(),
-});
-export type ReceiveTransferInput = z.infer<typeof receiveTransferSchema>;
-
-// ── Transfer: Report Variance ──
-export const reportVarianceSchema = z.object({
-  idempotencyKey: z.string().min(1).max(255),
-  lines: z
-    .array(
-      z.object({
-        transferItemId: z.string().uuid(),
-        varianceQty: z.number().int().min(1),
-        reasonCode: z.enum(VARIANCE_REASON_CODES),
-        notes: z.string().max(500).optional(),
-      }),
-    )
-    .min(1),
-});
-export type ReportVarianceInput = z.infer<typeof reportVarianceSchema>;
-
-// ── Transfer: Cancel ──
-export const cancelTransferSchema = z.object({
-  idempotencyKey: z.string().min(1).max(255),
-  notes: z.string().max(1000).optional(),
-});
-export type CancelTransferInput = z.infer<typeof cancelTransferSchema>;
 
 // ── Manual Adjustment ──
 export const createAdjustmentSchema = z.object({
@@ -473,7 +311,6 @@ const SALE_STATUSES = [
 export const createSaleSchema = z.object({
   locationId: z.string().uuid(),
   customerId: z.string().uuid().optional(),
-  customerVehicleId: z.string().uuid().optional(),
   receiptNumber: z.string().max(50).optional(),
   notes: z.string().max(1000).optional(),
   lines: z
@@ -481,16 +318,10 @@ export const createSaleSchema = z.object({
       z.object({
         productId: z.string().uuid(),
         quantity: z.number().int().min(1),
+        unit: z.string().max(10).default("piece"),
         overridePrice: z.string().optional(), // numeric as string
         discountAmount: z.string().optional(),
         notes: z.string().max(500).optional(),
-        serials: z.array(z.string().min(1).max(100)).optional(),
-        dotAllocation: z.array(z.object({
-          dotBatchId: z.string().uuid(),
-          dotCode: z.string(),
-          quantity: z.number().int().positive(),
-        })).optional(),
-        technicianId: z.string().uuid().optional(),
       }),
     )
     .min(1, "At least one line item is required"),
@@ -596,14 +427,6 @@ export const receivePOSchema = z.object({
         rejectedQty: z.number().int().min(0),
         unitCost: z.string().min(1), // actual cost at delivery
         notes: z.string().max(500).optional(),
-        serialNumbers: z.array(z.object({
-          serialNumber: z.string().min(1).max(100),
-          dotCode: z.string().length(4).optional(),
-        })).optional(),
-        dotBatches: z.array(z.object({
-          dotCode: z.string().min(4).max(100),
-          quantity: z.number().int().positive(),
-        })).optional(),
       }),
     )
     .min(1),
@@ -625,158 +448,6 @@ export const cancelPOSchema = z.object({
 });
 export type CancelPOInput = z.infer<typeof cancelPOSchema>;
 
-// ══════════════════════════════════════════════
-// Phase 7: Job Cards / Service Integration
-// ══════════════════════════════════════════════
-
-const SERVICE_OPERATION_CATEGORIES = [
-  "MECHANICAL",
-  "ELECTRICAL",
-  "BODY",
-  "TIRE_SERVICE",
-  "DIAGNOSTIC",
-  "OTHER",
-] as const;
-
-const JOB_CARD_STATUSES = [
-  "SCHEDULED",
-  "CHECKED_IN",
-  "ESTIMATING",
-  "APPROVED",
-  "WAITING_FOR_PARTS",
-  "READY_FOR_BAY",
-  "IN_PROGRESS",
-  "WORK_COMPLETED",
-  "INVOICED",
-  "CLOSED",
-  "CANCELLED",
-] as const;
-
-// ── Service Operation: Create ──
-export const createServiceOperationSchema = z.object({
-  code: z.string().min(1).max(50),
-  name: z.string().min(1).max(255),
-  category: z.enum(SERVICE_OPERATION_CATEGORIES),
-  defaultLaborRate: z.string().min(1), // numeric as string
-  estimatedHours: z.string().min(1), // numeric as string
-});
-export type CreateServiceOperationInput = z.infer<typeof createServiceOperationSchema>;
-
-// ── Service Operation: Update ──
-export const updateServiceOperationSchema = z.object({
-  name: z.string().min(1).max(255).optional(),
-  category: z.enum(SERVICE_OPERATION_CATEGORIES).optional(),
-  defaultLaborRate: z.string().min(1).optional(),
-  estimatedHours: z.string().min(1).optional(),
-  active: z.boolean().optional(),
-});
-export type UpdateServiceOperationInput = z.infer<typeof updateServiceOperationSchema>;
-
-// ── Job Card: Create (SCHEDULED) ──
-export const createJobCardSchema = z.object({
-  customerId: z.string().uuid(),
-  customerVehicleId: z.string().uuid(),
-  locationId: z.string().uuid(),
-  assignedTechnicianUserId: z.string().uuid().optional(),
-  odometerReading: z.number().int().min(0).optional(),
-  notes: z.string().max(2000).optional(),
-});
-export type CreateJobCardInput = z.infer<typeof createJobCardSchema>;
-
-// ── Job Card: Check-In ──
-export const checkInJobCardSchema = z.object({
-  odometerReading: z.number().int().min(0).optional(),
-  notes: z.string().max(2000).optional(),
-});
-export type CheckInJobCardInput = z.infer<typeof checkInJobCardSchema>;
-
-// ── Job Card: Add Labor Lines ──
-export const addLaborSchema = z.object({
-  lines: z
-    .array(
-      z.object({
-        serviceOperationId: z.string().uuid(),
-        description: z.string().max(500).optional(),
-        qtyHours: z.string().min(1), // numeric as string
-        unitPrice: z.string().min(1), // numeric as string
-      }),
-    )
-    .min(1, "At least one labor line is required"),
-});
-export type AddLaborInput = z.infer<typeof addLaborSchema>;
-
-// ── Job Card: Add Part Lines ──
-export const addPartsSchema = z.object({
-  lines: z
-    .array(
-      z.object({
-        productId: z.string().uuid(),
-        locationId: z.string().uuid(),
-        plannedQty: z.number().int().min(1),
-        unitPrice: z.string().min(1), // numeric as string (selling price)
-      }),
-    )
-    .min(1, "At least one part line is required"),
-});
-export type AddPartsInput = z.infer<typeof addPartsSchema>;
-
-// ── Job Card: Update Part Planned Qty (scope expansion) ──
-export const updatePartQtySchema = z.object({
-  plannedQty: z.number().int().min(1),
-  notes: z.string().max(500).optional(), // audit reason for increase
-});
-export type UpdatePartQtyInput = z.infer<typeof updatePartQtySchema>;
-
-// ── Job Card: Approve (triggers partial reservation) ──
-export const approveJobCardSchema = z.object({
-  idempotencyKey: z.string().min(1).max(255),
-  notes: z.string().max(2000).optional(),
-});
-export type ApproveJobCardInput = z.infer<typeof approveJobCardSchema>;
-
-// ── Job Card: Issue Parts ──
-export const issuePartsSchema = z.object({
-  idempotencyKey: z.string().min(1).max(255),
-  lines: z
-    .array(
-      z.object({
-        jobCardPartId: z.string().uuid(),
-        issueQty: z.number().int().min(1),
-      }),
-    )
-    .min(1),
-  notes: z.string().max(500).optional(),
-});
-export type IssuePartsInput = z.infer<typeof issuePartsSchema>;
-
-// ── Job Card: Return Parts ──
-export const returnPartsSchema = z.object({
-  idempotencyKey: z.string().min(1).max(255),
-  lines: z
-    .array(
-      z.object({
-        jobCardPartId: z.string().uuid(),
-        returnQty: z.number().int().min(1),
-      }),
-    )
-    .min(1),
-  notes: z.string().max(500).optional(),
-});
-export type ReturnPartsInput = z.infer<typeof returnPartsSchema>;
-
-// ── Job Card: Cancel ──
-export const cancelJobCardSchema = z.object({
-  idempotencyKey: z.string().min(1).max(255),
-  notes: z.string().max(2000).optional(),
-});
-export type CancelJobCardInput = z.infer<typeof cancelJobCardSchema>;
-
-// ── Job Card: Generic Transition (check-in, start, complete, invoice, close) ──
-export const transitionJobCardSchema = z.object({
-  idempotencyKey: z.string().min(1).max(255),
-  notes: z.string().max(2000).optional(),
-});
-export type TransitionJobCardInput = z.infer<typeof transitionJobCardSchema>;
 
 // ══════════════════════════════════════════════
 // Inventory Counts
@@ -1043,15 +714,6 @@ export const customerAdjustmentSchema = z.object({
 });
 export type CustomerAdjustmentInput = z.infer<typeof customerAdjustmentSchema>;
 
-// ── Customer Vehicle: Create ──
-export const createCustomerVehicleSchema = z.object({
-  make: z.string().min(1).max(100),
-  model: z.string().min(1).max(100),
-  year: z.number().int().min(1900).max(2100).optional(),
-  plateNo: z.string().max(20).optional(),
-  notes: z.string().max(500).optional(),
-});
-export type CreateCustomerVehicleInput = z.infer<typeof createCustomerVehicleSchema>;
 
 // ══════════════════════════════════════════════
 // Organization Settings
@@ -1069,154 +731,3 @@ export const updateCompanySettingsSchema = z.object({
 });
 export type UpdateCompanySettingsInput = z.infer<typeof updateCompanySettingsSchema>;
 
-// ══════════════════════════════════════════════
-// Returns
-// ══════════════════════════════════════════════
-
-const RETURN_REASONS = [
-  "WRONG_FITMENT",
-  "DEFECTIVE",
-  "CUSTOMER_CHANGED_MIND",
-  "WARRANTY",
-  "DUPLICATE_PURCHASE",
-  "OTHER",
-] as const;
-
-const REFUND_METHODS = [
-  "CASH",
-  "ORIGINAL_METHOD",
-  "STORE_CREDIT",
-  "ACCOUNT_CREDIT",
-] as const;
-
-const RETURN_CONDITIONS = [
-  "RESELLABLE",
-  "DAMAGED",
-  "DEFECTIVE",
-] as const;
-
-// ── Return: Create ──
-export const createReturnSchema = z.object({
-  originalSaleId: z.string().uuid(),
-  returnReason: z.enum(RETURN_REASONS),
-  reasonNotes: z.string().max(1000).optional(),
-  refundMethod: z.enum(REFUND_METHODS),
-  lines: z.array(z.object({
-    originalSaleLineId: z.string().uuid(),
-    quantity: z.number().int().positive(),
-    condition: z.enum(RETURN_CONDITIONS).default("RESELLABLE"),
-    restock: z.boolean().default(true),
-    restockLocationId: z.string().uuid().optional(),
-    notes: z.string().max(500).optional(),
-  })).min(1),
-  notes: z.string().max(1000).optional(),
-  idempotencyKey: z.string().min(1).max(255),
-});
-export type CreateReturnInput = z.infer<typeof createReturnSchema>;
-
-// ── Return: Complete (with PIN) ──
-export const completeReturnSchema = z.object({
-  approvalPin: z.string().min(4).max(6),
-});
-export type CompleteReturnInput = z.infer<typeof completeReturnSchema>;
-
-// ── Return: Void ──
-export const voidReturnSchema = z.object({
-  reason: z.string().min(1).max(500),
-});
-export type VoidReturnInput = z.infer<typeof voidReturnSchema>;
-
-// ══════════════════════════════════════════════
-// Supplier Returns (RTV)
-// ══════════════════════════════════════════════
-
-const SUPPLIER_RETURN_REASONS = [
-  "DEFECTIVE",
-  "DAMAGED_ON_DELIVERY",
-  "WRONG_ITEM",
-  "OVERSHIPMENT",
-  "WARRANTY",
-  "EXPIRED",
-  "OTHER",
-] as const;
-
-const SUPPLIER_RETURN_CONDITIONS = [
-  "DEFECTIVE",
-  "DAMAGED",
-  "WRONG_ITEM",
-  "EXPIRED",
-  "OTHER",
-] as const;
-
-const SUPPLIER_RETURN_CREDIT_TYPES = [
-  "CREDIT_MEMO",
-  "REPLACEMENT",
-  "CASH_REFUND",
-  "DEDUCTED_FROM_NEXT_PO",
-] as const;
-
-// ── Supplier Return: Create ──
-export const createSupplierReturnSchema = z.object({
-  supplierId: z.string().uuid(),
-  locationId: z.string().uuid(),
-  reason: z.enum(SUPPLIER_RETURN_REASONS),
-  reasonNotes: z.string().max(1000).optional(),
-  sourcePoId: z.string().uuid().optional(),
-  sourceCustomerReturnId: z.string().uuid().optional(),
-  lines: z.array(z.object({
-    productId: z.string().uuid(),
-    quantity: z.number().int().positive(),
-    costPrice: z.string(),
-    condition: z.enum(SUPPLIER_RETURN_CONDITIONS),
-    sourcePoLineId: z.string().uuid().optional(),
-    sourceCustomerReturnLineId: z.string().uuid().optional(),
-    notes: z.string().max(500).optional(),
-  })).min(1),
-  notes: z.string().max(1000).optional(),
-  idempotencyKey: z.string().min(1).max(255),
-});
-export type CreateSupplierReturnInput = z.infer<typeof createSupplierReturnSchema>;
-
-// ── Supplier Return: Update Draft ──
-export const updateSupplierReturnSchema = z.object({
-  reason: z.enum(SUPPLIER_RETURN_REASONS).optional(),
-  reasonNotes: z.string().max(1000).nullable().optional(),
-  notes: z.string().max(1000).nullable().optional(),
-  lines: z.array(z.object({
-    productId: z.string().uuid(),
-    quantity: z.number().int().positive(),
-    costPrice: z.string(),
-    condition: z.enum(SUPPLIER_RETURN_CONDITIONS),
-    sourcePoLineId: z.string().uuid().optional(),
-    sourceCustomerReturnLineId: z.string().uuid().optional(),
-    notes: z.string().max(500).optional(),
-  })).min(1).optional(),
-});
-export type UpdateSupplierReturnInput = z.infer<typeof updateSupplierReturnSchema>;
-
-// ── Supplier Return: Receive Credit ──
-export const receiveCreditSchema = z.object({
-  creditAmount: z.string(),
-  creditType: z.enum(SUPPLIER_RETURN_CREDIT_TYPES),
-  creditReference: z.string().max(100).optional(),
-  notes: z.string().max(500).optional(),
-});
-export type ReceiveCreditInput = z.infer<typeof receiveCreditSchema>;
-
-// ── Supplier Return: Cancel ──
-export const cancelSupplierReturnSchema = z.object({
-  reason: z.string().min(1).max(500),
-});
-export type CancelSupplierReturnInput = z.infer<typeof cancelSupplierReturnSchema>;
-
-// ── Supplier Return: Status Transition Notes ──
-export const supplierReturnNotesSchema = z.object({
-  notes: z.string().max(500).optional(),
-});
-export type SupplierReturnNotesInput = z.infer<typeof supplierReturnNotesSchema>;
-
-// ── Supplier Return: Close Without Credit ──
-export const closeWithoutCreditSchema = z.object({
-  reason: z.string().min(1).max(500),
-});
-export type CloseWithoutCreditInput = z.infer<typeof closeWithoutCreditSchema>;
