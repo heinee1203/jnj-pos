@@ -40,7 +40,6 @@ export function buildCreateProductInsertValues({
     purchaseUnit: data.purchaseUnit || null,
     conversionFactor: String(data.conversionFactor ?? 1),
     primarySupplierId: data.primarySupplierId || null,
-    isSerialized: data.isSerialized ?? false,
     specialOrder: data.specialOrder ?? false,
   };
 }
@@ -115,17 +114,3 @@ export function resolveCreateMainInventoryStockLevel(
   return targetLocationId === scopedLocationId ? (initialStock || 0) : 0;
 }
 
-export function buildVehicleCompatibilityInsertValues(
-  productId: string,
-  vehicleCompatibility: NonNullable<CreateProductInput["vehicleCompatibility"]>,
-) {
-  return vehicleCompatibility.map((vehicle) => ({
-    productId,
-    make: vehicle.make,
-    model: vehicle.model,
-    yearStart: vehicle.yearStart,
-    yearEnd: vehicle.yearEnd,
-    engine: vehicle.engine || null,
-    notes: vehicle.notes || null,
-  }));
-}

@@ -1,6 +1,6 @@
 ﻿import type { FastifyInstance } from "fastify";
 import { db } from "@jnj/database";
-import { brands, categories, inventory, locations, products, vehicleCompatibility } from "@jnj/database/schema";
+import { brands, categories, inventory, locations, products } from "@jnj/database/schema";
 import { and, asc, eq, sql } from "drizzle-orm";
 
 export function registerProductSearchRoutes(app: FastifyInstance) {
@@ -160,8 +160,6 @@ export function registerProductDetailReadRoutes(app: FastifyInstance) {
         purchaseUnit: products.purchaseUnit,
         conversionFactor: products.conversionFactor,
         primarySupplierId: products.primarySupplierId,
-        isSerialized: products.isSerialized,
-        isTire: products.isTire,
         specialOrder: products.specialOrder,
         discontinued: products.discontinued,
       })
@@ -178,20 +176,6 @@ export function registerProductDetailReadRoutes(app: FastifyInstance) {
     if (!row) {
       return reply.status(404).send({ error: "Product not found" });
     }
-
-    // Fetch vehicle compatibility
-    const vehicles = await db
-      .select({
-        id: vehicleCompatibility.id,
-        make: vehicleCompatibility.make,
-        model: vehicleCompatibility.model,
-        yearStart: vehicleCompatibility.yearStart,
-        yearEnd: vehicleCompatibility.yearEnd,
-        engine: vehicleCompatibility.engine,
-        notes: vehicleCompatibility.notes,
-      })
-      .from(vehicleCompatibility)
-      .where(eq(vehicleCompatibility.productId, id));
 
     // Fetch variants if this is a parent product
     let variants: any[] = [];
@@ -230,7 +214,7 @@ export function registerProductDetailReadRoutes(app: FastifyInstance) {
       variants = Array.from(variantMap.values());
     }
 
-    return reply.send({ ...row, vehicleCompatibility: vehicles, variants });
+    return reply.send({ ...row, vehicleCompatibility: [], variants });
   });
 
   /**

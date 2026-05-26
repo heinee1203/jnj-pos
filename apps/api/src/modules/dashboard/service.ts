@@ -4,7 +4,6 @@ import {
   products,
   locations,
   categories,
-  stockMetrics,
 } from "@jnj/database/schema";
 import { eq, and, lte, sql, type SQL } from "drizzle-orm";
 
@@ -393,16 +392,14 @@ async function getLowStockItems(
       available: sql<number>`(${inventory.stockLevel} - ${inventory.reservedLevel})`.as("available"),
       reorderPoint: inventory.reorderPoint,
       locationName: locations.name,
-      lastSoldAt: sql<string | null>`${stockMetrics.lastSaleDate}`.as("last_sold_at"),
+      lastSoldAt: sql<string | null>`null`.as("last_sold_at"),
     })
     .from(inventory)
     .innerJoin(products, eq(inventory.productId, products.id))
     .innerJoin(locations, eq(inventory.locationId, locations.id))
     .leftJoin(categories, eq(products.categoryId, categories.id))
-    .leftJoin(stockMetrics, and(eq(stockMetrics.productId, products.id), eq(stockMetrics.orgId, products.orgId)))
     .where(and(...conditions))
     .orderBy(
-      sql`${stockMetrics.lastSaleDate} DESC NULLS LAST`,
       products.name,
     )
     .limit(limit);

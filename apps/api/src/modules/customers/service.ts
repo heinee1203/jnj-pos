@@ -1,5 +1,5 @@
 ﻿import { db, type DbOrTx } from "@jnj/database";
-import { auditLogs, customers, customerTransactions, customerTiers, arPaymentAllocations } from "@jnj/database/schema";
+import { customers, customerTransactions, customerTiers } from "@jnj/database/schema";
 import { eq, and, or, sql, desc, asc, ilike, gt, lt, gte, lte, type SQL } from "drizzle-orm";
 import type {
   CreateCustomerInput,
@@ -530,12 +530,10 @@ async function allocatePaymentFIFO(
     if (unpaid <= 0.005) continue;
 
     const alloc = Math.min(remaining, unpaid);
-    await tx.insert(arPaymentAllocations).values({
-      orgId,
-      paymentTransactionId: paymentTxnId,
-      chargeTransactionId: charge.id,
-      allocatedAmount: alloc.toFixed(2),
-    });
+    await tx.execute(sql`
+      INSERT INTO ar_payment_allocations (org_id, payment_transaction_id, charge_transaction_id, allocated_amount)
+      VALUES (${orgId}, ${paymentTxnId}, ${charge.id}, ${alloc.toFixed(2)})
+    `);
     touched.push(charge.id);
     remaining -= alloc;
   }
@@ -784,12 +782,10 @@ export async function recordPayment(
       try {
         for (const alloc of explicitAllocs) {
           if (alloc.amount <= 0) continue;
-          await tx.insert(arPaymentAllocations).values({
-            orgId,
-            paymentTransactionId: transaction.id,
-            chargeTransactionId: alloc.chargeTransactionId,
-            allocatedAmount: alloc.amount.toFixed(2),
-          });
+          await tx.execute(sql`
+            INSERT INTO ar_payment_allocations (org_id, payment_transaction_id, charge_transaction_id, allocated_amount)
+            VALUES (${orgId}, ${transaction.id}, ${alloc.chargeTransactionId}, ${alloc.amount.toFixed(2)})
+          `);
           touchedCharges.push(alloc.chargeTransactionId);
         }
       } catch (allocErr) {
@@ -1173,13 +1169,9 @@ export async function reversePaymentTransaction(
       recomputedSoas.push(await recomputeSOAStatus(tx, orgId, soaId));
     }
 
-    await tx.insert(auditLogs).values({
-      orgId,
-      userId,
-      action: "CUSTOMER_PAYMENT_REVERSE",
-      entityType: "CUSTOMER",
-      entityId: customerId,
-      details: {
+    await tx.execute(sql`
+      INSERT INTO audit_logs (org_id, user_id, action, entity_type, entity_id, details)
+      VALUES (${orgId}, ${userId}, 'CUSTOMER_PAYMENT_REVERSE', 'CUSTOMER', ${customerId}, ${JSON.stringify({
         paymentTransactionId: paymentTxnId,
         paymentNumber: payment.payment_number ?? null,
         referenceNumber: payment.reference_number ?? null,
@@ -1188,9 +1180,9 @@ export async function reversePaymentTransaction(
         oldBalance,
         newBalance: recalculatedBalance,
         allocationCount: allocations.length,
-        affectedSoaNumbers: affectedSoas.map((row) => row.soa_number),
-      },
-    });
+        affectedSoaNumbers: affectedSoas.map((row: any) => row.soa_number),
+      })}::jsonb)
+    `);
 
     return {
       ...preview,
@@ -1261,18 +1253,14 @@ export async function repairChargeTransactionInfo(
       WHERE id = ${transactionId}
     `);
 
-    await tx.insert(auditLogs).values({
-      orgId,
-      userId,
-      action: "CUSTOMER_INVOICE_INFO_REPAIR",
-      entityType: "CUSTOMER",
-      entityId: customerId,
-      details: {
+    await tx.execute(sql`
+      INSERT INTO audit_logs (org_id, user_id, action, entity_type, entity_id, details)
+      VALUES (${orgId}, ${userId}, 'CUSTOMER_INVOICE_INFO_REPAIR', 'CUSTOMER', ${customerId}, ${JSON.stringify({
         transactionId,
         changes,
         reason: input.reason?.trim() || null,
-      },
-    });
+      })}::jsonb)
+    `);
 
     return {
       id: transactionId,

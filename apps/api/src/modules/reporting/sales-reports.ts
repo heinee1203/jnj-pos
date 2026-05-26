@@ -4,7 +4,6 @@ import {
   saleLines,
   products,
   users,
-  historicalSales,
 } from "@jnj/database/schema";
 import { eq, and, sql, type SQL } from "drizzle-orm";
 

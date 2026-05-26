@@ -6,7 +6,6 @@ import {
   cvNumberSequence,
   bankAccounts,
   suppliers,
-  supplierReturns,
 } from "@jnj/database/schema";
 import { eq, and, sql, desc, asc, lt, inArray, or, gte, lte, ilike, type SQL } from "drizzle-orm";
 import {
@@ -1096,24 +1095,7 @@ export async function getSupplierSOA(
     )
     .orderBy(asc(checkVouchers.checkDate));
 
-  // RTV credits
-  const rtvCredits = await db
-    .select({
-      id: supplierReturns.id,
-      rtvNumber: supplierReturns.rtvNumber,
-      creditAmount: supplierReturns.creditAmount,
-      creditReceivedAt: supplierReturns.creditReceivedAt,
-      status: supplierReturns.status,
-    })
-    .from(supplierReturns)
-    .where(
-      and(
-        eq(supplierReturns.orgId, orgId),
-        eq(supplierReturns.supplierId, supplierId),
-        inArray(supplierReturns.status, ["CREDIT_RECEIVED", "CLOSED"]),
-      ),
-    )
-    .orderBy(asc(supplierReturns.creditReceivedAt));
+  const rtvCredits: any[] = [];
 
   const ledger = buildSupplierSoaLedgerEntries({ invoices, payments, rtvCredits });
 

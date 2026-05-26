@@ -19,7 +19,7 @@ test("product API create, list, update, and delete workflow", async (t) => {
     payload: {
       name: `Forbidden ${name}`,
       sku: `NOPE-${suffix}`,
-      category: "HARD_PARTS",
+      category: "SCHOOL_SUPPLIES",
     },
   });
 
@@ -31,7 +31,7 @@ test("product API create, list, update, and delete workflow", async (t) => {
     headers: harness.authHeaders,
     payload: {
       name: `Missing SKU ${suffix}`,
-      category: "HARD_PARTS",
+      category: "SCHOOL_SUPPLIES",
       unitPrice: "10.00",
       costPrice: "5.00",
     },
@@ -46,7 +46,7 @@ test("product API create, list, update, and delete workflow", async (t) => {
     payload: {
       name,
       sku,
-      category: "HARD_PARTS",
+      category: "SCHOOL_SUPPLIES",
       unitPrice: "100.00",
       costPrice: "60.00",
       barcode: `BC-${suffix}`,
@@ -68,7 +68,7 @@ test("product API create, list, update, and delete workflow", async (t) => {
     payload: {
       name: `Duplicate ${name}`,
       sku,
-      category: "HARD_PARTS",
+      category: "SCHOOL_SUPPLIES",
       unitPrice: "100.00",
       costPrice: "60.00",
     },
@@ -152,7 +152,7 @@ test("product API create, list, update, and delete workflow", async (t) => {
     headers: harness.authHeaders,
     payload: {
       name: `Variant Parent Duplicate ${suffix}`,
-      category: "HARD_PARTS",
+      category: "SCHOOL_SUPPLIES",
       variants: [
         { suffix: "LH", sku: `VAR-DUP-${suffix}`, unitPrice: "80.00", costPrice: "40.00" },
         { suffix: "RH", sku: `VAR-DUP-${suffix}`, unitPrice: "80.00", costPrice: "40.00" },
@@ -168,7 +168,7 @@ test("product API create, list, update, and delete workflow", async (t) => {
     headers: harness.authHeaders,
     payload: {
       name: `Variant Parent ${suffix}`,
-      category: "HARD_PARTS",
+      category: "SCHOOL_SUPPLIES",
       trackInventory: true,
       locationIds: [harness.ids.locationId],
       variants: [
@@ -230,7 +230,7 @@ test("product API create, list, update, and delete workflow", async (t) => {
     payload: {
       name: `Referenced Product ${suffix}`,
       sku: softDeleteSku,
-      category: "HARD_PARTS",
+      category: "SCHOOL_SUPPLIES",
       unitPrice: "120.00",
       costPrice: "70.00",
       barcode: `SOFT-BC-${suffix}`,

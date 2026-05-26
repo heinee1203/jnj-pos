@@ -1,9 +1,5 @@
 ﻿import { db } from "@jnj/database";
 import {
-  auditLogs,
-  customerCollectionNotes,
-  customerDisputes,
-  customerPaymentRiskEvents,
   customerTransactions,
   customers,
 } from "@jnj/database/schema";
@@ -429,35 +425,20 @@ export async function createCustomerCollectionNote(
     .limit(1);
   if (!customer) throw new Error("Customer not found");
 
-  const [created] = await db
-    .insert(customerCollectionNotes)
-    .values({
-      orgId,
-      customerId,
-      noteType: input.noteType || "NOTE",
-      contactMethod: input.contactMethod || null,
-      outcome: input.outcome || null,
-      priority: input.priority || "NORMAL",
-      note,
-      promisedAmount:
-        input.promisedAmount === undefined || input.promisedAmount === null || input.promisedAmount === ""
-          ? null
-          : String(input.promisedAmount),
-      promiseToPayDate: input.promiseToPayDate || null,
-      followUpAt: input.followUpAt ? new Date(input.followUpAt) : null,
-      assignedToUserId: input.assignedToUserId || null,
-      createdByUserId: userId,
-    })
-    .returning();
+  const promisedAmt = input.promisedAmount === undefined || input.promisedAmount === null || input.promisedAmount === ""
+    ? null
+    : String(input.promisedAmount);
+  const followUp = input.followUpAt ? new Date(input.followUpAt) : null;
+  const [created] = (await db.execute(sql`
+    INSERT INTO customer_collection_notes (org_id, customer_id, note_type, contact_method, outcome, priority, note, promised_amount, promise_to_pay_date, follow_up_at, assigned_to_user_id, created_by_user_id)
+    VALUES (${orgId}, ${customerId}, ${input.noteType || "NOTE"}, ${input.contactMethod || null}, ${input.outcome || null}, ${input.priority || "NORMAL"}, ${note}, ${promisedAmt}, ${input.promiseToPayDate || null}, ${followUp}, ${input.assignedToUserId || null}, ${userId})
+    RETURNING *
+  `)) as any[];
 
-  await db.insert(auditLogs).values({
-    orgId,
-    userId,
-    action: "CUSTOMER_COLLECTION_NOTE_CREATE",
-    entityType: "CUSTOMER",
-    entityId: customerId,
-    details: { noteId: created.id, noteType: created.noteType },
-  });
+  await db.execute(sql`
+    INSERT INTO audit_logs (org_id, user_id, action, entity_type, entity_id, details)
+    VALUES (${orgId}, ${userId}, 'CUSTOMER_COLLECTION_NOTE_CREATE', 'CUSTOMER', ${customerId}, ${JSON.stringify({ noteId: created.id, noteType: created.note_type })}::jsonb)
+  `);
 
   return (await listCustomerCollectionNotes(customerId, orgId)).find((row) => row.id === created.id);
 }
@@ -495,27 +476,25 @@ export async function updateCustomerCollectionNote(
     return (await listCustomerCollectionNotes(customerId, orgId)).find((row) => row.id === noteId) ?? null;
   }
 
-  const [updated] = await db
-    .update(customerCollectionNotes)
-    .set(setFields)
-    .where(
-      and(
-        eq(customerCollectionNotes.id, noteId),
-        eq(customerCollectionNotes.customerId, customerId),
-        eq(customerCollectionNotes.orgId, orgId),
-      ),
-    )
-    .returning();
+  // Build dynamic SET clause from setFields
+  const setClauses = Object.entries(setFields).map(([key, value]) => {
+    const col = key.replace(/([A-Z])/g, "_$1").toLowerCase();
+    return sql`${sql.raw(col)} = ${value as any}`;
+  });
+  const setClause = sql.join(setClauses, sql`, `);
+
+  const [updated] = (await db.execute(sql`
+    UPDATE customer_collection_notes
+    SET ${setClause}, updated_at = NOW()
+    WHERE id = ${noteId} AND customer_id = ${customerId} AND org_id = ${orgId}
+    RETURNING *
+  `)) as any[];
   if (!updated) throw new Error("Collection note not found");
 
-  await db.insert(auditLogs).values({
-    orgId,
-    userId,
-    action: input.resolved ? "CUSTOMER_COLLECTION_NOTE_RESOLVE" : "CUSTOMER_COLLECTION_NOTE_UPDATE",
-    entityType: "CUSTOMER",
-    entityId: customerId,
-    details: { noteId, fields: Object.keys(setFields) },
-  });
+  await db.execute(sql`
+    INSERT INTO audit_logs (org_id, user_id, action, entity_type, entity_id, details)
+    VALUES (${orgId}, ${userId}, ${input.resolved ? "CUSTOMER_COLLECTION_NOTE_RESOLVE" : "CUSTOMER_COLLECTION_NOTE_UPDATE"}, 'CUSTOMER', ${customerId}, ${JSON.stringify({ noteId, fields: Object.keys(setFields) })}::jsonb)
+  `);
 
   return (await listCustomerCollectionNotes(customerId, orgId)).find((row) => row.id === noteId);
 }
@@ -544,12 +523,12 @@ export async function getCustomerTimeline(customerId: string, orgId: string, lim
     LIMIT 40
   `)) as any[];
 
-  const noteEvents = await db
-    .select()
-    .from(customerCollectionNotes)
-    .where(and(eq(customerCollectionNotes.customerId, customerId), eq(customerCollectionNotes.orgId, orgId)))
-    .orderBy(desc(customerCollectionNotes.createdAt))
-    .limit(40);
+  const noteEvents = (await db.execute(sql`
+    SELECT * FROM customer_collection_notes
+    WHERE customer_id = ${customerId} AND org_id = ${orgId}
+    ORDER BY created_at DESC
+    LIMIT 40
+  `)) as any[];
 
   const auditEvents = (await db.execute(sql`
     SELECT al.id, al.action, al.details, al.created_at, u.full_name AS user_name
@@ -599,22 +578,22 @@ export async function getCustomerTimeline(customerId: string, orgId: string, lim
       reference: row.soa_number,
       details: { paidAmount: moneyValue(row.paid_amount) },
     })),
-    ...noteEvents.map((row) => ({
+    ...noteEvents.map((row: any) => ({
       id: `note-${row.id}`,
       source: "collection_note",
-      eventType: row.resolvedAt ? "RESOLVED" : row.noteType,
-      title: row.resolvedAt ? "Collection note resolved" : "Collection note added",
-      occurredAt: row.resolvedAt?.toISOString() ?? row.createdAt.toISOString(),
+      eventType: row.resolved_at ? "RESOLVED" : row.note_type,
+      title: row.resolved_at ? "Collection note resolved" : "Collection note added",
+      occurredAt: parseDate(row.resolved_at ?? row.created_at)!,
       amount: null,
-      reference: row.noteType,
+      reference: row.note_type,
       details: {
         note: row.note,
-        promiseToPayDate: row.promiseToPayDate,
-        followUpAt: row.followUpAt?.toISOString() ?? null,
-        contactMethod: row.contactMethod ?? null,
+        promiseToPayDate: row.promise_to_pay_date,
+        followUpAt: parseDate(row.follow_up_at),
+        contactMethod: row.contact_method ?? null,
         outcome: row.outcome ?? null,
         priority: row.priority ?? "NORMAL",
-        promisedAmount: row.promisedAmount ? moneyValue(row.promisedAmount) : null,
+        promisedAmount: row.promised_amount ? moneyValue(row.promised_amount) : null,
       },
     })),
     ...disputeEvents.map((row) => ({
@@ -843,14 +822,10 @@ export async function updateCustomerCreditControl(
     .returning();
   if (!updated) throw new Error("Customer not found");
 
-  await db.insert(auditLogs).values({
-    orgId,
-    userId,
-    action: "CUSTOMER_CREDIT_CONTROL_UPDATE",
-    entityType: "CUSTOMER",
-    entityId: customerId,
-    details: { status, holdType, reason: input.reason ?? null },
-  });
+  await db.execute(sql`
+    INSERT INTO audit_logs (org_id, user_id, action, entity_type, entity_id, details)
+    VALUES (${orgId}, ${userId}, 'CUSTOMER_CREDIT_CONTROL_UPDATE', 'CUSTOMER', ${customerId}, ${JSON.stringify({ status, holdType, reason: input.reason ?? null })}::jsonb)
+  `);
 
   return buildCustomerCreditControl(updated);
 }
@@ -932,36 +907,23 @@ export async function createCustomerDispute(
     if (!soa) throw new Error("Disputed SOA not found");
   }
 
-  const [created] = await db
-    .insert(customerDisputes)
-    .values({
-      orgId,
-      customerId,
-      transactionId: input.transactionId || null,
-      soaId: input.soaId || null,
-      reason: input.reason?.trim() || "DISPUTED",
-      disputedAmount:
-        input.disputedAmount === undefined || input.disputedAmount === null || input.disputedAmount === ""
-          ? null
-          : String(input.disputedAmount),
-      ownerUserId: input.ownerUserId || userId,
-      notes: input.notes?.trim() || null,
-      createdByUserId: userId,
-    })
-    .returning();
+  const disputedAmt = input.disputedAmount === undefined || input.disputedAmount === null || input.disputedAmount === ""
+    ? null
+    : String(input.disputedAmount);
+  const [created] = (await db.execute(sql`
+    INSERT INTO customer_disputes (org_id, customer_id, transaction_id, soa_id, reason, disputed_amount, owner_user_id, notes, created_by_user_id)
+    VALUES (${orgId}, ${customerId}, ${input.transactionId || null}, ${input.soaId || null}, ${input.reason?.trim() || "DISPUTED"}, ${disputedAmt}, ${input.ownerUserId || userId}, ${input.notes?.trim() || null}, ${userId})
+    RETURNING *
+  `)) as any[];
 
-  await db.insert(auditLogs).values({
-    orgId,
-    userId,
-    action: "CUSTOMER_DISPUTE_CREATE",
-    entityType: "CUSTOMER",
-    entityId: customerId,
-    details: {
+  await db.execute(sql`
+    INSERT INTO audit_logs (org_id, user_id, action, entity_type, entity_id, details)
+    VALUES (${orgId}, ${userId}, 'CUSTOMER_DISPUTE_CREATE', 'CUSTOMER', ${customerId}, ${JSON.stringify({
       disputeId: created.id,
       transactionId: input.transactionId ?? null,
       soaId: input.soaId ?? null,
-    },
-  });
+    })}::jsonb)
+  `);
 
   return (await listCustomerDisputes(customerId, orgId)).find((row) => row.id === created.id);
 }
@@ -1002,21 +964,24 @@ export async function updateCustomerDispute(
     return (await listCustomerDisputes(customerId, orgId)).find((row) => row.id === disputeId) ?? null;
   }
 
-  const [updated] = await db
-    .update(customerDisputes)
-    .set(setFields)
-    .where(and(eq(customerDisputes.id, disputeId), eq(customerDisputes.customerId, customerId), eq(customerDisputes.orgId, orgId)))
-    .returning();
+  const disputeSetClauses = Object.entries(setFields).map(([key, value]) => {
+    const col = key.replace(/([A-Z])/g, "_$1").toLowerCase();
+    return sql`${sql.raw(col)} = ${value as any}`;
+  });
+  const disputeSetClause = sql.join(disputeSetClauses, sql`, `);
+
+  const [updated] = (await db.execute(sql`
+    UPDATE customer_disputes
+    SET ${disputeSetClause}, updated_at = NOW()
+    WHERE id = ${disputeId} AND customer_id = ${customerId} AND org_id = ${orgId}
+    RETURNING *
+  `)) as any[];
   if (!updated) throw new Error("Dispute not found");
 
-  await db.insert(auditLogs).values({
-    orgId,
-    userId,
-    action: "CUSTOMER_DISPUTE_UPDATE",
-    entityType: "CUSTOMER",
-    entityId: customerId,
-    details: { disputeId, fields: Object.keys(setFields) },
-  });
+  await db.execute(sql`
+    INSERT INTO audit_logs (org_id, user_id, action, entity_type, entity_id, details)
+    VALUES (${orgId}, ${userId}, 'CUSTOMER_DISPUTE_UPDATE', 'CUSTOMER', ${customerId}, ${JSON.stringify({ disputeId, fields: Object.keys(setFields) })}::jsonb)
+  `);
 
   return (await listCustomerDisputes(customerId, orgId)).find((row) => row.id === disputeId);
 }
@@ -1116,18 +1081,14 @@ export async function applyCustomerMerge(
           notes = COALESCE(notes || E'\n', '') || ${`Merged into customer ${survivorCustomerId}. Reason: ${reason.trim()}`}
       WHERE org_id = ${orgId} AND id = ${duplicateCustomerId}
     `);
-    await tx.insert(auditLogs).values({
-      orgId,
-      userId,
-      action: "CUSTOMER_MERGE_APPLY",
-      entityType: "CUSTOMER",
-      entityId: survivorCustomerId,
-      details: {
+    await tx.execute(sql`
+      INSERT INTO audit_logs (org_id, user_id, action, entity_type, entity_id, details)
+      VALUES (${orgId}, ${userId}, 'CUSTOMER_MERGE_APPLY', 'CUSTOMER', ${survivorCustomerId}, ${JSON.stringify({
         duplicateCustomerId,
         reason: reason.trim(),
         affectedCounts: preview.affectedCounts,
-      },
-    });
+      })}::jsonb)
+    `);
   });
 
   return { ...preview, applied: true };
@@ -1145,36 +1106,24 @@ export async function recordCustomerPaymentRiskEvent(
     reason?: string | null;
   },
 ) {
-  const [created] = await db
-    .insert(customerPaymentRiskEvents)
-    .values({
-      orgId,
-      customerId,
-      paymentTransactionId: input.paymentTransactionId || null,
-      eventType: input.eventType,
-      referenceNumber: input.referenceNumber || null,
-      amount:
-        input.amount === undefined || input.amount === null || input.amount === ""
-          ? null
-          : String(input.amount),
-      reason: input.reason?.trim() || null,
-      createdByUserId: userId,
-    })
-    .returning();
+  const riskAmt = input.amount === undefined || input.amount === null || input.amount === ""
+    ? null
+    : String(input.amount);
+  const [created] = (await db.execute(sql`
+    INSERT INTO customer_payment_risk_events (org_id, customer_id, payment_transaction_id, event_type, reference_number, amount, reason, created_by_user_id)
+    VALUES (${orgId}, ${customerId}, ${input.paymentTransactionId || null}, ${input.eventType}, ${input.referenceNumber || null}, ${riskAmt}, ${input.reason?.trim() || null}, ${userId})
+    RETURNING *
+  `)) as any[];
 
-  await db.insert(auditLogs).values({
-    orgId,
-    userId,
-    action: "CUSTOMER_PAYMENT_RISK_EVENT",
-    entityType: "CUSTOMER",
-    entityId: customerId,
-    details: {
+  await db.execute(sql`
+    INSERT INTO audit_logs (org_id, user_id, action, entity_type, entity_id, details)
+    VALUES (${orgId}, ${userId}, 'CUSTOMER_PAYMENT_RISK_EVENT', 'CUSTOMER', ${customerId}, ${JSON.stringify({
       eventId: created.id,
       eventType: input.eventType,
       paymentTransactionId: input.paymentTransactionId ?? null,
       reason: input.reason ?? null,
-    },
-  });
+    })}::jsonb)
+  `);
 
   return created;
 }

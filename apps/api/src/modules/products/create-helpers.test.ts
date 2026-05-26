@@ -8,14 +8,13 @@ import {
   buildCreateProductInsertValues,
   buildCreateVariantProductInsertValues,
   buildParentPlaceholderSku,
-  buildVehicleCompatibilityInsertValues,
   resolveCreateMainInventoryStockLevel,
 } from "./create-helpers";
 
 const baseProductInput: CreateProductInput = {
   name: "Premium Brake Pad",
   sku: "BRK-001",
-  category: "HARD_PARTS",
+  category: "SCHOOL_SUPPLIES",
   unitPrice: "25.00",
   costPrice: "10.00",
   oemNumber: "OEM-1",
@@ -29,7 +28,6 @@ const baseProductInput: CreateProductInput = {
   purchaseUnit: "case",
   conversionFactor: 2,
   primarySupplierId: "55555555-5555-4555-8555-555555555555",
-  isSerialized: true,
   trackInventory: true,
   specialOrder: true,
   discontinued: false,
@@ -59,7 +57,7 @@ test("buildCreateProductInsertValues preserves regular product insert defaults",
       name: "Premium Brake Pad",
       sku: "BRK-001",
       mnemonicSku: "ABCDEFGHIJ",
-      category: "HARD_PARTS",
+      category: "SCHOOL_SUPPLIES",
       unitPrice: "25.00",
       costPrice: "10.00",
       barcode: "4801234567890",
@@ -75,7 +73,6 @@ test("buildCreateProductInsertValues preserves regular product insert defaults",
       purchaseUnit: "case",
       conversionFactor: "2",
       primarySupplierId: "55555555-5555-4555-8555-555555555555",
-      isSerialized: true,
       specialOrder: true,
     },
   );
@@ -102,7 +99,7 @@ test("buildCreateProductInsertValues preserves variant parent policy", () => {
       name: "Premium Brake Pad",
       sku: "P-ABC123",
       mnemonicSku: "ABCDEFGHIJ",
-      category: "HARD_PARTS",
+      category: "SCHOOL_SUPPLIES",
       unitPrice: "0.00",
       costPrice: "0.00",
       barcode: null,
@@ -118,7 +115,6 @@ test("buildCreateProductInsertValues preserves variant parent policy", () => {
       purchaseUnit: "case",
       conversionFactor: "2",
       primarySupplierId: "55555555-5555-4555-8555-555555555555",
-      isSerialized: true,
       specialOrder: true,
     },
   );
@@ -145,7 +141,7 @@ test("buildCreateVariantProductInsertValues preserves child insert inheritance",
       name: "Premium Brake Pad - Left",
       sku: "BRK-L",
       mnemonicSku: "KLMNOPQRST",
-      category: "HARD_PARTS",
+      category: "SCHOOL_SUPPLIES",
       unitPrice: "12.00",
       costPrice: "6.00",
       barcode: "4801234567891",
@@ -158,7 +154,7 @@ test("buildCreateVariantProductInsertValues preserves child insert inheritance",
   );
 });
 
-test("inventory and vehicle insert helpers preserve create route row shapes", () => {
+test("inventory insert helpers preserve create route row shapes", () => {
   assert.deepEqual(
     buildCreateInventoryInsertValues({
       orgId: "org-1",
@@ -183,43 +179,4 @@ test("inventory and vehicle insert helpers preserve create route row shapes", ()
   assert.equal(resolveCreateMainInventoryStockLevel("loc-1", "loc-1", 4), 4);
   assert.equal(resolveCreateMainInventoryStockLevel("loc-2", "loc-1", 4), 0);
   assert.equal(resolveCreateMainInventoryStockLevel("loc-1", "loc-1", undefined), 0);
-
-  assert.deepEqual(
-    buildVehicleCompatibilityInsertValues("product-1", [
-      {
-        make: "Toyota",
-        model: "Vios",
-        yearStart: 2018,
-        yearEnd: 2024,
-        engine: "",
-        notes: "front axle",
-      },
-      {
-        make: "Honda",
-        model: "City",
-        yearStart: 2020,
-        yearEnd: 2024,
-      },
-    ]),
-    [
-      {
-        productId: "product-1",
-        make: "Toyota",
-        model: "Vios",
-        yearStart: 2018,
-        yearEnd: 2024,
-        engine: null,
-        notes: "front axle",
-      },
-      {
-        productId: "product-1",
-        make: "Honda",
-        model: "City",
-        yearStart: 2020,
-        yearEnd: 2024,
-        engine: null,
-        notes: null,
-      },
-    ],
-  );
 });

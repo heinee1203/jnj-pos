@@ -1,7 +1,6 @@
 export {
   addOrCreateProductTag,
   addProductTag,
-  autoTagTires,
   bulkAssignBySearch,
   bulkAssignTag,
   createTag,

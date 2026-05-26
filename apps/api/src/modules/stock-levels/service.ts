@@ -4,7 +4,6 @@ import {
   products,
   categories,
   locations,
-  stockMetrics,
 } from "@jnj/database/schema";
 import {
   eq,
@@ -118,7 +117,7 @@ const SORT_COLUMN_MAP: Record<SortField, SQL | { getSQL(): SQL }> = {
   reservedLevel: inventory.reservedLevel,
   available: sql`(${inventory.stockLevel} - ${inventory.reservedLevel})`,
   reorderPoint: inventory.reorderPoint,
-  lastSoldAt: sql`${stockMetrics.lastSaleDate}`,
+  lastSoldAt: sql`null`,
   status: inventory.stockLevel, // sort by stock level as proxy for status
 };
 
@@ -292,9 +291,9 @@ export async function queryStockLevels(
         costPrice: sql<number>`coalesce(${products.currentCostPrice}, ${products.costPrice}, 0)::numeric(12,2)`.as("cost_price"),
         unitPrice: sql<number>`coalesce(${products.unitPrice}, 0)::numeric(12,2)`.as("unit_price"),
         updatedAt: inventory.updatedAt,
-        lastSoldAt: sql<string | null>`${stockMetrics.lastSaleDate}`.as("last_sold_at"),
-        sold1m: sql<number>`coalesce(${stockMetrics.sold1m}, 0)::int`.as("sold_1m"),
-        daysOfStock: sql<string | null>`${stockMetrics.daysOfStock}`.as("days_of_stock"),
+        lastSoldAt: sql<string | null>`null`.as("last_sold_at"),
+        sold1m: sql<number>`0`.as("sold_1m"),
+        daysOfStock: sql<string | null>`null`.as("days_of_stock"),
         pendingOrderCount: sql<number>`(
           SELECT count(*)::int FROM po_lines pol
           JOIN purchase_orders po ON pol.purchase_order_id = po.id
@@ -307,7 +306,6 @@ export async function queryStockLevels(
       .innerJoin(products, eq(inventory.productId, products.id))
       .innerJoin(locations, eq(inventory.locationId, locations.id))
       .leftJoin(categories, eq(products.categoryId, categories.id))
-      .leftJoin(stockMetrics, and(eq(stockMetrics.productId, products.id), eq(stockMetrics.orgId, products.orgId)))
       .where(and(...conditions))
       .orderBy(
         ...getSortOrder(params.sortBy, params.sortDir),
@@ -491,9 +489,9 @@ export async function queryProductStockLevels(
       unitPrice: sql<number>`coalesce(${products.unitPrice}, 0)::numeric(12,2)`.as("unit_price_val"),
       totalCostValue: sql<number>`coalesce(sum(${inventory.stockLevel}) * coalesce(${products.currentCostPrice}, ${products.costPrice}, 0), 0)::numeric(14,2)`.as("total_cost_value"),
       totalSellValue: sql<number>`coalesce(sum(${inventory.stockLevel}) * coalesce(${products.unitPrice}, 0), 0)::numeric(14,2)`.as("total_sell_value"),
-      lastSoldAt: sql<string | null>`${stockMetrics.lastSaleDate}`.as("last_sold_at"),
-      sold1m: sql<number>`coalesce(${stockMetrics.sold1m}, 0)::int`.as("sold_1m"),
-      daysOfStock: sql<string | null>`${stockMetrics.daysOfStock}`.as("days_of_stock"),
+      lastSoldAt: sql<string | null>`null`.as("last_sold_at"),
+      sold1m: sql<number>`0`.as("sold_1m"),
+      daysOfStock: sql<string | null>`null`.as("days_of_stock"),
       pendingOrderCount: sql<number>`(
         SELECT count(*)::int FROM po_lines pol
         JOIN purchase_orders po ON pol.purchase_order_id = po.id
@@ -506,7 +504,6 @@ export async function queryProductStockLevels(
     .innerJoin(inventory, eq(inventory.productId, products.id))
     .innerJoin(locations, eq(inventory.locationId, locations.id))
     .leftJoin(categories, eq(products.categoryId, categories.id))
-    .leftJoin(stockMetrics, and(eq(stockMetrics.productId, products.id), eq(stockMetrics.orgId, products.orgId)))
     .where(and(...conditions))
     .groupBy(
       products.id,
@@ -520,9 +517,6 @@ export async function queryProductStockLevels(
       products.costPrice,
       products.currentCostPrice,
       products.unitPrice,
-      stockMetrics.lastSaleDate,
-      stockMetrics.sold1m,
-      stockMetrics.daysOfStock,
     )
     .orderBy(
       ...(params.sortBy

@@ -5,7 +5,6 @@ import {
   products,
   purchaseOrders,
   poLines,
-  supplierMetrics,
 } from "@jnj/database/schema";
 import { eq, and, sql, asc, ne, gt, gte, lt } from "drizzle-orm";
 
@@ -501,17 +500,10 @@ export async function getRedirectPlan(orgId: string, poId: string) {
         supplierCost: productSuppliers.supplierCost,
         priority: productSuppliers.priority,
         leadTimeDays: productSuppliers.leadTimeDays,
-        reliabilityPct: supplierMetrics.reliabilityPct,
+        reliabilityPct: sql<string | null>`null`.as("reliability_pct"),
       })
       .from(productSuppliers)
       .innerJoin(suppliers, eq(suppliers.id, productSuppliers.supplierId))
-      .leftJoin(
-        supplierMetrics,
-        and(
-          eq(supplierMetrics.supplierId, productSuppliers.supplierId),
-          eq(supplierMetrics.orgId, orgId),
-        ),
-      )
       .where(
         and(
           eq(productSuppliers.orgId, orgId),

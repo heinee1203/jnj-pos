@@ -35,7 +35,7 @@ export const categories = pgTable(
 
     /**
      * Maps to the `product_category` enum on the products table.
-     * Must match exactly (e.g. "TIRES", "HARD_PARTS").
+     * Must match exactly (e.g. "SCHOOL_SUPPLIES", "OFFICE_SUPPLIES").
      * Categories created without a matching code will show 0 products
      * until products.category is migrated from enum to FK.
      */

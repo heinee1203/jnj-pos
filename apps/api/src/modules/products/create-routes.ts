@@ -1,6 +1,6 @@
 ﻿import type { FastifyInstance } from "fastify";
 import { db } from "@jnj/database";
-import { inventory, products, vehicleCompatibility } from "@jnj/database/schema";
+import { inventory, products } from "@jnj/database/schema";
 import { and, eq } from "drizzle-orm";
 import { createProductSchema, generateEan13, isValidBarcode } from "@jnj/types";
 
@@ -16,7 +16,6 @@ import {
   buildCreateProductInsertValues,
   buildCreateVariantProductInsertValues,
   buildParentPlaceholderSku,
-  buildVehicleCompatibilityInsertValues,
   resolveCreateMainInventoryStockLevel,
 } from "./create-helpers";
 import { generateUniqueMnemonicSku } from "./sku";
@@ -55,7 +54,6 @@ export function registerProductCreateRoutes(app: FastifyInstance) {
       leadTimeDays,
       initialStock,
       locationIds,
-      vehicleCompatibility: vehicleCompat,
       variants: variantItems,
     } = parsed.data;
 
@@ -235,13 +233,6 @@ export function registerProductCreateRoutes(app: FastifyInstance) {
             leadTimeDays: leadTimeDays ?? 7,
           }));
         }
-      }
-
-      // 5. Insert vehicle compatibility records if provided
-      if (vehicleCompat && vehicleCompat.length > 0) {
-        await tx.insert(vehicleCompatibility).values(
-          buildVehicleCompatibilityInsertValues(product.id, vehicleCompat),
-        );
       }
 
       return { ...product, variants: createdVariants };

@@ -150,8 +150,6 @@ async function buildPODetail(po: typeof purchaseOrders.$inferSelect) {
         sql<string | null>`(SELECT pp.name FROM products pp WHERE pp.id = ${products.parentProductId})`.as(
           "parent_name",
         ),
-      isSerialized: products.isSerialized,
-      isTire: products.isTire,
     })
     .from(poLines)
     .innerJoin(products, eq(products.id, poLines.productId))

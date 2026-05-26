@@ -1,5 +1,5 @@
 ﻿import { db, type DbOrTx } from "@jnj/database";
-import { priceChanges, products, brands, users } from "@jnj/database/schema";
+import { products, brands, users } from "@jnj/database/schema";
 import {
   eq,
   and,
@@ -115,26 +115,17 @@ function computeMarginPct(sell: number, cost: number): number {
  * Called by all price update paths.
  */
 export async function recordPriceChange(
-  tx: DbOrTx,
-  orgId: string,
-  productId: string,
-  field: "SELL_PRICE" | "COST_PRICE",
-  oldValue: string,
-  newValue: string,
-  changedBy: string,
-  changeReason?: string,
-  batchId?: string,
+  _tx: DbOrTx,
+  _orgId: string,
+  _productId: string,
+  _field: "SELL_PRICE" | "COST_PRICE",
+  _oldValue: string,
+  _newValue: string,
+  _changedBy: string,
+  _changeReason?: string,
+  _batchId?: string,
 ) {
-  await tx.insert(priceChanges).values({
-    orgId,
-    productId,
-    field,
-    oldValue,
-    newValue,
-    changedBy,
-    changeReason: changeReason ?? null,
-    batchId: batchId ?? null,
-  });
+  // No-op: price_changes table removed from schema
 }
 
 /**
@@ -413,95 +404,8 @@ export async function getPriceHistory(
     limit?: number;
   },
 ): Promise<{ data: PriceHistoryRow[]; nextCursor: string | null; hasMore: boolean }> {
-  const limit = params.limit ?? 50;
-
-  const conditions: SQL[] = [eq(priceChanges.orgId, orgId)];
-
-  if (params.productId) {
-    conditions.push(eq(priceChanges.productId, params.productId));
-  }
-
-  if (params.dateFrom) {
-    conditions.push(gte(priceChanges.changedAt, new Date(params.dateFrom)));
-  }
-
-  if (params.dateTo) {
-    conditions.push(lte(priceChanges.changedAt, new Date(params.dateTo)));
-  }
-
-  if (params.field) {
-    conditions.push(eq(priceChanges.field, params.field));
-  }
-
-  if (params.source) {
-    conditions.push(eq(priceChanges.source, params.source));
-  }
-
-  if (params.search && params.search.length >= 2) {
-    const pat = `%${params.search}%`;
-    conditions.push(sql`(${products.name} ILIKE ${pat} OR ${products.sku} ILIKE ${pat})`);
-  }
-
-  if (params.batchId) {
-    conditions.push(eq(priceChanges.batchId, params.batchId));
-  }
-
-  if (params.cursor) {
-    conditions.push(gt(priceChanges.id, params.cursor));
-  }
-
-  const rows = await db
-    .select({
-      id: priceChanges.id,
-      productId: priceChanges.productId,
-      productName: sql<string>`CASE WHEN ${products.parentProductId} IS NOT NULL
-        THEN (SELECT p2.name FROM products p2 WHERE p2.id = ${products.parentProductId}) || ' \u2014 ' || ${products.name}
-        ELSE ${products.name} END`.as("product_name"),
-      productSku: products.sku,
-      field: priceChanges.field,
-      oldValue: priceChanges.oldValue,
-      newValue: priceChanges.newValue,
-      changeReason: priceChanges.changeReason,
-      source: priceChanges.source,
-      batchId: priceChanges.batchId,
-      changedBy: priceChanges.changedBy,
-      changedByName: users.fullName,
-      changedAt: priceChanges.changedAt,
-    })
-    .from(priceChanges)
-    .innerJoin(products, eq(priceChanges.productId, products.id))
-    .leftJoin(users, eq(priceChanges.changedBy, users.id))
-    .where(and(...conditions))
-    .orderBy(desc(priceChanges.changedAt), asc(priceChanges.id))
-    .limit(limit + 1);
-
-  const hasMore = rows.length > limit;
-  const data = hasMore ? rows.slice(0, limit) : rows;
-  const nextCursor = hasMore ? data[data.length - 1]!.id : null;
-
-  const enriched: PriceHistoryRow[] = data.map((r) => {
-    const oldVal = parseFloat(r.oldValue ?? "0");
-    const newVal = parseFloat(r.newValue ?? "0");
-    const pctChange = oldVal > 0 ? Math.round(((newVal - oldVal) / oldVal) * 1000) / 10 : null;
-    return {
-      id: r.id,
-      productId: r.productId,
-      productName: r.productName,
-      productSku: r.productSku,
-      field: r.field,
-      oldValue: r.oldValue,
-      newValue: r.newValue,
-      changeReason: r.changeReason,
-      source: r.source ?? "manual",
-      batchId: r.batchId,
-      changedBy: r.changedBy,
-      changedByName: r.changedByName ?? null,
-      changedAt: r.changedAt instanceof Date ? r.changedAt.toISOString() : String(r.changedAt),
-      pctChange,
-    };
-  });
-
-  return { data: enriched, nextCursor, hasMore };
+  // price_changes table removed from schema \u2014 return empty results
+  return { data: [], nextCursor: null, hasMore: false };
 }
 
 /**

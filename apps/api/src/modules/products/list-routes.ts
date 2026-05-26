@@ -114,17 +114,9 @@ export function registerProductListRoutes(app: FastifyInstance) {
         purchaseUnit: products.purchaseUnit,
         conversionFactor: products.conversionFactor,
         primarySupplierId: products.primarySupplierId,
-        isSerialized: products.isSerialized,
-        isTire: products.isTire,
         trackInventory: products.trackInventory,
         specialOrder: products.specialOrder,
         discontinued: products.discontinued,
-        vehicleModel: q.vehicleMake && q.vehicleMake !== "__none__"
-          ? sql<string>`(SELECT string_agg(DISTINCT vc.model, ', ' ORDER BY vc.model) FROM vehicle_compatibility vc WHERE vc.product_id = ${products.id} AND vc.make = ${q.vehicleMake})`.as('vehicle_model')
-          : sql<string | null>`null`.as('vehicle_model'),
-        vehicleCount: q.hasVehicles === "true"
-          ? sql<number>`(SELECT COUNT(*)::int FROM vehicle_compatibility vc WHERE vc.product_id = ${products.id})`.as('vehicle_count')
-          : sql<number>`0`.as('vehicle_count'),
       })
       .from(products)
       .leftJoin(inventory, eq(inventory.productId, products.id))

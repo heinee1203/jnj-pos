@@ -1,6 +1,5 @@
 import type { FastifyInstance } from "fastify";
 import {
-  autoTagTires,
   bulkAssignBySearch,
   bulkAssignTag,
 } from "./tag-route-service";
@@ -58,16 +57,4 @@ export async function registerTagBulkRoutes(app: FastifyInstance) {
     return reply.send(result);
   });
 
-  app.post("/auto-tag-tires", async (request, reply) => {
-    const userRole = getUserRole(request);
-    if (!canManageTags(userRole)) {
-      return reply
-        .status(403)
-        .send({ error: "Only ADMIN or MANAGER can auto-tag tires" });
-    }
-
-    const { orgId } = request.storeContext!;
-    const result = await autoTagTires(orgId);
-    return reply.send(result);
-  });
 }
