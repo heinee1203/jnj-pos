@@ -38,6 +38,7 @@ function LocationIcon({ type, className }: { type: string; className?: string })
  * ───────────────────────────────────────────── */
 function LocationSelector() {
   const { locationId, locations, setLocationId } = useAuth();
+  const userLocations = locations.filter((l) => !l.isSystem);
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -64,7 +65,7 @@ function LocationSelector() {
   }, [open]);
 
   const isAllLocations = locationId === ALL_LOCATIONS;
-  const activeLocation = locations.find((l) => l.id === locationId);
+  const activeLocation = userLocations.find((l) => l.id === locationId);
   const displayName = isAllLocations ? "All Locations" : (activeLocation?.name ?? "Select Location");
 
   return (
@@ -138,11 +139,11 @@ function LocationSelector() {
           </button>
 
           {/* Separator */}
-          {locations.length > 0 && (
+          {userLocations.length > 0 && (
             <div className="mx-2.5 my-1 border-t border-border" />
           )}
 
-          {locations.map((loc) => {
+          {userLocations.map((loc) => {
             const isActive = loc.id === locationId;
             return (
               <button
@@ -223,7 +224,7 @@ export function MainArea({ children }: { children: ReactNode }) {
           </button>
           <div className="hidden h-2 w-2 rounded-full bg-success shadow-[0_0_0_4px_rgba(16,185,129,0.12)] md:block" />
           <span className="truncate text-[13px] font-semibold text-foreground">
-            CBROS Autoparts
+            JNJ POS
           </span>
           <span className="hidden text-muted-foreground sm:inline">/</span>
           <span className="hidden text-[13px] text-muted-foreground sm:inline">Admin</span>

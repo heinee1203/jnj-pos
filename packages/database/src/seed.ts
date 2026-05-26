@@ -166,24 +166,29 @@ async function seed() {
   console.log("  Creating organization...");
   const [org] = await db
     .insert(schema.organizations)
-    .values({ name: "JNJ School Supplies & Merchandise", slug: "jnj-school-supplies" })
+    .values({ name: "Jeff & Julie Multi-Trade", slug: "jeff-julie-multi-trade" })
     .returning();
 
   // ── 2. Create Locations ──
   console.log("  Creating locations...");
-  const [warehouse] = await db
+  const [mainBranch] = await db
     .insert(schema.locations)
-    .values({ orgId: org.id, name: "Central Warehouse", code: "WAREHOUSE", type: "WAREHOUSE", address: "123 Industrial Ave" })
+    .values({ orgId: org.id, name: "Main Branch", code: "MAIN", type: "STORE", address: "Main St, City Center" })
     .returning();
 
-  const [store1] = await db
+  const [toysBranch] = await db
     .insert(schema.locations)
-    .values({ orgId: org.id, name: "Downtown Retail Store", code: "DOWNTOWN", type: "RETAIL_STORE", address: "456 Main St" })
+    .values({ orgId: org.id, name: "Toys Branch", code: "TOYS", type: "STORE", address: "Toy District" })
     .returning();
 
-  const [store2] = await db
+  const [igualdadWarehouse] = await db
     .insert(schema.locations)
-    .values({ orgId: org.id, name: "Uptown Retail Store", code: "UPTOWN", type: "RETAIL_STORE", address: "789 Commerce Blvd" })
+    .values({ orgId: org.id, name: "Igualdad Warehouse", code: "IGUALDAD", type: "WAREHOUSE", address: "Igualdad St" })
+    .returning();
+
+  const [magsaysayWarehouse] = await db
+    .insert(schema.locations)
+    .values({ orgId: org.id, name: "Magsaysay Warehouse", code: "MAGSAYSAY", type: "WAREHOUSE", address: "Magsaysay Ave" })
     .returning();
 
   // TRANSIT_BUFFER — system location for in-transit stock
@@ -199,7 +204,8 @@ async function seed() {
     })
     .returning();
 
-  const allLocations = [warehouse, store1, store2];
+  const allLocations = [mainBranch, toysBranch, igualdadWarehouse, magsaysayWarehouse];
+  const warehouseIds = new Set([igualdadWarehouse.id, magsaysayWarehouse.id]);
   // Note: TRANSIT_BUFFER is NOT in allLocations — no inventory seeded for it
 
   // ── 3. Create Admin User ──
@@ -209,7 +215,7 @@ async function seed() {
     .insert(schema.users)
     .values({
       orgId: org.id,
-      primaryLocationId: warehouse.id,
+      primaryLocationId: mainBranch.id,
       fullName: "Admin User",
       email: "admin@jnj.com",
       passwordHash,
@@ -276,7 +282,7 @@ async function seed() {
 
     for (const product of slice) {
       for (const loc of allLocations) {
-        const isWarehouse = loc.id === warehouse.id;
+        const isWarehouse = warehouseIds.has(loc.id);
         inventoryBatch.push({
           orgId: org.id,
           productId: product.id,
@@ -295,7 +301,7 @@ async function seed() {
 
     if ((batch + 1) % 10 === 0) {
       console.log(
-        `    Distributed ${((batch + 1) * BATCH_SIZE).toLocaleString()} products to 3 locations...`,
+        `    Distributed ${((batch + 1) * BATCH_SIZE).toLocaleString()} products to 4 locations...`,
       );
     }
   }
@@ -303,13 +309,14 @@ async function seed() {
   const elapsed = ((Date.now() - start) / 1000).toFixed(1);
   console.log(`\nSeed complete in ${elapsed}s`);
   console.log(`   Organization: ${org.name} (${org.id})`);
-  console.log(`   Warehouse: ${warehouse.name} (${warehouse.id})`);
-  console.log(`   Store 1: ${store1.name} (${store1.id})`);
-  console.log(`   Store 2: ${store2.name} (${store2.id})`);
+  console.log(`   Main Branch: ${mainBranch.name} (${mainBranch.id})`);
+  console.log(`   Toys Branch: ${toysBranch.name} (${toysBranch.id})`);
+  console.log(`   Igualdad Warehouse: ${igualdadWarehouse.name} (${igualdadWarehouse.id})`);
+  console.log(`   Magsaysay Warehouse: ${magsaysayWarehouse.name} (${magsaysayWarehouse.id})`);
   console.log(`   Transit Buffer: ${transitBuffer.name} (${transitBuffer.id})`);
   console.log(`   Admin: admin@jnj.com / admin12345`);
   console.log(`   Products: ${TOTAL_PRODUCTS.toLocaleString()}`);
-  console.log(`   Inventory rows: ${(TOTAL_PRODUCTS * 3).toLocaleString()}`);
+  console.log(`   Inventory rows: ${(TOTAL_PRODUCTS * 4).toLocaleString()}`);
 
   await client.end();
   process.exit(0);

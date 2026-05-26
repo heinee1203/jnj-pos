@@ -1,7 +1,9 @@
 node_modules/
 dist/
 .env
+.env.local
 *.log
 tmp/
 .next/
 .turbo/
+.pnpm-approve-builds

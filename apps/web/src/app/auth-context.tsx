@@ -29,6 +29,7 @@ export interface LocationInfo {
   type: string;
   address: string | null;
   isActive: boolean;
+  isSystem: boolean;
 }
 
 interface AuthState {

@@ -10,13 +10,13 @@ pnpm monorepo with 3 apps + 2 shared packages:
 
 ## Commands
 - `pnpm dev` — Start API dev server (port 3000)
-- `pnpm web:dev` — Start web frontend (port 3001)
+- `pnpm web:dev` — Start web frontend (port 3010)
 - `pnpm build` — Build all packages for production
 - `pnpm db:generate` — Generate Drizzle migrations from schema changes
 - `pnpm db:migrate` — Run pending migrations against Postgres
 - `pnpm db:seed` — Seed sample products
 - `pnpm db:studio` — Open Drizzle Studio for DB exploration
-- `docker compose up -d` — Start local Postgres (port 5433)
+- `docker compose up -d` — Start local Postgres (port 5434)
 
 ## Architecture
 - **Multi-tenant:** Shared DB, every query filtered by `org_id`
@@ -40,14 +40,14 @@ pnpm monorepo with 3 apps + 2 shared packages:
 - `packages/types/src/schemas.ts` — Zod validation
 
 ## Database
-- PostgreSQL 16 (Docker on port 5433)
+- PostgreSQL 16 (Docker on port 5434)
 - Drizzle ORM with postgres driver
 - Docker: user=jnj, password=jnj_secret, db=jnj_dev
 - Seed admin: admin@jnj.com / admin12345
 
 ## Environment
 - `.env` at monorepo root (not in packages)
-- `DATABASE_URL=postgresql://jnj:jnj_secret@localhost:5433/jnj_dev`
+- `DATABASE_URL=postgresql://jnj:jnj_secret@localhost:5434/jnj_dev`
 
 ## Color Scheme
 Professional blue: primary #1E40AF, accent #3B82F6, sidebar #0F172A, background #F8FAFC

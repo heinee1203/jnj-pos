@@ -2,6 +2,7 @@
 import { resolve } from "path";
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   transpilePackages: ["@jnj/types"],
   outputFileTracingRoot: resolve(import.meta.dirname, "../../"),
   async redirects() {

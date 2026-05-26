@@ -256,10 +256,10 @@ export function Sidebar() {
         {!isCollapsed && (
           <div className="flex flex-col overflow-hidden">
             <span className="truncate text-[13px] font-semibold leading-none tracking-tight text-sidebar-foreground-active">
-              JNJ Trading
+              Jeff &amp; Julie
             </span>
             <span className="mt-0.5 text-[10px] leading-none text-sidebar-muted">
-              School &amp; Office Supplies
+              Multi-Trade
             </span>
           </div>
         )}

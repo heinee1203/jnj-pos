@@ -470,7 +470,7 @@ export default function CustomersPage() {
       <style>@media print { body { margin: 0; } } body { font-family: Arial, sans-serif; } table { width: 100%; border-collapse: collapse; }</style>
     </head><body style="padding:20px">
       <div style="text-align:center;margin-bottom:16px">
-        <h2 style="margin:0;font-size:18px">CBROS Genuine Autoparts</h2>
+        <h2 style="margin:0;font-size:18px">Jeff &amp; Julie Multi-Trade</h2>
         <h3 style="margin:4px 0 0;font-size:15px;font-weight:normal;color:#666">Collection List &mdash; ${today}</h3>
       </div>
       <div style="display:flex;gap:24px;margin-bottom:12px;font-size:13px;color:#555">

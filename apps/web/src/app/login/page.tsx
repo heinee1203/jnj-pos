@@ -62,10 +62,10 @@ export default function LoginPage() {
         {/* Brand */}
         <div className="mb-8 text-center">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground text-lg font-bold shadow-lg">
-            C
+            J
           </div>
           <h1 className="mt-4 text-xl font-semibold text-foreground">
-            CBROS Genuine Autoparts
+            JNJ POS
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Sign in to the admin dashboard
@@ -121,7 +121,7 @@ export default function LoginPage() {
         </form>
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          Automotive ERP &amp; POS Administration
+          School Supply &amp; Merchandise POS
         </p>
       </div>
     </div>
