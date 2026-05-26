@@ -7,7 +7,7 @@
     "dev": "tsx watch src/server.ts",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test \"src/**/*.test.ts\"",
-    "build": "tsc",
+    "build": "pnpm --filter @jnj/types build && pnpm --filter @jnj/database build && echo 'API uses tsx at runtime'",
     "start": "tsx src/server.ts"
   },
   "dependencies": {
