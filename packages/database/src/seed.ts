@@ -162,6 +162,10 @@ async function seed() {
   const client = postgres(connectionString, { max: 1 });
   const db = drizzle(client, { schema });
 
+  // Ensure pg_trgm extension exists
+  console.log("  Ensuring pg_trgm extension...");
+  await client`CREATE EXTENSION IF NOT EXISTS pg_trgm;`;
+
   // ── 1. Create Organization ──
   console.log("  Creating organization...");
   const [org] = await db
