@@ -24,7 +24,7 @@ export function registerProductBulkRoutes(app: FastifyInstance) {
     const { orgId } = request.storeContext!;
     const body = request.body as {
       productIds?: string[];
-      filter?: { search?: string; familyId?: string; categoryId?: string; brandId?: string };
+      filter?: { search?: string; categoryId?: string; brandId?: string };
       updates: BulkProductUpdateInput;
     };
 
@@ -138,7 +138,7 @@ export function registerProductBulkRoutes(app: FastifyInstance) {
     const { orgId } = request.storeContext!;
     const body = request.body as {
       productIds?: string[];
-      filter?: { search?: string; familyId?: string; categoryId?: string; brandId?: string };
+      filter?: { search?: string; categoryId?: string; brandId?: string };
       action: "set" | "add" | "remove";
       locationIds: string[];
     };

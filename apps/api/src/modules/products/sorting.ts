@@ -1,4 +1,4 @@
-﻿import { brands, categories, inventory, productSubcategories, products } from "@jnj/database/schema";
+﻿import { brands, categories, inventory, products } from "@jnj/database/schema";
 import { asc, desc, sql } from "drizzle-orm";
 
 // Allowed sort columns mapped to their Drizzle column references.
@@ -11,7 +11,6 @@ export const SORT_COLUMNS: Record<string, any> = {
   stockLevel: inventory.stockLevel,
   reorderPoint: inventory.reorderPoint,
   categoryName: categories.name,
-  subcategoryName: productSubcategories.name,
   brandName: brands.name,
   margin: sql`CASE WHEN CAST(${products.unitPrice} AS numeric) > 0 THEN (CAST(${products.unitPrice} AS numeric) - CAST(${products.costPrice} AS numeric)) / CAST(${products.unitPrice} AS numeric) * 100 ELSE 0 END`,
 };

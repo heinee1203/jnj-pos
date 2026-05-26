@@ -219,7 +219,6 @@ interface CartItem {
   productId: string;
   categoryId?: string;
   brandId?: string;
-  familyId?: string;
   quantity: number;
   unitPrice: number;
 }
@@ -273,9 +272,6 @@ export async function calculateDiscounts(orgId: string, items: CartItem[], custo
       } else if (rule.scope === "brand" && item.brandId) {
         const ids = rule.scope_ids ? JSON.parse(rule.scope_ids) : [];
         inScope = ids.includes(item.brandId);
-      } else if (rule.scope === "family" && item.familyId) {
-        const ids = rule.scope_ids ? JSON.parse(rule.scope_ids) : [];
-        inScope = ids.includes(item.familyId);
       } else if (rule.scope === "product") {
         const ids = rule.scope_ids ? JSON.parse(rule.scope_ids) : [];
         inScope = ids.includes(item.productId);

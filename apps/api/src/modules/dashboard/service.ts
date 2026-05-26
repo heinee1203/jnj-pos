@@ -5,7 +5,6 @@ import {
   locations,
   categories,
   stockMetrics,
-  productFamilies,
 } from "@jnj/database/schema";
 import { eq, and, lte, sql, type SQL } from "drizzle-orm";
 
@@ -364,7 +363,6 @@ async function getLowStockItems(
     ...locationConditions,
     lte(inventory.stockLevel, inventory.reorderPoint),
     eq(products.isParent, false),
-    sql`(${productFamilies.slug} IS NULL OR ${productFamilies.slug} != 'non-items')`,
     sql`(${categories.name} IS NULL OR ${categories.name} NOT IN ('Count', 'Price Add', 'Labor'))
     AND NOT EXISTS (
       SELECT 1 FROM categories exc_cat
@@ -401,7 +399,6 @@ async function getLowStockItems(
     .innerJoin(products, eq(inventory.productId, products.id))
     .innerJoin(locations, eq(inventory.locationId, locations.id))
     .leftJoin(categories, eq(products.categoryId, categories.id))
-    .leftJoin(productFamilies, eq(products.familyId, productFamilies.id))
     .leftJoin(stockMetrics, and(eq(stockMetrics.productId, products.id), eq(stockMetrics.orgId, products.orgId)))
     .where(and(...conditions))
     .orderBy(

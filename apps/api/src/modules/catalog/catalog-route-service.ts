@@ -6,9 +6,7 @@ import {
   categories,
   inventory,
   locations,
-  productFamilies,
   products,
-  productSubcategories,
 } from "@jnj/database/schema";
 import {
   and,
@@ -37,9 +35,7 @@ function buildCatalogProductSelect() {
       "parent_name",
     ),
     brandName: brands.name,
-    familyName: productFamilies.name,
     categoryName: categories.name,
-    subcategoryName: productSubcategories.name,
     oemNumber: products.oemNumber,
     unitPrice: products.unitPrice,
     costPrice: products.costPrice,
@@ -53,9 +49,7 @@ function mapCatalogProduct(
     name: string;
     parentName: string | null;
     brandName: string | null;
-    familyName: string | null;
     categoryName: string | null;
-    subcategoryName: string | null;
     oemNumber: string | null;
     unitPrice: string | null;
     costPrice: string | null;
@@ -71,9 +65,7 @@ function mapCatalogProduct(
     sku: product.sku,
     name: displayName,
     brand: product.brandName,
-    family: product.familyName,
     category: product.categoryName,
-    subcategory: product.subcategoryName,
     oem_number: product.oemNumber,
     sell_price: parseFloat(product.unitPrice || "0"),
     cost_price: parseFloat(product.costPrice || "0"),
@@ -93,9 +85,6 @@ function buildSearchConditions(orgId: string, query: CatalogSearchQuery) {
 
   if (query.categoryId) {
     conditions.push(eq(products.categoryId, query.categoryId));
-  }
-  if (query.familyId) {
-    conditions.push(eq(products.familyId, query.familyId));
   }
   if (query.brandId) {
     conditions.push(eq(products.brandId, query.brandId));
@@ -197,12 +186,7 @@ export async function searchCatalog(orgId: string, query: CatalogSearchQuery) {
     .select(buildCatalogProductSelect())
     .from(products)
     .leftJoin(brands, eq(products.brandId, brands.id))
-    .leftJoin(productFamilies, eq(products.familyId, productFamilies.id))
     .leftJoin(categories, eq(products.categoryId, categories.id))
-    .leftJoin(
-      productSubcategories,
-      eq(products.subcategoryId, productSubcategories.id),
-    )
     .where(and(...conditions))
     .orderBy(
       desc(
@@ -249,12 +233,7 @@ export async function getCatalogItem(orgId: string, id: string) {
     .select(buildCatalogProductSelect())
     .from(products)
     .leftJoin(brands, eq(products.brandId, brands.id))
-    .leftJoin(productFamilies, eq(products.familyId, productFamilies.id))
     .leftJoin(categories, eq(products.categoryId, categories.id))
-    .leftJoin(
-      productSubcategories,
-      eq(products.subcategoryId, productSubcategories.id),
-    )
     .where(and(eq(products.id, id), eq(products.orgId, orgId)))
     .limit(1);
 

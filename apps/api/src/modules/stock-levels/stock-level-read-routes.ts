@@ -32,9 +32,7 @@ export async function registerStockLevelReadRoutes(app: FastifyInstance) {
     const allLocations = q.allLocations === "true" || !locationId;
     const search = q.search;
     const category = q.category;
-    const familyId = q.familyId;
     const categoryId = q.categoryId;
-    const subcategoryId = q.subcategoryId;
     const stockStatus = q.stockStatus;
     const belowReorder = q.belowReorder === "true";
     const overrideLocationId = q.locationId;
@@ -69,9 +67,7 @@ export async function registerStockLevelReadRoutes(app: FastifyInstance) {
         allLocations: true,
         search,
         category,
-        familyId,
         categoryId,
-        subcategoryId,
         stockStatus: stockStatus as any,
         belowReorder,
         sortBy,

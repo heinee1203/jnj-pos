@@ -123,8 +123,6 @@ export async function createVariant(
       isParent: products.isParent,
       category: products.category,
       categoryId: products.categoryId,
-      subcategoryId: products.subcategoryId,
-      familyId: products.familyId,
       name: products.name,
     })
     .from(products)
@@ -198,8 +196,6 @@ export async function createVariant(
         mnemonicSku,
         category: parent.category,
         categoryId: parent.categoryId,
-        subcategoryId: parent.subcategoryId,
-        familyId: parent.familyId,
         unitPrice: input.unitPrice || "0.00",
         costPrice: input.costPrice || "0.00",
         barcode: barcode || null,

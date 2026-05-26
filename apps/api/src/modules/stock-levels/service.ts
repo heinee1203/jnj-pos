@@ -2,7 +2,6 @@
 import {
   inventory,
   products,
-  productFamilies,
   categories,
   locations,
   stockMetrics,
@@ -29,7 +28,6 @@ export interface StockLevelRow {
   productSku: string;
   mnemonicSku: string;
   category: string;
-  familyName: string | null;
   locationId: string;
   locationName: string;
   locationType: string;
@@ -94,9 +92,7 @@ export interface StockLevelsQueryParams {
   locationId?: string;
   search?: string;
   category?: string;
-  familyId?: string;
   categoryId?: string;
-  subcategoryId?: string;
   stockStatus?: "IN_STOCK" | "LOW_STOCK" | "OUT_OF_STOCK";
   belowReorder?: boolean;
   sortBy?: SortField;
@@ -146,8 +142,6 @@ export async function querySummary(params: StockLevelsQueryParams): Promise<Stoc
 
   const conditions: SQL[] = [
     eq(products.orgId, params.orgId),
-    // Exclude non-inventory items
-    sql`(${productFamilies.slug} IS NULL OR ${productFamilies.slug} != 'non-items')`,
     sql`NOT EXISTS (
       SELECT 1 FROM categories exc_cat
       WHERE exc_cat.name IN ('Count', 'Price Add', 'Labor')
@@ -192,7 +186,6 @@ export async function querySummary(params: StockLevelsQueryParams): Promise<Stoc
     .innerJoin(products, eq(inventory.productId, products.id))
     .innerJoin(locations, eq(inventory.locationId, locations.id))
     .leftJoin(categories, eq(products.categoryId, categories.id))
-    .leftJoin(productFamilies, eq(products.familyId, productFamilies.id))
     .where(and(...conditions));
 
   const row = rows[0]!;
@@ -218,8 +211,6 @@ export async function queryStockLevels(
 
   const conditions: SQL[] = [
     eq(products.orgId, params.orgId),
-    // Exclude non-inventory items
-    sql`(${productFamilies.slug} IS NULL OR ${productFamilies.slug} != 'non-items')`,
     sql`NOT EXISTS (
       SELECT 1 FROM categories exc_cat
       WHERE exc_cat.name IN ('Count', 'Price Add', 'Labor')
@@ -285,7 +276,6 @@ export async function queryStockLevels(
         productSku: products.sku,
         mnemonicSku: products.mnemonicSku,
         category: sql<string>`coalesce(${categories.name}, 'Uncategorized')`.as("category_name"),
-        familyName: productFamilies.name,
         locationId: inventory.locationId,
         locationName: locations.name,
         locationType: locations.type,
@@ -316,7 +306,6 @@ export async function queryStockLevels(
       .from(inventory)
       .innerJoin(products, eq(inventory.productId, products.id))
       .innerJoin(locations, eq(inventory.locationId, locations.id))
-      .leftJoin(productFamilies, eq(products.familyId, productFamilies.id))
       .leftJoin(categories, eq(products.categoryId, categories.id))
       .leftJoin(stockMetrics, and(eq(stockMetrics.productId, products.id), eq(stockMetrics.orgId, products.orgId)))
       .where(and(...conditions))
@@ -355,7 +344,6 @@ export async function queryStockLevels(
     productSku: row.productSku,
     mnemonicSku: row.mnemonicSku,
     category: row.category,
-    familyName: row.familyName,
     locationId: row.locationId,
     locationName: row.locationName,
     locationType: row.locationType,
@@ -408,7 +396,6 @@ export interface ProductStockRow {
   productName: string;
   productSku: string;
   category: string;
-  familyName: string | null;
   totalStock: number;
   totalReserved: number;
   totalAvailable: number;
@@ -449,8 +436,6 @@ export async function queryProductStockLevels(
     eq(products.isParent, false),
     eq(locations.isActive, true),
     eq(inventory.availableForSale, true),
-    // Exclude non-inventory items
-    sql`(${productFamilies.slug} IS NULL OR ${productFamilies.slug} != 'non-items')`,
     sql`NOT EXISTS (
       SELECT 1 FROM categories exc_cat
       WHERE exc_cat.name IN ('Count', 'Price Add', 'Labor')
@@ -475,14 +460,8 @@ export async function queryProductStockLevels(
   if (params.category) {
     conditions.push(eq(categories.name, params.category));
   }
-  if (params.familyId) {
-    conditions.push(eq(products.familyId, params.familyId));
-  }
   if (params.categoryId) {
     conditions.push(eq(products.categoryId, params.categoryId));
-  }
-  if (params.subcategoryId) {
-    conditions.push(eq(products.subcategoryId, params.subcategoryId));
   }
 
   // Cursor on product id
@@ -498,7 +477,6 @@ export async function queryProductStockLevels(
       parentProductId: products.parentProductId,
       productSku: products.sku,
       category: sql<string>`coalesce(${categories.name}, 'Uncategorized')`.as("category_name"),
-      familyName: productFamilies.name,
       totalStock: sql<number>`coalesce(sum(${inventory.stockLevel}), 0)::int`.as("total_stock"),
       totalReserved: sql<number>`coalesce(sum(${inventory.reservedLevel}), 0)::int`.as("total_reserved"),
       totalAvailable: sql<number>`coalesce(sum(${inventory.stockLevel} - ${inventory.reservedLevel}), 0)::int`.as("total_available"),
@@ -527,7 +505,6 @@ export async function queryProductStockLevels(
     .from(products)
     .innerJoin(inventory, eq(inventory.productId, products.id))
     .innerJoin(locations, eq(inventory.locationId, locations.id))
-    .leftJoin(productFamilies, eq(products.familyId, productFamilies.id))
     .leftJoin(categories, eq(products.categoryId, categories.id))
     .leftJoin(stockMetrics, and(eq(stockMetrics.productId, products.id), eq(stockMetrics.orgId, products.orgId)))
     .where(and(...conditions))
@@ -537,7 +514,6 @@ export async function queryProductStockLevels(
       products.parentProductId,
       products.sku,
       categories.name,
-      productFamilies.name,
       products.sellingUnit,
       products.purchaseUnit,
       products.conversionFactor,
@@ -602,7 +578,6 @@ export async function queryProductStockLevels(
       productName: displayName,
       productSku: row.productSku,
       category: row.category,
-      familyName: row.familyName,
       totalStock,
       totalReserved: row.totalReserved,
       totalAvailable: row.totalAvailable,
@@ -675,9 +650,7 @@ export async function queryProductStockLevels(
         ${params.category
           ? sql`AND EXISTS (SELECT 1 FROM categories c2 WHERE c2.id = p.category_id AND c2.name = ${params.category})`
           : sql``}
-        ${params.familyId ? sql`AND p.family_id = ${params.familyId}` : sql``}
         ${params.categoryId ? sql`AND p.category_id = ${params.categoryId}` : sql``}
-        ${params.subcategoryId ? sql`AND p.subcategory_id = ${params.subcategoryId}` : sql``}
       GROUP BY p.id
     ) sub
   `);
