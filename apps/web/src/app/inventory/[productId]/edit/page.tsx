@@ -10,6 +10,8 @@ import {
   DollarSign,
   Loader2,
   Package,
+  Plus,
+  Trash2,
   Warehouse,
   type LucideIcon,
 } from "lucide-react";
@@ -19,7 +21,7 @@ import { useSidebar } from "@/app/sidebar-context";
 import { SelectWithQuickAdd } from "@/components/select-with-quick-add";
 import { useBrands, useCreateBrand } from "@/hooks/use-brands";
 import { useCategories, useCreateCategory } from "@/hooks/use-categories";
-import { useProductDetail, useUpdateProduct } from "@/hooks/use-products";
+import { useProductDetail, useUpdateProduct, type ProductPriceTier } from "@/hooks/use-products";
 import { cn } from "@/lib/utils";
 
 import { generateEan13Barcode } from "../../lib/identifier-generators";
@@ -31,6 +33,37 @@ const fieldClass =
 const packagingUnits = ["", "box", "case", "pack", "carton", "set", "bag", "bundle"];
 const purchaseUnits = ["", "piece", "box", "case", "pack", "carton", "bag", "bundle"];
 const sellingUnits = ["piece", "each", "pair", "set", "box", "case", "pack"];
+
+type UnitPriceTierDraft = {
+  localId: string;
+  id?: string;
+  label: string;
+  quantity: string;
+  price: string;
+};
+
+function makeLocalId() {
+  return typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random()}`;
+}
+
+function createTierDraft(
+  tier?: ProductPriceTier,
+  fallback?: { label: string; quantity: number; price: string },
+): UnitPriceTierDraft {
+  return {
+    localId: tier?.id ?? makeLocalId(),
+    id: tier?.id,
+    label: tier?.label ?? fallback?.label ?? "",
+    quantity: String(tier?.quantity ?? fallback?.quantity ?? ""),
+    price: tier?.price ?? fallback?.price ?? "",
+  };
+}
+
+function isMoney(value: string) {
+  return /^\d+(\.\d{1,2})?$/.test(value);
+}
 
 export default function EditInventoryItemPage() {
   const params = useParams<{ productId: string }>();
@@ -58,6 +91,7 @@ export default function EditInventoryItemPage() {
   const [description, setDescription] = useState("");
   const [unitPrice, setUnitPrice] = useState("");
   const [costPrice, setCostPrice] = useState("");
+  const [priceTiers, setPriceTiers] = useState<UnitPriceTierDraft[]>([]);
   const [barcode, setBarcode] = useState("");
   const [reorderPoint, setReorderPoint] = useState("5");
   const [unitsPerCase, setUnitsPerCase] = useState("1");
@@ -77,6 +111,17 @@ export default function EditInventoryItemPage() {
     setDescription(product.description ?? "");
     setUnitPrice(product.unitPrice ?? "0.00");
     setCostPrice(product.costPrice ?? "0.00");
+    setPriceTiers(
+      product.priceTiers?.length
+        ? product.priceTiers.map((tier) => createTierDraft(tier))
+        : [
+            createTierDraft(undefined, {
+              label: product.sellingUnit ?? "piece",
+              quantity: 1,
+              price: product.unitPrice ?? "0.00",
+            }),
+          ],
+    );
     setBarcode(product.barcode ?? "");
     setReorderPoint(String(product.reorderPoint ?? 5));
     setUnitsPerCase(String(product.unitsPerCase ?? 1));
@@ -106,16 +151,87 @@ export default function EditInventoryItemPage() {
     return { id: res?.data?.id ?? res?.id ?? "" };
   };
 
+  const updatePriceTier = (
+    localId: string,
+    field: keyof Omit<UnitPriceTierDraft, "localId" | "id">,
+    value: string,
+  ) => {
+    setPriceTiers((prev) =>
+      prev.map((tier) => (tier.localId === localId ? { ...tier, [field]: value } : tier)),
+    );
+  };
+
+  const addPriceTier = (label = "", quantity = "") => {
+    setPriceTiers((prev) => {
+      if (quantity && prev.some((tier) => tier.quantity === quantity)) return prev;
+      return [
+        ...prev,
+        {
+          localId: makeLocalId(),
+          label,
+          quantity,
+          price: "",
+        },
+      ];
+    });
+  };
+
+  const removePriceTier = (localId: string) => {
+    setPriceTiers((prev) => prev.filter((tier) => tier.localId !== localId));
+  };
+
+  const normalizePriceTiers = (): ProductPriceTier[] | null => {
+    const rows = priceTiers
+      .map((tier) => ({
+        id: tier.id,
+        label: tier.label.trim(),
+        quantity: parseInt(tier.quantity, 10),
+        price: tier.price.trim(),
+      }))
+      .filter((tier) => tier.label || tier.quantity || tier.price);
+
+    for (const tier of rows) {
+      if (!tier.label) {
+        setError("Enter a unit name for each unit price.");
+        return null;
+      }
+      if (!Number.isInteger(tier.quantity) || tier.quantity < 1) {
+        setError(`Enter a valid quantity for ${tier.label}.`);
+        return null;
+      }
+      if (!isMoney(tier.price)) {
+        setError(`Enter a valid price for ${tier.label}.`);
+        return null;
+      }
+    }
+
+    const uniqueQuantities = new Set(rows.map((tier) => tier.quantity));
+    if (uniqueQuantities.size !== rows.length) {
+      setError("Each unit price must use a different quantity.");
+      return null;
+    }
+
+    return rows;
+  };
+
   const handleSave = async () => {
     if (!productId || !isValid) return;
     setError(null);
     setSaved(false);
 
     try {
+      const normalizedPriceTiers = normalizePriceTiers();
+      if (!normalizedPriceTiers) return;
+
+      const baseUnitPrice =
+        normalizedPriceTiers.find((tier) => tier.quantity === 1)?.price ||
+        unitPrice ||
+        "0.00";
+
       await updateProduct.mutateAsync({
         id: productId,
         name: name.trim(),
-        unitPrice: unitPrice || "0.00",
+        unitPrice: baseUnitPrice,
         ...(showCost ? { costPrice: costPrice || "0.00" } : {}),
         ...(barcode.trim() ? { barcode: barcode.trim() } : {}),
         categoryId: categoryId || null,
@@ -127,7 +243,9 @@ export default function EditInventoryItemPage() {
         sellingUnit: sellingUnit || "piece",
         purchaseUnit: purchaseUnit || null,
         conversionFactor: purchaseUnit ? parseFloat(conversionFactor) || 1 : 1,
+        priceTiers: normalizedPriceTiers,
       });
+      setUnitPrice(baseUnitPrice);
       setSaved(true);
     } catch (err: any) {
       setError(err?.message || "Failed to save item setup");
@@ -242,6 +360,14 @@ export default function EditInventoryItemPage() {
               </>
             )}
           </div>
+          <UnitPriceTiersEditor
+            tiers={priceTiers}
+            baseSellingUnit={sellingUnit}
+            unitsPerCase={unitsPerCase}
+            onAdd={addPriceTier}
+            onRemove={removePriceTier}
+            onUpdate={updatePriceTier}
+          />
         </SetupSection>
 
         <SetupSection icon={Warehouse} title="Inventory Setup">
@@ -304,6 +430,125 @@ export default function EditInventoryItemPage() {
             {isSaving ? "Saving..." : "Save Setup"}
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function UnitPriceTiersEditor({
+  tiers,
+  baseSellingUnit,
+  unitsPerCase,
+  onAdd,
+  onRemove,
+  onUpdate,
+}: {
+  tiers: UnitPriceTierDraft[];
+  baseSellingUnit: string;
+  unitsPerCase: string;
+  onAdd: (label?: string, quantity?: string) => void;
+  onRemove: (localId: string) => void;
+  onUpdate: (
+    localId: string,
+    field: keyof Omit<UnitPriceTierDraft, "localId" | "id">,
+    value: string,
+  ) => void;
+}) {
+  const caseQty = Math.max(1, parseInt(unitsPerCase, 10) || 1);
+  const presetButtons = [
+    { label: baseSellingUnit || "piece", quantity: "1" },
+    { label: "dozen", quantity: "12" },
+    { label: "CASE", quantity: String(caseQty) },
+  ];
+
+  return (
+    <div className="mt-4 border-t border-border pt-3">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <FieldLabel>Unit Prices</FieldLabel>
+        <div className="flex flex-wrap items-center gap-1.5">
+          {presetButtons.map((preset) => (
+            <button
+              key={`${preset.label}-${preset.quantity}`}
+              type="button"
+              onClick={() => onAdd(preset.label, preset.quantity)}
+              className="inline-flex h-7 items-center gap-1 rounded-md border border-border bg-background px-2 text-[11px] font-medium text-foreground transition-colors hover:bg-muted"
+            >
+              <Plus size={12} />
+              {preset.label}
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={() => onAdd()}
+            className="inline-flex h-7 items-center gap-1 rounded-md bg-primary px-2 text-[11px] font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            <Plus size={12} />
+            Custom
+          </button>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        {tiers.length === 0 ? (
+          <div className="rounded-lg border border-dashed border-border px-3 py-4 text-center text-[12px] text-muted-foreground">
+            Add at least one unit price.
+          </div>
+        ) : (
+          tiers.map((tier) => {
+            const quantity = parseInt(tier.quantity, 10) || 0;
+            const price = parseFloat(tier.price) || 0;
+            const equivalent = quantity > 1 && price > 0 ? (price / quantity).toFixed(2) : null;
+
+            return (
+              <div key={tier.localId} className="grid grid-cols-[1.1fr_0.8fr_1fr_auto] items-end gap-2">
+                <div>
+                  <FieldLabel>Unit</FieldLabel>
+                  <input
+                    value={tier.label}
+                    onChange={(event) => onUpdate(tier.localId, "label", event.target.value.slice(0, 50))}
+                    placeholder="piece, dozen, CASE..."
+                    className={fieldClass}
+                  />
+                </div>
+                <div>
+                  <FieldLabel>Qty in {baseSellingUnit || "pieces"}</FieldLabel>
+                  <input
+                    type="number"
+                    min="1"
+                    value={tier.quantity}
+                    onChange={(event) => onUpdate(tier.localId, "quantity", event.target.value)}
+                    className={fieldClass}
+                  />
+                </div>
+                <div>
+                  <FieldLabel>Price</FieldLabel>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={tier.price}
+                    onChange={(event) => onUpdate(tier.localId, "price", event.target.value)}
+                    placeholder="0.00"
+                    className={fieldClass}
+                  />
+                  {equivalent && (
+                    <p className="mt-1 text-[11px] text-muted-foreground">
+                      {equivalent} per {baseSellingUnit || "piece"}
+                    </p>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onRemove(tier.localId)}
+                  className="mb-0.5 flex h-8 w-8 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                  aria-label={`Remove ${tier.label || "unit price"}`}
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            );
+          })
+        )}
       </div>
     </div>
   );

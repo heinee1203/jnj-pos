@@ -1,6 +1,6 @@
 ﻿import type { FastifyInstance } from "fastify";
 import { db } from "@jnj/database";
-import { brands, categories, inventory, locations, products } from "@jnj/database/schema";
+import { brands, categories, inventory, locations, priceTiers as productPriceTiers, products } from "@jnj/database/schema";
 import { and, asc, eq, sql } from "drizzle-orm";
 
 export function registerProductSearchRoutes(app: FastifyInstance) {
@@ -215,7 +215,28 @@ export function registerProductDetailReadRoutes(app: FastifyInstance) {
       variants = Array.from(variantMap.values());
     }
 
-    return reply.send({ ...row, vehicleCompatibility: [], variants });
+    const tiers = await db
+      .select({
+        id: productPriceTiers.id,
+        label: productPriceTiers.label,
+        quantity: productPriceTiers.minQty,
+        price: productPriceTiers.unitPrice,
+      })
+      .from(productPriceTiers)
+      .where(and(eq(productPriceTiers.productId, id), eq(productPriceTiers.orgId, orgId)))
+      .orderBy(asc(productPriceTiers.minQty), asc(productPriceTiers.label));
+
+    return reply.send({
+      ...row,
+      vehicleCompatibility: [],
+      variants,
+      priceTiers: tiers.map((tier) => ({
+        id: tier.id,
+        label: tier.label ?? `${tier.quantity}`,
+        quantity: tier.quantity,
+        price: tier.price,
+      })),
+    });
   });
 
   /**

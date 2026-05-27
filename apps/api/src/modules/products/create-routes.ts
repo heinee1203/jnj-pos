@@ -1,6 +1,6 @@
 ﻿import type { FastifyInstance } from "fastify";
 import { db } from "@jnj/database";
-import { inventory, products } from "@jnj/database/schema";
+import { inventory, priceTiers as productPriceTiers, products } from "@jnj/database/schema";
 import { and, eq } from "drizzle-orm";
 import { createProductSchema, generateEan13, isValidBarcode } from "@jnj/types";
 
@@ -176,6 +176,20 @@ export function registerProductCreateRoutes(app: FastifyInstance) {
           barcode: finalBarcode,
         }))
         .returning();
+
+      if (!hasVariants && parsed.data.priceTiers && parsed.data.priceTiers.length > 0) {
+        await tx.insert(productPriceTiers).values(
+          parsed.data.priceTiers.map((tier) => ({
+            productId: product.id,
+            orgId,
+            label: tier.label.trim(),
+            minQty: tier.quantity,
+            maxQty: null,
+            unitPrice: tier.price,
+            casePrice: null,
+          })),
+        );
+      }
 
       // 3. Create variant children if this is a parent
       const createdVariants: any[] = [];

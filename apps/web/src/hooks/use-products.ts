@@ -50,6 +50,13 @@ export interface ProductsResponse {
   grouped?: boolean;
 }
 
+export interface ProductPriceTier {
+  id?: string;
+  label: string;
+  quantity: number;
+  price: string;
+}
+
 export type SortField =
   | "name"
   | "sku"
@@ -186,6 +193,7 @@ export interface CreateProductPayload {
   sellingUnit?: string;
   purchaseUnit?: string | null;
   conversionFactor?: number;
+  priceTiers?: ProductPriceTier[];
   primarySupplierId?: string | null;
   isSerialized?: boolean;
   vehicleCompatibility?: {
@@ -240,6 +248,7 @@ export interface UpdateProductPayload {
   sellingUnit?: string;
   purchaseUnit?: string | null;
   conversionFactor?: number;
+  priceTiers?: ProductPriceTier[];
   primarySupplierId?: string | null;
   reorderEnabled?: boolean;
   customReorderPoint?: number | null;
@@ -277,6 +286,7 @@ export interface ProductDetail extends ProductRow {
   sellingUnit: string | null;
   purchaseUnit: string | null;
   conversionFactor: string | number | null;
+  priceTiers: ProductPriceTier[];
   vehicleCompatibility: {
     id: string;
     make: string;

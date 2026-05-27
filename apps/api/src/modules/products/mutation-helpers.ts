@@ -32,13 +32,20 @@ export function buildVariantProductName(parentName: string, suffix: string) {
 }
 
 export function splitProductUpdatePayload<T extends Record<string, any>>(updates: T) {
-  const { reorderPoint, newVariants, conversionFactor: rawConversionFactor, ...productUpdates } = updates;
+  const {
+    reorderPoint,
+    newVariants,
+    priceTiers,
+    conversionFactor: rawConversionFactor,
+    ...productUpdates
+  } = updates;
   if (rawConversionFactor !== undefined) {
     (productUpdates as Record<string, any>).conversionFactor = String(rawConversionFactor);
   }
 
   return {
     newVariants,
+    priceTiers,
     productUpdates,
     reorderPoint,
   };

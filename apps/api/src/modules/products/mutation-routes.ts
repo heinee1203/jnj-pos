@@ -1,8 +1,14 @@
 ﻿import type { FastifyInstance } from "fastify";
 import { db } from "@jnj/database";
-import { brands, categories, inventory, products } from "@jnj/database/schema";
-import { and, eq, inArray, sql } from "drizzle-orm";
-import { generateEan13, isValidBarcode, updateProductSchema, type VariantItem } from "@jnj/types";
+import { brands, categories, inventory, priceTiers as productPriceTiers, products } from "@jnj/database/schema";
+import { and, asc, eq, inArray, sql } from "drizzle-orm";
+import {
+  generateEan13,
+  isValidBarcode,
+  updateProductSchema,
+  type ProductPriceTierInput,
+  type VariantItem,
+} from "@jnj/types";
 
 import {
   buildVariantProductName,
@@ -53,9 +59,15 @@ export function registerProductUpdateRoutes(app: FastifyInstance) {
       }
     }
 
-    // Build product update set (excluding reorderPoint and newVariants which are handled separately)
-    const { reorderPoint, productUpdates, newVariants: rawNewVariants } = splitProductUpdatePayload(updates);
+    // Build product update set (excluding fields handled separately)
+    const {
+      reorderPoint,
+      productUpdates,
+      newVariants: rawNewVariants,
+      priceTiers: rawPriceTiersUntyped,
+    } = splitProductUpdatePayload(updates);
     const newVariants = rawNewVariants as VariantItem[] | undefined;
+    const rawPriceTiers = rawPriceTiersUntyped as ProductPriceTierInput[] | undefined;
     const hasProductUpdates = Object.keys(productUpdates).length > 0;
 
     // Validate new variant SKU uniqueness
@@ -105,6 +117,28 @@ export function registerProductUpdateRoutes(app: FastifyInstance) {
           .update(inventory)
           .set({ reorderPoint })
           .where(and(eq(inventory.productId, id), eq(inventory.locationId, locationId)));
+      }
+
+      // Replace unit-based prices when supplied. Existing rows are preserved
+      // when the client omits priceTiers entirely.
+      if (rawPriceTiers !== undefined) {
+        await tx
+          .delete(productPriceTiers)
+          .where(and(eq(productPriceTiers.productId, id), eq(productPriceTiers.orgId, orgId)));
+
+        if (rawPriceTiers.length > 0) {
+          await tx.insert(productPriceTiers).values(
+            rawPriceTiers.map((tier) => ({
+              productId: id,
+              orgId,
+              label: tier.label.trim(),
+              minQty: tier.quantity,
+              maxQty: null,
+              unitPrice: tier.price,
+              casePrice: null,
+            })),
+          );
+        }
       }
 
       // Create new variant children if provided
@@ -209,7 +243,27 @@ export function registerProductUpdateRoutes(app: FastifyInstance) {
         .where(eq(products.id, id))
         .limit(1);
 
-      return { ...row, newVariants: createdVariants };
+      const tiers = await tx
+        .select({
+          id: productPriceTiers.id,
+          label: productPriceTiers.label,
+          quantity: productPriceTiers.minQty,
+          price: productPriceTiers.unitPrice,
+        })
+        .from(productPriceTiers)
+        .where(and(eq(productPriceTiers.productId, id), eq(productPriceTiers.orgId, orgId)))
+        .orderBy(asc(productPriceTiers.minQty), asc(productPriceTiers.label));
+
+      return {
+        ...row,
+        newVariants: createdVariants,
+        priceTiers: tiers.map((tier) => ({
+          id: tier.id,
+          label: tier.label ?? `${tier.quantity}`,
+          quantity: tier.quantity,
+          price: tier.price,
+        })),
+      };
     });
 
     return reply.send(result);

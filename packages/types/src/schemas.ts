@@ -94,6 +94,25 @@ const variantItemSchema = z.object({
 });
 export type VariantItem = z.infer<typeof variantItemSchema>;
 
+export const productPriceTierSchema = z.object({
+  id: z.string().uuid().optional(),
+  label: z.string().min(1, "Unit name is required").max(50),
+  quantity: z.number().int().min(1, "Quantity must be at least 1").max(999999),
+  price: z.string().default("0.00").refine(
+    (val) => /^\d+(\.\d{1,2})?$/.test(val),
+    { message: "Price must be a non-negative decimal (e.g. '120.00')" },
+  ),
+});
+export type ProductPriceTierInput = z.infer<typeof productPriceTierSchema>;
+
+const productPriceTiersSchema = z
+  .array(productPriceTierSchema)
+  .max(20, "Use 20 or fewer unit prices")
+  .refine(
+    (tiers) => new Set(tiers.map((tier) => tier.quantity)).size === tiers.length,
+    { message: "Each unit price must use a unique quantity" },
+  );
+
 export const createProductSchema = z.object({
   name: z.string().min(1, "Name is required").max(500),
   sku: z.string().max(50).optional().default(""), // optional when hasVariants=true (parent has no SKU)
@@ -124,6 +143,7 @@ export const createProductSchema = z.object({
   purchaseUnit: z.string().max(20).nullable().optional(),
   conversionFactor: z.number().positive().max(999999).default(1),
   primarySupplierId: z.string().uuid().nullable().optional(),
+  priceTiers: productPriceTiersSchema.optional(),
   trackInventory: z.boolean().default(true),
   specialOrder: z.boolean().default(false),
   discontinued: z.boolean().default(false),
@@ -192,6 +212,7 @@ export const updateProductSchema = z.object({
   purchaseUnit: z.string().max(20).nullable().optional(),
   conversionFactor: z.number().positive().max(999999).optional(),
   primarySupplierId: z.string().uuid().nullable().optional(),
+  priceTiers: productPriceTiersSchema.optional(),
   reorderPoint: z.number().int().min(0).optional(),
   specialOrder: z.boolean().optional(),
   discontinued: z.boolean().optional(),
