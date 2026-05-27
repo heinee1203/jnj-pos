@@ -34,9 +34,10 @@ import { makeSlug } from "../../new/form-helpers";
 const fieldClass =
   "h-9 w-full rounded-lg border border-border bg-background px-3 text-[13px] text-foreground outline-none placeholder:text-muted-foreground/50 focus:border-primary/40 focus:ring-2 focus:ring-primary/[0.08]";
 
-const packagingUnits = ["", "box", "case", "pack", "carton", "set", "bag", "bundle"];
-const purchaseUnits = ["", "piece", "box", "case", "pack", "carton", "bag", "bundle"];
-const sellingUnits = ["piece", "each", "pair", "set", "box", "case", "pack"];
+const DEFAULT_SELLING_UNIT = "PIECE";
+const packagingUnits = ["", "BOX", "CASE", "PACK", "CARTON", "SET", "BAG", "BUNDLE"];
+const purchaseUnits = ["", "PIECE", "BOX", "CASE", "PACK", "CARTON", "BAG", "BUNDLE"];
+const sellingUnits = ["PIECE", "EACH", "PAIR", "SET", "BOX", "CASE", "PACK"];
 
 type UnitPriceTierDraft = {
   localId: string;
@@ -58,6 +59,11 @@ function makeLocalId() {
     : `${Date.now()}-${Math.random()}`;
 }
 
+function normalizeUom(value: string | null | undefined, fallback = "") {
+  const normalized = value?.trim().toUpperCase() ?? "";
+  return normalized || fallback;
+}
+
 function createTierDraft(
   tier?: ProductPriceTier,
   fallback?: { label: string; quantity: number; price: string },
@@ -65,7 +71,7 @@ function createTierDraft(
   return {
     localId: tier?.id ?? makeLocalId(),
     id: tier?.id,
-    label: tier?.label ?? fallback?.label ?? "",
+    label: normalizeUom(tier?.label ?? fallback?.label),
     quantity: String(tier?.quantity ?? fallback?.quantity ?? ""),
     price: tier?.price ?? fallback?.price ?? "",
   };
@@ -84,7 +90,7 @@ function addDisplayUnitOption(
   label: string | null | undefined,
   quantity: number,
 ) {
-  const normalizedLabel = label?.trim();
+  const normalizedLabel = normalizeUom(label);
   const normalizedQty = Math.max(1, Math.floor(quantity || 1));
   if (!normalizedLabel) return;
 
@@ -187,7 +193,7 @@ export default function EditInventoryItemPage() {
   const [reorderPoint, setReorderPoint] = useState("5");
   const [unitsPerCase, setUnitsPerCase] = useState("1");
   const [packagingUnit, setPackagingUnit] = useState("");
-  const [sellingUnit, setSellingUnit] = useState("piece");
+  const [sellingUnit, setSellingUnit] = useState(DEFAULT_SELLING_UNIT);
   const [purchaseUnit, setPurchaseUnit] = useState("");
   const [conversionFactor, setConversionFactor] = useState("1");
   const [locationUnitOverrides, setLocationUnitOverrides] = useState<Record<string, string>>({});
@@ -209,7 +215,7 @@ export default function EditInventoryItemPage() {
         ? product.priceTiers.map((tier) => createTierDraft(tier))
         : [
             createTierDraft(undefined, {
-              label: product.sellingUnit ?? "piece",
+              label: normalizeUom(product.sellingUnit, DEFAULT_SELLING_UNIT),
               quantity: 1,
               price: product.unitPrice ?? "0.00",
             }),
@@ -218,16 +224,16 @@ export default function EditInventoryItemPage() {
     setBarcode(product.barcode ?? "");
     setReorderPoint(String(product.reorderPoint ?? 5));
     setUnitsPerCase(String(product.unitsPerCase ?? 1));
-    setPackagingUnit(product.packagingUnit ?? "");
-    setSellingUnit(product.sellingUnit ?? "piece");
-    setPurchaseUnit(product.purchaseUnit ?? "");
+    setPackagingUnit(normalizeUom(product.packagingUnit));
+    setSellingUnit(normalizeUom(product.sellingUnit, DEFAULT_SELLING_UNIT));
+    setPurchaseUnit(normalizeUom(product.purchaseUnit));
     setConversionFactor(String(product.conversionFactor ?? 1));
     setLocationUnitOverrides({});
   }, [loadedId, product]);
 
   const displayUnitOptions = useMemo(() => {
     const options: DisplayUnitOption[] = [];
-    const baseUnit = sellingUnit || "piece";
+    const baseUnit = normalizeUom(sellingUnit, DEFAULT_SELLING_UNIT);
     const caseQty = Math.max(1, parseInt(unitsPerCase, 10) || 1);
     const purchaseQty = Math.max(1, Math.floor(parseFloat(conversionFactor) || 1));
 
@@ -252,7 +258,7 @@ export default function EditInventoryItemPage() {
   const locationDisplayDefaults = useMemo(() => {
     const defaults: Record<string, string> = {};
     const preferred = {
-      baseUnit: sellingUnit || "piece",
+      baseUnit: normalizeUom(sellingUnit, DEFAULT_SELLING_UNIT),
       purchaseUnit,
       packagingUnit,
       unitsPerCase: Math.max(1, parseInt(unitsPerCase, 10) || 1),
@@ -295,7 +301,11 @@ export default function EditInventoryItemPage() {
     value: string,
   ) => {
     setPriceTiers((prev) =>
-      prev.map((tier) => (tier.localId === localId ? { ...tier, [field]: value } : tier)),
+      prev.map((tier) =>
+        tier.localId === localId
+          ? { ...tier, [field]: field === "label" ? normalizeUom(value) : value }
+          : tier,
+      ),
     );
   };
 
@@ -306,7 +316,7 @@ export default function EditInventoryItemPage() {
         ...prev,
         {
           localId: makeLocalId(),
-          label,
+          label: normalizeUom(label),
           quantity,
           price: "",
         },
@@ -334,7 +344,7 @@ export default function EditInventoryItemPage() {
     const rows = priceTiers
       .map((tier) => ({
         id: tier.id,
-        label: tier.label.trim(),
+        label: normalizeUom(tier.label),
         quantity: parseInt(tier.quantity, 10),
         price: tier.price.trim(),
       }))
@@ -389,9 +399,9 @@ export default function EditInventoryItemPage() {
         description: description.trim() || null,
         reorderPoint: parseInt(reorderPoint, 10) || 0,
         unitsPerCase: Math.max(1, parseInt(unitsPerCase, 10) || 1),
-        packagingUnit: packagingUnit || null,
-        sellingUnit: sellingUnit || "piece",
-        purchaseUnit: purchaseUnit || null,
+        packagingUnit: normalizeUom(packagingUnit) || null,
+        sellingUnit: normalizeUom(sellingUnit, DEFAULT_SELLING_UNIT),
+        purchaseUnit: normalizeUom(purchaseUnit) || null,
         conversionFactor: purchaseUnit ? parseFloat(conversionFactor) || 1 : 1,
         priceTiers: normalizedPriceTiers,
       });
@@ -565,7 +575,7 @@ export default function EditInventoryItemPage() {
 
         <SetupSection icon={MapPin} title="Inventory by Location">
           <LocationInventoryTable
-            baseUnit={sellingUnit || "piece"}
+            baseUnit={normalizeUom(sellingUnit, DEFAULT_SELLING_UNIT)}
             displayUnitByKey={displayUnitByKey}
             displayUnitOptions={displayUnitOptions}
             isLoading={locationsQuery.isLoading}
@@ -625,10 +635,11 @@ function UnitPriceTiersEditor({
     value: string,
   ) => void;
 }) {
+  const baseUnitLabel = normalizeUom(baseSellingUnit, DEFAULT_SELLING_UNIT);
   const caseQty = Math.max(1, parseInt(unitsPerCase, 10) || 1);
   const presetButtons = [
-    { label: baseSellingUnit || "piece", quantity: "1" },
-    { label: "dozen", quantity: "12" },
+    { label: baseUnitLabel, quantity: "1" },
+    { label: "DOZEN", quantity: "12" },
     { label: "CASE", quantity: String(caseQty) },
   ];
 
@@ -677,12 +688,12 @@ function UnitPriceTiersEditor({
                   <input
                     value={tier.label}
                     onChange={(event) => onUpdate(tier.localId, "label", event.target.value.slice(0, 50))}
-                    placeholder="piece, dozen, CASE..."
+                    placeholder="PIECE, DOZEN, CASE..."
                     className={fieldClass}
                   />
                 </div>
                 <div>
-                  <FieldLabel>Qty in {baseSellingUnit || "pieces"}</FieldLabel>
+                  <FieldLabel>Qty in {baseUnitLabel}</FieldLabel>
                   <input
                     type="number"
                     min="1"
@@ -704,7 +715,7 @@ function UnitPriceTiersEditor({
                   />
                   {equivalent && (
                     <p className="mt-1 text-[11px] text-muted-foreground">
-                      {equivalent} per {baseSellingUnit || "piece"}
+                      {equivalent} per {baseUnitLabel}
                     </p>
                   )}
                 </div>
@@ -961,11 +972,21 @@ function SelectField({
   options: string[];
   emptyLabel?: string;
 }) {
+  const normalizedValue = normalizeUom(value);
+  const normalizedOptions =
+    normalizedValue && !options.includes(normalizedValue)
+      ? [...options, normalizedValue]
+      : options;
+
   return (
     <div>
       <FieldLabel>{label}</FieldLabel>
-      <select value={value} onChange={(event) => onChange(event.target.value)} className={fieldClass}>
-        {options.map((option) => (
+      <select
+        value={normalizedValue}
+        onChange={(event) => onChange(normalizeUom(event.target.value))}
+        className={fieldClass}
+      >
+        {normalizedOptions.map((option) => (
           <option key={option || "empty"} value={option}>
             {option ? option : emptyLabel ?? "None"}
           </option>
