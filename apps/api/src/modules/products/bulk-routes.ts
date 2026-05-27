@@ -15,6 +15,147 @@ import {
 } from "./bulk-helpers";
 
 export function registerProductBulkRoutes(app: FastifyInstance) {
+  app.post("/cleanup-seeded", async (request, reply) => {
+    const role = (request.user as any)?.role;
+    if (role !== "ADMIN") {
+      return reply.status(403).send({ error: "Admin role required" });
+    }
+
+    const { orgId } = request.storeContext!;
+    const body = (request.body ?? {}) as { confirm?: string; dryRun?: boolean };
+    if (body.confirm !== "DELETE SEEDED PRODUCTS") {
+      return reply.status(400).send({ error: "Confirmation phrase required" });
+    }
+
+    const seededSkuPattern = "^(SCH|OFF|ART|GEN|BAG|ELE)-[0-9]{6}$";
+    const [summary] = (await db.execute(sql`
+      WITH seeded AS (
+        SELECT id
+        FROM products
+        WHERE org_id = ${orgId}
+          AND sku ~ ${seededSkuPattern}
+      )
+      SELECT
+        (SELECT COUNT(*)::int FROM seeded) AS product_count,
+        (SELECT COUNT(*)::int FROM inventory WHERE product_id IN (SELECT id FROM seeded)) AS inventory_count,
+        (SELECT COUNT(*)::int FROM sale_lines WHERE product_id IN (SELECT id FROM seeded)) AS sale_line_count,
+        (SELECT COUNT(*)::int FROM po_lines WHERE product_id IN (SELECT id FROM seeded)) AS po_line_count,
+        (SELECT COUNT(*)::int FROM po_receipt_events WHERE product_id IN (SELECT id FROM seeded)) AS po_receipt_event_count
+    `)) as any[];
+
+    const productCount = Number(summary?.product_count ?? 0);
+    const inventoryCount = Number(summary?.inventory_count ?? 0);
+    const referenceCount =
+      Number(summary?.sale_line_count ?? 0) +
+      Number(summary?.po_line_count ?? 0) +
+      Number(summary?.po_receipt_event_count ?? 0);
+
+    if (body.dryRun) {
+      return reply.send({
+        productCount,
+        inventoryCount,
+        referenceCount,
+        saleLineCount: Number(summary?.sale_line_count ?? 0),
+        poLineCount: Number(summary?.po_line_count ?? 0),
+        poReceiptEventCount: Number(summary?.po_receipt_event_count ?? 0),
+      });
+    }
+
+    if (referenceCount > 0) {
+      const result = await db.transaction(async (tx) => {
+        const [deletedInventory] = (await tx.execute(sql`
+          WITH seeded AS (
+            SELECT id
+            FROM products
+            WHERE org_id = ${orgId}
+              AND sku ~ ${seededSkuPattern}
+          ),
+          deleted AS (
+            DELETE FROM inventory
+            WHERE product_id IN (SELECT id FROM seeded)
+            RETURNING id
+          )
+          SELECT COUNT(*)::int AS deleted_inventory_count FROM deleted
+        `)) as any[];
+
+        const [deactivatedProducts] = (await tx.execute(sql`
+          WITH seeded AS (
+            SELECT id
+            FROM products
+            WHERE org_id = ${orgId}
+              AND sku ~ ${seededSkuPattern}
+          ),
+          updated AS (
+            UPDATE products
+            SET is_active = false, updated_at = NOW()
+            WHERE id IN (SELECT id FROM seeded)
+            RETURNING id
+          )
+          SELECT COUNT(*)::int AS deactivated_product_count FROM updated
+        `)) as any[];
+
+        return {
+          deletedProducts: 0,
+          deletedInventory: Number(deletedInventory?.deleted_inventory_count ?? 0),
+          deactivatedProducts: Number(deactivatedProducts?.deactivated_product_count ?? 0),
+        };
+      });
+
+      logAction({
+        orgId,
+        userId: (request.user as any).userId,
+        action: "SEEDED_PRODUCTS_CLEANUP",
+        entityType: "PRODUCT",
+        details: { ...result, referenceCount, mode: "deactivate-with-inventory-delete" },
+        ipAddress: request.ip,
+      });
+
+      return reply.send({
+        ...result,
+        referenceCount,
+        mode: "deactivate-with-inventory-delete",
+      });
+    }
+
+    const result = await db.transaction(async (tx) => {
+      const [deletedProducts] = (await tx.execute(sql`
+        WITH seeded AS (
+          SELECT id
+          FROM products
+          WHERE org_id = ${orgId}
+            AND sku ~ ${seededSkuPattern}
+        ),
+        deleted AS (
+          DELETE FROM products
+          WHERE id IN (SELECT id FROM seeded)
+          RETURNING id
+        )
+        SELECT COUNT(*)::int AS deleted_product_count FROM deleted
+      `)) as any[];
+
+      return {
+        deletedProducts: Number(deletedProducts?.deleted_product_count ?? 0),
+        deletedInventory: inventoryCount,
+        deactivatedProducts: 0,
+      };
+    });
+
+    logAction({
+      orgId,
+      userId: (request.user as any).userId,
+      action: "SEEDED_PRODUCTS_CLEANUP",
+      entityType: "PRODUCT",
+      details: { ...result, referenceCount, mode: "hard-delete" },
+      ipAddress: request.ip,
+    });
+
+    return reply.send({
+      ...result,
+      referenceCount,
+      mode: "hard-delete",
+    });
+  });
+
   app.patch("/bulk-update", async (request, reply) => {
     const role = (request.user as any)?.role;
     if (!MANAGE_ROLES.includes(role)) {
