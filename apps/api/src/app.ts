@@ -34,6 +34,23 @@ import { rbacRoutes } from "./modules/rbac/routes";
 import { printingRoutes } from "./modules/printing/routes";
 import discountRoutes from "./modules/discounts/routes";
 
+const DEFAULT_PRODUCTION_CORS_ORIGINS = ["https://jeffnjulie.up.railway.app"];
+
+function getCorsOrigin() {
+  if (process.env.NODE_ENV !== "production") {
+    return true;
+  }
+
+  const configuredOrigins = (process.env.CORS_ORIGINS ?? "")
+    .split(",")
+    .map(s => s.trim())
+    .filter(Boolean);
+
+  return configuredOrigins.length > 0
+    ? configuredOrigins
+    : DEFAULT_PRODUCTION_CORS_ORIGINS;
+}
+
 export async function buildApp(): Promise<FastifyInstance> {
   const JWT_SECRET = process.env.JWT_SECRET;
   if (!JWT_SECRET) {
@@ -49,9 +66,7 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   // ── Global plugins ──
   await app.register(cors, {
-    origin: process.env.NODE_ENV === "production"
-      ? (process.env.CORS_ORIGINS ?? "").split(",").map(s => s.trim()).filter(Boolean)
-      : true,
+    origin: getCorsOrigin(),
     methods: ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   });
   await app.register(sensible);
