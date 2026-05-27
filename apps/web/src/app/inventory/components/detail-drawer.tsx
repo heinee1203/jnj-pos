@@ -7,6 +7,7 @@ import {
   Store,
   Minus,
   Check,
+  LockKeyhole,
   Pencil,
   Plus,
   Maximize2,
@@ -58,6 +59,7 @@ export function DetailDrawer({
   const [editBarcode, setEditBarcode] = useState(product.barcode ?? "");
   const [editSellPrice, setEditSellPrice] = useState(product.unitPrice);
   const [editCostPrice, setEditCostPrice] = useState(product.costPrice);
+  const [editCostPriceUnlocked, setEditCostPriceUnlocked] = useState(false);
   const [editCategoryId, setEditCategoryId] = useState(product.categoryId ?? "");
   const [editBrandId, setEditBrandId] = useState(product.brandId ?? "");
   const [editReorderPoint, setEditReorderPoint] = useState(String(product.reorderPoint));
@@ -68,6 +70,7 @@ export function DetailDrawer({
     setEditBarcode(product.barcode ?? "");
     setEditSellPrice(product.unitPrice);
     setEditCostPrice(product.costPrice);
+    setEditCostPriceUnlocked(false);
     setEditCategoryId(product.categoryId ?? "");
     setEditBrandId(product.brandId ?? "");
     setEditReorderPoint(String(product.reorderPoint));
@@ -104,6 +107,22 @@ export function DetailDrawer({
   const editCost = parseFloat(editCostPrice) || 0;
   const editMargin = getMarginPercent(editSell, editCost);
 
+  const confirmCostPriceEdit = useCallback(async () => {
+    return confirm({
+      title: "Edit Cost Price?",
+      message: "Cost price affects margins, valuation, and reports. Unlock it only if you are sure the saved cost is wrong.",
+      confirmLabel: "Unlock Cost Price",
+      cancelLabel: "Keep Locked",
+      variant: "warning",
+    });
+  }, [confirm]);
+
+  const unlockEditCostPrice = useCallback(async () => {
+    if (editCostPriceUnlocked) return;
+    const confirmed = await confirmCostPriceEdit();
+    if (confirmed) setEditCostPriceUnlocked(true);
+  }, [confirmCostPriceEdit, editCostPriceUnlocked]);
+
   // Save product edits
   const handleEditSave = useCallback(async () => {
     const payload: Record<string, any> = { id: product.id };
@@ -118,6 +137,7 @@ export function DetailDrawer({
 
     try {
       await updateMut.mutateAsync(payload as any);
+      setEditCostPriceUnlocked(false);
       setEditing(false);
     } catch {
       // error handled by mutation state
@@ -129,6 +149,7 @@ export function DetailDrawer({
     setEditBarcode(product.barcode ?? "");
     setEditSellPrice(product.unitPrice);
     setEditCostPrice(product.costPrice);
+    setEditCostPriceUnlocked(false);
     setEditCategoryId(product.categoryId ?? "");
     setEditBrandId(product.brandId ?? "");
     setEditReorderPoint(String(product.reorderPoint));
@@ -158,6 +179,13 @@ export function DetailDrawer({
     if (e.key === "Enter") { e.preventDefault(); handleInlinePriceSave(); }
     if (e.key === "Escape") { setInlineEditField(null); }
   }, [handleInlinePriceSave]);
+
+  const handleBeginInlineCostEdit = useCallback(async () => {
+    const confirmed = await confirmCostPriceEdit();
+    if (!confirmed) return;
+    setInlineEditField("cost");
+    setInlineEditValue(String(cost));
+  }, [confirmCostPriceEdit, cost]);
 
   // Live margin when inline editing
   const liveSell = inlineEditField === "sell" ? (parseFloat(inlineEditValue) || 0) : sell;
@@ -401,8 +429,36 @@ export function DetailDrawer({
                   {showFinancials && (
                     <>
                       <div>
-                        <label className="mb-1 block text-[11px] font-medium text-muted-foreground">Cost Price</label>
-                        <input className={inputCls} type="number" step="0.01" min="0" value={editCostPrice} onChange={(e) => setEditCostPrice(e.target.value)} />
+                        <div className="mb-1 flex items-center justify-between gap-2">
+                          <label className="text-[11px] font-medium text-muted-foreground">Cost Price</label>
+                          {!editCostPriceUnlocked && (
+                            <button
+                              type="button"
+                              onClick={unlockEditCostPrice}
+                              className="inline-flex h-6 items-center gap-1 rounded-md border border-border bg-background px-2 text-[11px] font-medium text-muted-foreground transition-colors hover:border-primary/30 hover:bg-primary/[0.06] hover:text-primary"
+                            >
+                              <LockKeyhole size={11} />
+                              Unlock
+                            </button>
+                          )}
+                        </div>
+                        <input
+                          className={cn(inputCls, !editCostPriceUnlocked && "cursor-not-allowed bg-muted/40 text-muted-foreground")}
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={editCostPrice}
+                          readOnly={!editCostPriceUnlocked}
+                          aria-readonly={!editCostPriceUnlocked}
+                          onFocus={(e) => {
+                            if (editCostPriceUnlocked) return;
+                            e.currentTarget.blur();
+                            unlockEditCostPrice();
+                          }}
+                          onChange={(e) => {
+                            if (editCostPriceUnlocked) setEditCostPrice(e.target.value);
+                          }}
+                        />
                       </div>
                       <div className="flex justify-between py-0.5">
                         <span className="text-[11px] text-muted-foreground">Margin</span>
@@ -456,7 +512,7 @@ export function DetailDrawer({
                           </div>
                         ) : (
                           <span className="group cursor-pointer text-sm font-medium text-foreground hover:text-emerald-600 transition-colors"
-                            onClick={() => { setInlineEditField("cost"); setInlineEditValue(String(cost)); }}>
+                            onClick={handleBeginInlineCostEdit}>
                             {cost > 0 ? `\u20B1 ${formatPrice(cost)}` : "\u2014"}
                             <Pencil size={11} className="inline ml-1 opacity-0 group-hover:opacity-100 transition-opacity" />
                           </span>

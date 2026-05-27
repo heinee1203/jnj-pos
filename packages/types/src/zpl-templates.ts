@@ -48,13 +48,13 @@ export const SHELF_LABEL_PRESETS: ShelfLabelPreset[] = [
 ];
 
 /**
- * Encode a cost price as a KINGSCOBRA mnemonic.
- * K=1 I=2 N=3 G=4 S=5 C=6 O=7 B=8 R=9 A=0
- * Example: 1000 -> "KAAA", 5029 -> "SACR".
+ * Encode a cost price as a QUICKBROWN mnemonic.
+ * Q=1 U=2 I=3 C=4 K=5 B=6 R=7 O=8 W=9 N=0
+ * Example: 1000 -> "QNNN", 5029 -> "KNUW".
  */
 export function encodeCostMnemonic(costPrice: number): string {
   if (!costPrice || costPrice <= 0) return "";
-  const keyword = "KINGSCOBRA";
+  const keyword = "QUICKBROWN";
   return Math.round(costPrice)
     .toString()
     .split("")
@@ -76,7 +76,7 @@ export interface ShelfLabelData {
   sku?: string | null;
   /** Optional detail line, commonly brand plus SKU. */
   detailText?: string | null;
-  /** Cost price in pesos, encoded as a KINGSCOBRA mnemonic. */
+  /** Cost price in pesos, encoded as a QUICKBROWN mnemonic. */
   costPrice?: number;
   /** Short supplier abbreviation appended to the cost mnemonic. */
   supplierCode?: string;

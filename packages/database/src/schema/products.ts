@@ -49,7 +49,7 @@ export const products = pgTable(
     currentCostPrice: numeric("current_cost_price", { precision: 12, scale: 2 })
       .notNull()
       .default("0.00"),
-    /** Deterministic 10-char KINGSCOBRA cipher of currentCostPrice in centavos */
+    /** Deterministic QUICKBROWN cipher of currentCostPrice */
     mnemonicCostCode: varchar("mnemonic_cost_code", { length: 10 }),
     /** Barcode — any format up to 50 chars, nullable, unique per org when set */
     barcode: varchar("barcode", { length: 50 }),

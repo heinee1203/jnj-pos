@@ -8,6 +8,7 @@ import {
   Barcode,
   Check,
   DollarSign,
+  LockKeyhole,
   Loader2,
   MapPin,
   Package,
@@ -19,6 +20,7 @@ import {
 
 import { useAuth } from "@/app/auth-context";
 import { useSidebar } from "@/app/sidebar-context";
+import { useConfirm } from "@/components/confirm-dialog";
 import { SelectWithQuickAdd } from "@/components/select-with-quick-add";
 import { useBrands, useCreateBrand } from "@/hooks/use-brands";
 import { useCategories, useCreateCategory } from "@/hooks/use-categories";
@@ -157,6 +159,7 @@ export default function EditInventoryItemPage() {
   const router = useRouter();
   const { token, locationId, user } = useAuth();
   const { isCollapsed } = useSidebar();
+  const confirm = useConfirm();
   const showCost = ["ADMIN", "MANAGER"].includes(user?.role ?? "");
 
   const productQuery = useProductDetail(token, locationId, productId);
@@ -178,6 +181,7 @@ export default function EditInventoryItemPage() {
   const [description, setDescription] = useState("");
   const [unitPrice, setUnitPrice] = useState("");
   const [costPrice, setCostPrice] = useState("");
+  const [costPriceUnlocked, setCostPriceUnlocked] = useState(false);
   const [priceTiers, setPriceTiers] = useState<UnitPriceTierDraft[]>([]);
   const [barcode, setBarcode] = useState("");
   const [reorderPoint, setReorderPoint] = useState("5");
@@ -199,6 +203,7 @@ export default function EditInventoryItemPage() {
     setDescription(product.description ?? "");
     setUnitPrice(product.unitPrice ?? "0.00");
     setCostPrice(product.costPrice ?? "0.00");
+    setCostPriceUnlocked(false);
     setPriceTiers(
       product.priceTiers?.length
         ? product.priceTiers.map((tier) => createTierDraft(tier))
@@ -311,6 +316,18 @@ export default function EditInventoryItemPage() {
 
   const removePriceTier = (localId: string) => {
     setPriceTiers((prev) => prev.filter((tier) => tier.localId !== localId));
+  };
+
+  const unlockCostPrice = async () => {
+    if (costPriceUnlocked) return;
+    const confirmed = await confirm({
+      title: "Edit Cost Price?",
+      message: "Cost price affects margins, valuation, and reports. Unlock it only if you are sure the saved cost is wrong.",
+      confirmLabel: "Unlock Cost Price",
+      cancelLabel: "Keep Locked",
+      variant: "warning",
+    });
+    if (confirmed) setCostPriceUnlocked(true);
   };
 
   const normalizePriceTiers = (): ProductPriceTier[] | null => {
@@ -483,7 +500,13 @@ export default function EditInventoryItemPage() {
             <CurrencyField label="Sell Price" value={unitPrice} onChange={setUnitPrice} />
             {showCost && (
               <>
-                <CurrencyField label="Cost Price" value={costPrice} onChange={setCostPrice} />
+                <CurrencyField
+                  label="Cost Price"
+                  value={costPrice}
+                  onChange={setCostPrice}
+                  locked={!costPriceUnlocked}
+                  onUnlock={unlockCostPrice}
+                />
                 <div>
                   <FieldLabel>Margin</FieldLabel>
                   <div className="flex h-9 items-center rounded-lg border border-border bg-muted/40 px-3 text-[13px]">
@@ -852,21 +875,46 @@ function CurrencyField({
   label,
   value,
   onChange,
+  locked = false,
+  onUnlock,
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
+  locked?: boolean;
+  onUnlock?: () => void;
 }) {
   return (
     <div>
-      <FieldLabel>{label}</FieldLabel>
+      <div className="mb-1 flex items-center justify-between gap-2">
+        <label className="text-[12px] font-medium text-muted-foreground">{label}</label>
+        {locked && (
+          <button
+            type="button"
+            onClick={onUnlock}
+            className="inline-flex h-6 items-center gap-1 rounded-md border border-border bg-background px-2 text-[11px] font-medium text-muted-foreground transition-colors hover:border-primary/30 hover:bg-primary/[0.06] hover:text-primary"
+          >
+            <LockKeyhole size={11} />
+            Unlock
+          </button>
+        )}
+      </div>
       <input
         type="number"
         step="0.01"
         min="0"
         value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className={fieldClass}
+        readOnly={locked}
+        aria-readonly={locked}
+        onFocus={(event) => {
+          if (!locked) return;
+          event.currentTarget.blur();
+          onUnlock?.();
+        }}
+        onChange={(event) => {
+          if (!locked) onChange(event.target.value);
+        }}
+        className={cn(fieldClass, locked && "cursor-not-allowed bg-muted/40 text-muted-foreground")}
       />
     </div>
   );
