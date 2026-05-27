@@ -238,7 +238,7 @@ export async function handleAllLocationsQuery(
       GROUP BY p.id, p.name, p.sku, p.mnemonic_sku, p.category,
                p.unit_price, p.cost_price, p.barcode, p.oem_number, p.is_variable_price,
                p.category_id, cat.name, p.brand_id, b.name,
-               p.parent_product_id, p.is_parent, p.is_serialized, p.is_tire,
+               p.parent_product_id, p.is_parent, p.special_order, p.discontinued, p.is_serialized, p.is_tire,
                (SELECT pp.name FROM products pp WHERE pp.id = p.parent_product_id)
       ${stockHaving}
     )
