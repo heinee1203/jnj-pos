@@ -143,6 +143,7 @@ export function registerProductDetailReadRoutes(app: FastifyInstance) {
         costPrice: products.costPrice,
         barcode: products.barcode,
         oemNumber: products.oemNumber,
+        description: products.description,
         isVariablePrice: products.isVariablePrice,
         isActive: products.isActive,
         isParent: products.isParent,

@@ -233,9 +233,13 @@ export interface UpdateProductPayload {
   barcode?: string;
   categoryId?: string | null;
   brandId?: string | null;
+  description?: string | null;
   reorderPoint?: number;
   unitsPerCase?: number;
   packagingUnit?: string | null;
+  sellingUnit?: string;
+  purchaseUnit?: string | null;
+  conversionFactor?: number;
   primarySupplierId?: string | null;
   reorderEnabled?: boolean;
   customReorderPoint?: number | null;
@@ -269,6 +273,10 @@ export interface ProductDetail extends ProductRow {
   categoryId: string | null;
   categoryName: string | null;
   oemNumber: string | null;
+  description: string | null;
+  sellingUnit: string | null;
+  purchaseUnit: string | null;
+  conversionFactor: string | number | null;
   vehicleCompatibility: {
     id: string;
     make: string;

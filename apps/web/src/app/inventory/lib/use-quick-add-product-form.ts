@@ -127,8 +127,14 @@ export function useQuickAddProductForm({
       }
 
       const result = await createMutation.mutateAsync(payload);
-      if (openFull && (result as any)?.id) {
-        window.location.href = `/inventory/${(result as any).id}/edit`;
+      const createdProduct = (result as any)?.data ?? result;
+      const createdId = createdProduct?.id;
+      if (openFull) {
+        if (createdId) {
+          window.location.href = `/inventory/${createdId}/edit`;
+        } else {
+          setError("Item was saved, but the full setup page could not be opened.");
+        }
       } else {
         onClose();
       }
