@@ -116,7 +116,7 @@ const NAV_TOP: NavEntry[] = [
     icon: Truck,
     match: /^\/suppliers|^\/ap/,
     children: [
-      { label: "Supplier List", href: "/suppliers", match: /^\/suppliers/ },
+      { label: "Supplier List", href: "/ap/suppliers", match: /^\/ap\/suppliers|^\/suppliers/ },
       { label: "Supplier Invoices", href: "/ap/invoices", match: /^\/ap\/invoices/ },
       { label: "Disbursement Vouchers", href: "/ap/disbursement-vouchers", match: /^\/ap\/disbursement-vouchers/ },
     ],
