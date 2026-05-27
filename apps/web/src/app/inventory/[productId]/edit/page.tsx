@@ -670,6 +670,7 @@ function UnitPriceTiersEditor({
             <button
               key={`${preset.label}-${preset.quantity}`}
               type="button"
+              onPointerDown={() => onAdd(preset.label, preset.quantity)}
               onClick={() => onAdd(preset.label, preset.quantity)}
               className="inline-flex h-7 items-center gap-1 rounded-md border border-border bg-background px-2 text-[11px] font-medium text-foreground transition-colors hover:bg-muted"
             >

@@ -79,6 +79,7 @@ export function InventoryPageHeader({
                 Export
               </button>
               <button
+                onPointerDown={onQuickAdd}
                 onClick={onQuickAdd}
                 className="flex items-center gap-1.5 rounded-xl bg-primary px-3 py-2 text-[12px] font-semibold text-primary-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:bg-primary/90 hover:shadow-md active:scale-[0.98]"
               >
