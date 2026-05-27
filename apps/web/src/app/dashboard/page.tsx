@@ -403,11 +403,6 @@ export default function DashboardPage() {
             </>
           )}
 
-          {/* Service roles */}
-          {isOperationalRole(role) && (
-            <QuickAction icon={Wrench} label="New Job Card" href="/service/job-cards" />
-          )}
-
           {/* Cashier / Sales */}
           {(role === "CASHIER" || role === "SALES" || isFinancialRole(role)) && (
             <QuickAction icon={Package} label="Sales Receipts" href="/sales/receipts" />
