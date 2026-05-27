@@ -8,6 +8,7 @@ import {
   Barcode,
   Check,
   DollarSign,
+  HelpCircle,
   LockKeyhole,
   Loader2,
   MapPin,
@@ -34,6 +35,8 @@ import { makeSlug } from "../../new/form-helpers";
 const fieldClass =
   "h-9 w-full rounded-lg border border-border bg-background px-3 text-[13px] text-foreground outline-none placeholder:text-muted-foreground/50 focus:border-primary/40 focus:ring-2 focus:ring-primary/[0.08]";
 
+const CONVERSION_FACTOR_HELP =
+  "How many Selling Units are inside 1 Purchase Unit. Example: if Selling Unit is PIECE and Purchase Unit is CASE with 80 pieces, enter 80.";
 const DEFAULT_SELLING_UNIT = "PIECE";
 const packagingUnits = ["", "BOX", "CASE", "PACK", "CARTON", "SET", "BAG", "BUNDLE"];
 const purchaseUnits = ["", "PIECE", "BOX", "CASE", "PACK", "CARTON", "BAG", "BUNDLE"];
@@ -565,6 +568,7 @@ export default function EditInventoryItemPage() {
             <SelectField label="Purchase Unit" value={purchaseUnit} onChange={setPurchaseUnit} options={purchaseUnits} emptyLabel="Same as selling unit" />
             <NumberField
               label="Conversion Factor"
+              tooltip={CONVERSION_FACTOR_HELP}
               value={conversionFactor}
               onChange={setConversionFactor}
               min={1}
@@ -933,12 +937,14 @@ function CurrencyField({
 
 function NumberField({
   label,
+  tooltip,
   value,
   onChange,
   min = 0,
   disabled,
 }: {
   label: string;
+  tooltip?: string;
   value: string;
   onChange: (value: string) => void;
   min?: number;
@@ -946,7 +952,21 @@ function NumberField({
 }) {
   return (
     <div>
-      <FieldLabel>{label}</FieldLabel>
+      {tooltip ? (
+        <div className="mb-1 flex items-center gap-1.5">
+          <label className="text-[12px] font-medium text-muted-foreground">{label}</label>
+          <span
+            tabIndex={0}
+            title={tooltip}
+            aria-label={`${label}: ${tooltip}`}
+            className="inline-flex h-4 w-4 cursor-help items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-primary focus:text-primary focus:outline-none"
+          >
+            <HelpCircle size={13} />
+          </span>
+        </div>
+      ) : (
+        <FieldLabel>{label}</FieldLabel>
+      )}
       <input
         type="number"
         min={min}

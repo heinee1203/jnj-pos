@@ -1,6 +1,6 @@
 "use client";
 
-import { Barcode as BarcodeIcon, Warehouse } from "lucide-react";
+import { Barcode as BarcodeIcon, HelpCircle, Warehouse } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -11,6 +11,9 @@ import {
   ToggleSwitch,
   fieldClass,
 } from "./form-controls";
+
+const CONVERSION_FACTOR_HELP =
+  "How many Selling Units are inside 1 Purchase Unit. Example: if Selling Unit is PIECE and Purchase Unit is CASE with 80 pieces, enter 80.";
 
 type InventoryBehaviorSectionProps = {
   collapsed: boolean;
@@ -414,7 +417,19 @@ function UnitConversionFields({
           </p>
         </div>
         <div>
-          <FieldLabel>Conversion Factor</FieldLabel>
+          <div className="mb-1 flex items-center gap-1.5">
+            <label className="text-[12px] font-medium text-muted-foreground">
+              Conversion Factor
+            </label>
+            <span
+              tabIndex={0}
+              title={CONVERSION_FACTOR_HELP}
+              aria-label={`Conversion Factor: ${CONVERSION_FACTOR_HELP}`}
+              className="inline-flex h-4 w-4 cursor-help items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-primary focus:text-primary focus:outline-none"
+            >
+              <HelpCircle size={13} />
+            </span>
+          </div>
           <input
             type="number"
             min="1"
