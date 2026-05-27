@@ -1,5 +1,8 @@
+import { Sparkles } from "lucide-react";
+
 type QuickAddIdentitySectionProps = {
   name: string;
+  onGenerateSku: () => void;
   setName: (value: string) => void;
   setSku: (value: string) => void;
   sku: string;
@@ -7,6 +10,7 @@ type QuickAddIdentitySectionProps = {
 
 export function QuickAddIdentitySection({
   name,
+  onGenerateSku,
   setName,
   setSku,
   sku,
@@ -28,9 +32,20 @@ export function QuickAddIdentitySection({
       </div>
 
       <div>
-        <label className="mb-1 block text-[12px] font-medium text-muted-foreground">
-          SKU <span className="text-destructive">*</span>
-        </label>
+        <div className="mb-1 flex items-center justify-between gap-2">
+          <label className="block text-[12px] font-medium text-muted-foreground">
+            SKU <span className="text-destructive">*</span>
+          </label>
+          <button
+            type="button"
+            onClick={onGenerateSku}
+            title="Auto-generate SKU"
+            className="inline-flex h-6 items-center gap-1 rounded-md border border-border bg-background px-2 text-[11px] font-medium text-primary transition-colors hover:bg-primary/[0.06]"
+          >
+            <Sparkles size={12} />
+            Generate SKU
+          </button>
+        </div>
         <input
           type="text"
           value={sku}

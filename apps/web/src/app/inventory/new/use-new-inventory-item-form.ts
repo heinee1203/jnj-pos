@@ -10,6 +10,7 @@ import { useCreateProduct } from "@/hooks/use-products";
 import { useVehicleMakes } from "@/hooks/use-vehicles";
 import { mergeVehicleMakes } from "@/lib/vehicle-makes";
 
+import { generateEan13Barcode, generateSku } from "../lib/identifier-generators";
 import type {
   AttributeEntry,
   InlineVariant,
@@ -152,6 +153,14 @@ export function useNewInventoryItemForm({
     return { id: res?.data?.id ?? res?.id ?? "" };
   };
 
+  const handleGenerateSku = () => {
+    setSku(generateSku(name));
+  };
+
+  const handleGenerateBarcode = () => {
+    setBarcode(generateEan13Barcode());
+  };
+
   const addInlineVariant = () => {
     setInlineVariants((prev) => [
       ...prev,
@@ -273,6 +282,8 @@ export function useNewInventoryItemForm({
     setUnitPrice("");
     setCostPrice("");
     setDescription("");
+    setBarcode("");
+    setOemNumber("");
     setInitialStock("0");
     setVehicles([]);
     setAttributes([]);
@@ -342,6 +353,7 @@ export function useNewInventoryItemForm({
       name,
       onNameChange: setName,
       sku,
+      onGenerateSku: handleGenerateSku,
       onSkuChange: setSku,
       categoryId,
       onCategoryChange: handleCategoryChange,
@@ -385,6 +397,7 @@ export function useNewInventoryItemForm({
       initialStock,
       onInitialStockChange: setInitialStock,
       barcode,
+      onGenerateBarcode: handleGenerateBarcode,
       onBarcodeChange: setBarcode,
       oemNumber,
       onOemNumberChange: setOemNumber,

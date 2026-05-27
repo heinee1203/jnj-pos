@@ -1,6 +1,6 @@
 "use client";
 
-import { Warehouse } from "lucide-react";
+import { Barcode as BarcodeIcon, Warehouse } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -28,6 +28,7 @@ type InventoryBehaviorSectionProps = {
   initialStock: string;
   onInitialStockChange: (value: string) => void;
   barcode: string;
+  onGenerateBarcode: () => void;
   onBarcodeChange: (value: string) => void;
   oemNumber: string;
   onOemNumberChange: (value: string) => void;
@@ -61,6 +62,7 @@ export function InventoryBehaviorSection({
   initialStock,
   onInitialStockChange,
   barcode,
+  onGenerateBarcode,
   onBarcodeChange,
   oemNumber,
   onOemNumberChange,
@@ -110,6 +112,7 @@ export function InventoryBehaviorSection({
               initialStock={initialStock}
               onInitialStockChange={onInitialStockChange}
               barcode={barcode}
+              onGenerateBarcode={onGenerateBarcode}
               onBarcodeChange={onBarcodeChange}
               oemNumber={oemNumber}
               onOemNumberChange={onOemNumberChange}
@@ -152,6 +155,7 @@ function InventoryFields({
   initialStock,
   onInitialStockChange,
   barcode,
+  onGenerateBarcode,
   onBarcodeChange,
   oemNumber,
   onOemNumberChange,
@@ -168,6 +172,7 @@ function InventoryFields({
   | "initialStock"
   | "onInitialStockChange"
   | "barcode"
+  | "onGenerateBarcode"
   | "onBarcodeChange"
   | "oemNumber"
   | "onOemNumberChange"
@@ -235,7 +240,20 @@ function InventoryFields({
         />
       </div>
       <div className="col-span-2">
-        <FieldLabel>Barcode</FieldLabel>
+        <div className="mb-1 flex items-center justify-between gap-2">
+          <label className="block text-[12px] font-medium text-muted-foreground">
+            Barcode
+          </label>
+          <button
+            type="button"
+            onClick={onGenerateBarcode}
+            title="Auto-generate EAN-13 barcode"
+            className="inline-flex h-6 items-center gap-1 rounded-md border border-border bg-background px-2 text-[11px] font-medium text-primary transition-colors hover:bg-primary/[0.06]"
+          >
+            <BarcodeIcon size={12} />
+            Generate EAN-13
+          </button>
+        </div>
         <input
           type="text"
           value={barcode}
@@ -245,7 +263,7 @@ function InventoryFields({
           className={cn(fieldClass, "font-mono")}
         />
         <p className="mt-0.5 text-[10px] text-muted-foreground">
-          Leave blank to generate an internal item barcode
+          Generate an internal EAN-13 barcode for labels, or scan a supplier barcode.
         </p>
       </div>
       <div className="col-span-2">

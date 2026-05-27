@@ -1,6 +1,6 @@
 "use client";
 
-import { Package, Plus, Trash2 } from "lucide-react";
+import { Package, Plus, Sparkles, Trash2 } from "lucide-react";
 
 import { SelectWithQuickAdd } from "@/components/select-with-quick-add";
 import { cn } from "@/lib/utils";
@@ -21,6 +21,7 @@ type BasicInfoSectionProps = {
   name: string;
   onNameChange: (value: string) => void;
   sku: string;
+  onGenerateSku: () => void;
   onSkuChange: (value: string) => void;
   categoryId: string;
   onCategoryChange: (value: string) => void;
@@ -53,6 +54,7 @@ export function BasicInfoSection({
   name,
   onNameChange,
   sku,
+  onGenerateSku,
   onSkuChange,
   categoryId,
   onCategoryChange,
@@ -97,7 +99,20 @@ export function BasicInfoSection({
 
         {!hasInlineVariants && (
           <div>
-            <FieldLabel required>SKU</FieldLabel>
+            <div className="mb-1 flex items-center justify-between gap-2">
+              <label className="block text-[12px] font-medium text-muted-foreground">
+                SKU <span className="text-destructive">*</span>
+              </label>
+              <button
+                type="button"
+                onClick={onGenerateSku}
+                title="Auto-generate SKU"
+                className="inline-flex h-6 items-center gap-1 rounded-md border border-border bg-background px-2 text-[11px] font-medium text-primary transition-colors hover:bg-primary/[0.06]"
+              >
+                <Sparkles size={12} />
+                Generate SKU
+              </button>
+            </div>
             <input
               type="text"
               value={sku}

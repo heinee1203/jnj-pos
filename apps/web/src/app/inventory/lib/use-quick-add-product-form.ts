@@ -3,6 +3,7 @@ import { useBrands, useCreateBrand } from "@/hooks/use-brands";
 import { useCategories, useCreateCategory } from "@/hooks/use-categories";
 import { useLocations } from "@/hooks/use-locations";
 import { useCreateProduct } from "@/hooks/use-products";
+import { generateEan13Barcode, generateSku } from "./identifier-generators";
 
 type UseQuickAddProductFormArgs = {
   token: string;
@@ -93,6 +94,14 @@ export function useQuickAddProductForm({
     return { id: res?.data?.id ?? res?.id ?? "" };
   };
 
+  const handleGenerateSku = () => {
+    setSku(generateSku(name));
+  };
+
+  const handleGenerateBarcode = () => {
+    setBarcode(generateEan13Barcode());
+  };
+
   const isValid = name.trim() !== "" && sku.trim() !== "";
 
   const handleSave = async (openFull = false) => {
@@ -142,6 +151,8 @@ export function useQuickAddProductForm({
     error,
     allCategories,
     handleCategoryChange,
+    handleGenerateBarcode,
+    handleGenerateSku,
     handleSave,
     initialStock,
     isValid,

@@ -34,6 +34,8 @@ export function QuickAddDrawer({
     error,
     allCategories,
     handleCategoryChange,
+    handleGenerateBarcode,
+    handleGenerateSku,
     handleSave,
     initialStock,
     isValid,
@@ -97,6 +99,7 @@ export function QuickAddDrawer({
 
             <QuickAddIdentitySection
               name={name}
+              onGenerateSku={handleGenerateSku}
               setName={setName}
               setSku={setSku}
               sku={sku}
@@ -123,6 +126,7 @@ export function QuickAddDrawer({
 
             <QuickAddIdentifiersSection
               barcode={barcode}
+              onGenerateBarcode={handleGenerateBarcode}
               oemNumber={oemNumber}
               setBarcode={setBarcode}
               setOemNumber={setOemNumber}
