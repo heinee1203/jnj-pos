@@ -7,8 +7,6 @@ import {
   Plus,
   Search,
   Building2,
-  Truck,
-  ShoppingBag,
   User,
   DollarSign,
   AlertTriangle,
@@ -45,12 +43,26 @@ import {
 /* ── Constants ── */
 const TYPE_BADGES: Record<string, string> = {
   INDIVIDUAL: "bg-slate-500/10 text-slate-600",
-  SHOP: "bg-blue-500/10 text-blue-600",
-  FLEET: "bg-purple-500/10 text-purple-600",
+  SHOP: "bg-slate-500/10 text-slate-600",
+  FLEET: "bg-slate-500/10 text-slate-600",
   WHOLESALE: "bg-amber-500/10 text-amber-600",
 };
 
-const TYPE_OPTIONS = ["INDIVIDUAL", "SHOP", "FLEET", "WHOLESALE"] as const;
+const TYPE_OPTIONS = ["INDIVIDUAL", "WHOLESALE"] as const;
+const TYPE_LABELS: Record<string, string> = {
+  INDIVIDUAL: "Retail",
+  SHOP: "Retail",
+  FLEET: "Retail",
+  WHOLESALE: "Wholesale",
+};
+
+function customerTypeLabel(value: string) {
+  return TYPE_LABELS[value] ?? "Retail";
+}
+
+function customerTypeFormValue(value: string) {
+  return value === "WHOLESALE" ? "WHOLESALE" : "INDIVIDUAL";
+}
 
 type CustomerRiskTone = "danger" | "warning" | "muted" | "credit";
 
@@ -390,7 +402,7 @@ export default function CustomersPage() {
       setForm({
         name: editingCustomer.name,
         phone: editingCustomer.phone,
-        customerType: editingCustomer.customerType,
+        customerType: customerTypeFormValue(editingCustomer.customerType),
         contactPerson: editingCustomer.contactPerson ?? "",
         email: editingCustomer.email ?? "",
         address: editingCustomer.address ?? "",
@@ -610,9 +622,7 @@ export default function CustomersPage() {
             <button onClick={() => setTypeFilter("")}
               className={cn("rounded-md px-2.5 py-1 text-[11px] font-semibold transition-colors", !typeFilter ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>All</button>
             {([
-              { value: "INDIVIDUAL", label: "Individual", icon: User },
-              { value: "SHOP", label: "Shop", icon: ShoppingBag },
-              { value: "FLEET", label: "Fleet", icon: Truck },
+              { value: "INDIVIDUAL", label: "Retail", icon: User },
               { value: "WHOLESALE", label: "Wholesale", icon: Building2 },
             ] as const).map((t) => (
               <button key={t.value} onClick={() => setTypeFilter(typeFilter === t.value ? "" : t.value)}
@@ -668,7 +678,7 @@ export default function CustomersPage() {
                 <button onClick={() => downloadCSV("customers",
                   ["Name", "Type", "Code", "Balance", "Last Payment", "Status", "Terms", "Risk Flags"],
                   customers.map((c) => [
-                    c.name, c.customerType, c.phone,
+                    c.name, customerTypeLabel(c.customerType), c.phone,
                     c.currentBalance,
                     c.lastPaymentDate ? fmtDate(c.lastPaymentDate) : "Never",
                     c.isOverdue ? "Overdue" : c.unbilledCount > 0 ? `${c.unbilledCount} unbilled` : c.totalChargeCount > 0 ? "Billed" : "—",
@@ -767,7 +777,7 @@ export default function CustomersPage() {
                   </button>
                   <div className="w-24">
                     <span className={cn("inline-flex rounded-md px-2 py-0.5 text-[10px] font-semibold", TYPE_BADGES[c.customerType] ?? "bg-muted text-muted-foreground")}>
-                      {c.customerType}
+                      {customerTypeLabel(c.customerType)}
                     </span>
                   </div>
                   <div className="w-32 text-right">
@@ -842,7 +852,7 @@ export default function CustomersPage() {
                   <select value={form.customerType} onChange={(e) => setForm((p) => ({ ...p, customerType: e.target.value }))}
                     aria-invalid={Boolean(firstFieldError(saveFieldErrors, "customerType"))}
                     className={cn("w-full rounded-md border bg-background px-3 py-2 text-sm", customerFieldClass(saveFieldErrors, "customerType"))}>
-                    {TYPE_OPTIONS.map((t) => <option key={t} value={t}>{t.charAt(0) + t.slice(1).toLowerCase()}</option>)}
+                    {TYPE_OPTIONS.map((t) => <option key={t} value={t}>{customerTypeLabel(t)}</option>)}
                   </select>
                   <CustomerFieldError fieldErrors={saveFieldErrors} field="customerType" />
                 </div>

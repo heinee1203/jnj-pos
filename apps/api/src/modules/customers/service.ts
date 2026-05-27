@@ -70,11 +70,6 @@ export async function listCustomers(
             WHERE ct.customer_id = ${customers.id} AND ct.org_id = ${customers.orgId}
               AND (ct.reference_number ILIKE ${`%${searchTerm}%`} OR ct.payment_number ILIKE ${`%${searchTerm}%`})
           )
-          OR EXISTS (
-            SELECT 1 FROM soa_records sr
-            WHERE sr.customer_id = ${customers.id} AND sr.org_id = ${customers.orgId}
-              AND sr.soa_number ILIKE ${`%${searchTerm}%`}
-          )
         )`,
       );
     } else {
@@ -161,13 +156,7 @@ export async function listCustomers(
       AND ct_od.org_id = ${customers.orgId}
       AND ct_od.type = 'CHARGE'
       AND ct_od.recorded_at < NOW() - (${customers.paymentTermsDays} || ' days')::interval
-      AND (
-        ct_od.amount::numeric - COALESCE(
-          (SELECT SUM(a.allocated_amount::numeric)
-           FROM ar_payment_allocations a
-           WHERE a.charge_transaction_id = ct_od.id), 0
-        )
-      ) > 0.01
+      AND ${customers.currentBalance}::numeric > 0.01
   )`;
 
   const rows = await db
@@ -2211,9 +2200,7 @@ export async function getARSummary(orgId: string) {
     WHERE org_id = ${orgId} AND current_balance > 0 AND is_active = true
   `);
 
-  // Overdue: customers with unpaid charges past their payment terms.
-  // A charge is "unpaid" if its amount exceeds the sum of allocations in ar_payment_allocations.
-  // This avoids the old bug where fully-paid historical charges inflated the overdue count.
+  // Overdue: customers with a balance and at least one charge older than their terms.
   const [overdue] = await db.execute(sql`
     SELECT
       COUNT(DISTINCT c.id) as "overdueCount",
@@ -2226,13 +2213,6 @@ export async function getARSummary(orgId: string) {
           AND ct.org_id = c.org_id
           AND ct.type = 'CHARGE'
           AND ct.recorded_at < NOW() - (c.payment_terms_days || ' days')::interval
-          AND (
-            ct.amount::numeric - COALESCE(
-              (SELECT SUM(a.allocated_amount::numeric)
-               FROM ar_payment_allocations a
-               WHERE a.charge_transaction_id = ct.id), 0
-            )
-          ) > 0.01
       )
   `);
 

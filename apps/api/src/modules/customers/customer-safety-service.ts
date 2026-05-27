@@ -169,6 +169,63 @@ function parseDate(value: unknown): string | null {
   return String(value);
 }
 
+function isMissingOptionalCustomerFeature(error: unknown): boolean {
+  const err = error as { code?: string; message?: string; cause?: { code?: string; message?: string } };
+  const code = err.code ?? err.cause?.code;
+  const message = `${err.message ?? ""} ${err.cause?.message ?? ""}`.toLowerCase();
+
+  if (code !== "42P01" && code !== "42703") return false;
+  return [
+    "ar_payment_allocations",
+    "soa_records",
+    "customer_collection_notes",
+    "customer_disputes",
+    "customer_payment_risk_events",
+  ].some((name) => message.includes(name));
+}
+
+function buildBasicCustomerEnrichment<T extends CustomerLike>(
+  rows: T[],
+  duplicateIndex: DuplicateIndex,
+): Array<T & Record<string, unknown>> {
+  return rows.map((row) => ({
+    ...row,
+    agingBuckets: emptyAgingBucket(),
+    safetySummary: buildCustomerSafetySummary(row, duplicateIndex),
+    creditControl: buildCustomerCreditControl(row),
+    collectionSummary: {
+      openNoteCount: 0,
+      dueFollowUpCount: 0,
+      nextFollowUpAt: null,
+      promiseToPayDate: null,
+      promisedAmount: 0,
+      lastContactAt: null,
+    },
+    invoiceWarningCounts: {
+      duplicateReferences: 0,
+      missingReference: 0,
+      amountAnomalies: 0,
+      oldUnpaid: 0,
+      partialPayments: 0,
+      unbilled: row.unbilledCount ?? 0,
+    },
+    documentCounts: {
+      soaRecords: 0,
+      payments: 0,
+      creditMemos: 0,
+    },
+    disputeSummary: {
+      openCount: 0,
+      openAmount: 0,
+    },
+    paymentRiskSummary: {
+      openCount: 0,
+      bouncedCount: 0,
+      lastRiskAt: null,
+    },
+  }));
+}
+
 async function getOrgDuplicateIndex(orgId: string) {
   const rows = await db
     .select({
@@ -203,179 +260,184 @@ export async function enrichCustomersWithSafety<T extends CustomerLike>(
   const idList = sql.join(ids.map((id) => sql`${id}::uuid`), sql`, `);
   const duplicateIndex = await getOrgDuplicateIndex(orgId);
 
-  const agingRows = (await db.execute(sql`
-    WITH charge_balances AS (
+  try {
+    const agingRows = (await db.execute(sql`
+      WITH charge_balances AS (
+        SELECT
+          ct.customer_id,
+          GREATEST(
+            ct.amount::numeric - COALESCE(SUM(pa.allocated_amount::numeric), 0),
+            0
+          ) AS remaining,
+          COALESCE(ct.due_date, (ct.recorded_at::date + c.payment_terms_days)) AS due_date
+        FROM customer_transactions ct
+        JOIN customers c ON c.id = ct.customer_id
+        LEFT JOIN ar_payment_allocations pa ON pa.charge_transaction_id = ct.id
+        WHERE ct.org_id = ${orgId}
+          AND ct.customer_id IN (${idList})
+          AND ct.type = 'CHARGE'
+        GROUP BY ct.id, c.payment_terms_days
+      )
       SELECT
-        ct.customer_id,
-        GREATEST(
-          ct.amount::numeric - COALESCE(SUM(pa.allocated_amount::numeric), 0),
-          0
-        ) AS remaining,
-        COALESCE(ct.due_date, (ct.recorded_at::date + c.payment_terms_days)) AS due_date
-      FROM customer_transactions ct
-      JOIN customers c ON c.id = ct.customer_id
-      LEFT JOIN ar_payment_allocations pa ON pa.charge_transaction_id = ct.id
-      WHERE ct.org_id = ${orgId}
-        AND ct.customer_id IN (${idList})
-        AND ct.type = 'CHARGE'
-      GROUP BY ct.id, c.payment_terms_days
-    )
-    SELECT
-      customer_id,
-      COALESCE(SUM(remaining) FILTER (WHERE remaining > 0.005 AND CURRENT_DATE - due_date <= 0), 0)::text AS current_amount,
-      COUNT(*) FILTER (WHERE remaining > 0.005 AND CURRENT_DATE - due_date <= 0)::int AS current_count,
-      COALESCE(SUM(remaining) FILTER (WHERE remaining > 0.005 AND CURRENT_DATE - due_date BETWEEN 1 AND 30), 0)::text AS days_1_30_amount,
-      COUNT(*) FILTER (WHERE remaining > 0.005 AND CURRENT_DATE - due_date BETWEEN 1 AND 30)::int AS days_1_30_count,
-      COALESCE(SUM(remaining) FILTER (WHERE remaining > 0.005 AND CURRENT_DATE - due_date BETWEEN 31 AND 60), 0)::text AS days_31_60_amount,
-      COUNT(*) FILTER (WHERE remaining > 0.005 AND CURRENT_DATE - due_date BETWEEN 31 AND 60)::int AS days_31_60_count,
-      COALESCE(SUM(remaining) FILTER (WHERE remaining > 0.005 AND CURRENT_DATE - due_date BETWEEN 61 AND 90), 0)::text AS days_61_90_amount,
-      COUNT(*) FILTER (WHERE remaining > 0.005 AND CURRENT_DATE - due_date BETWEEN 61 AND 90)::int AS days_61_90_count,
-      COALESCE(SUM(remaining) FILTER (WHERE remaining > 0.005 AND CURRENT_DATE - due_date > 90), 0)::text AS days_90_plus_amount,
-      COUNT(*) FILTER (WHERE remaining > 0.005 AND CURRENT_DATE - due_date > 90)::int AS days_90_plus_count
-    FROM charge_balances
-    GROUP BY customer_id
-  `)) as any[];
+        customer_id,
+        COALESCE(SUM(remaining) FILTER (WHERE remaining > 0.005 AND CURRENT_DATE - due_date <= 0), 0)::text AS current_amount,
+        COUNT(*) FILTER (WHERE remaining > 0.005 AND CURRENT_DATE - due_date <= 0)::int AS current_count,
+        COALESCE(SUM(remaining) FILTER (WHERE remaining > 0.005 AND CURRENT_DATE - due_date BETWEEN 1 AND 30), 0)::text AS days_1_30_amount,
+        COUNT(*) FILTER (WHERE remaining > 0.005 AND CURRENT_DATE - due_date BETWEEN 1 AND 30)::int AS days_1_30_count,
+        COALESCE(SUM(remaining) FILTER (WHERE remaining > 0.005 AND CURRENT_DATE - due_date BETWEEN 31 AND 60), 0)::text AS days_31_60_amount,
+        COUNT(*) FILTER (WHERE remaining > 0.005 AND CURRENT_DATE - due_date BETWEEN 31 AND 60)::int AS days_31_60_count,
+        COALESCE(SUM(remaining) FILTER (WHERE remaining > 0.005 AND CURRENT_DATE - due_date BETWEEN 61 AND 90), 0)::text AS days_61_90_amount,
+        COUNT(*) FILTER (WHERE remaining > 0.005 AND CURRENT_DATE - due_date BETWEEN 61 AND 90)::int AS days_61_90_count,
+        COALESCE(SUM(remaining) FILTER (WHERE remaining > 0.005 AND CURRENT_DATE - due_date > 90), 0)::text AS days_90_plus_amount,
+        COUNT(*) FILTER (WHERE remaining > 0.005 AND CURRENT_DATE - due_date > 90)::int AS days_90_plus_count
+      FROM charge_balances
+      GROUP BY customer_id
+    `)) as any[];
 
-  const collectionRows = (await db.execute(sql`
-    SELECT
-      customer_id,
-      COUNT(*) FILTER (WHERE resolved_at IS NULL)::int AS open_note_count,
-      COUNT(*) FILTER (WHERE resolved_at IS NULL AND follow_up_at IS NOT NULL AND follow_up_at <= NOW())::int AS due_follow_up_count,
-      MIN(follow_up_at) FILTER (WHERE resolved_at IS NULL AND follow_up_at IS NOT NULL)::text AS next_follow_up_at,
-      MIN(promise_to_pay_date) FILTER (WHERE resolved_at IS NULL AND promise_to_pay_date IS NOT NULL)::text AS promise_to_pay_date,
-      COALESCE(SUM(promised_amount::numeric) FILTER (WHERE resolved_at IS NULL AND promised_amount IS NOT NULL), 0)::text AS promised_amount,
-      MAX(created_at)::text AS last_contact_at
-    FROM customer_collection_notes
-    WHERE org_id = ${orgId}
-      AND customer_id IN (${idList})
-    GROUP BY customer_id
-  `)) as any[];
-
-  const warningRows = (await db.execute(sql`
-    WITH charge_rows AS (
+    const collectionRows = (await db.execute(sql`
       SELECT
-        ct.*,
-        COALESCE((SELECT SUM(a.allocated_amount::numeric) FROM ar_payment_allocations a WHERE a.charge_transaction_id = ct.id), 0) AS allocated
-      FROM customer_transactions ct
-      WHERE ct.org_id = ${orgId}
-        AND ct.customer_id IN (${idList})
-        AND ct.type = 'CHARGE'
-    ),
-    duplicate_refs AS (
-      SELECT customer_id, lower(reference_number) AS reference_number
-      FROM charge_rows
-      WHERE reference_number IS NOT NULL AND btrim(reference_number) <> ''
-      GROUP BY customer_id, lower(reference_number)
-      HAVING COUNT(*) > 1
-    )
-    SELECT
-      cr.customer_id,
-      COUNT(*) FILTER (WHERE cr.reference_number IS NULL OR btrim(cr.reference_number) = '')::int AS missing_reference_count,
-      COUNT(*) FILTER (WHERE cr.amount::numeric <= 0)::int AS amount_anomaly_count,
-      COUNT(*) FILTER (WHERE cr.amount::numeric - cr.allocated > 0.005 AND cr.recorded_at < NOW() - INTERVAL '120 days')::int AS old_unpaid_count,
-      COUNT(*) FILTER (WHERE cr.allocated > 0.005 AND cr.amount::numeric - cr.allocated > 0.005)::int AS partial_payment_count,
-      COUNT(*) FILTER (WHERE cr.billed = false OR cr.billed IS NULL)::int AS unbilled_count,
-      COUNT(*) FILTER (WHERE dr.reference_number IS NOT NULL)::int AS duplicate_reference_count
-    FROM charge_rows cr
-    LEFT JOIN duplicate_refs dr
-      ON dr.customer_id = cr.customer_id
-      AND dr.reference_number = lower(cr.reference_number)
-    GROUP BY cr.customer_id
-  `)) as any[];
+        customer_id,
+        COUNT(*) FILTER (WHERE resolved_at IS NULL)::int AS open_note_count,
+        COUNT(*) FILTER (WHERE resolved_at IS NULL AND follow_up_at IS NOT NULL AND follow_up_at <= NOW())::int AS due_follow_up_count,
+        MIN(follow_up_at) FILTER (WHERE resolved_at IS NULL AND follow_up_at IS NOT NULL)::text AS next_follow_up_at,
+        MIN(promise_to_pay_date) FILTER (WHERE resolved_at IS NULL AND promise_to_pay_date IS NOT NULL)::text AS promise_to_pay_date,
+        COALESCE(SUM(promised_amount::numeric) FILTER (WHERE resolved_at IS NULL AND promised_amount IS NOT NULL), 0)::text AS promised_amount,
+        MAX(created_at)::text AS last_contact_at
+      FROM customer_collection_notes
+      WHERE org_id = ${orgId}
+        AND customer_id IN (${idList})
+      GROUP BY customer_id
+    `)) as any[];
 
-  const documentRows = (await db.execute(sql`
-    SELECT
-      c.id AS customer_id,
-      COALESCE((SELECT COUNT(*)::int FROM soa_records s WHERE s.customer_id = c.id AND s.org_id = c.org_id), 0) AS soa_count,
-      COALESCE((SELECT COUNT(*)::int FROM customer_transactions p WHERE p.customer_id = c.id AND p.org_id = c.org_id AND p.type = 'PAYMENT'), 0) AS payment_count,
-      COALESCE((SELECT COUNT(*)::int FROM customer_transactions cm WHERE cm.customer_id = c.id AND cm.org_id = c.org_id AND cm.type IN ('CREDIT_NOTE', 'ADJUSTMENT') AND (cm.type = 'CREDIT_NOTE' OR cm.notes ILIKE 'Credit Memo%')), 0) AS credit_memo_count
-    FROM customers c
-    WHERE c.org_id = ${orgId}
-      AND c.id IN (${idList})
-  `)) as any[];
+    const warningRows = (await db.execute(sql`
+      WITH charge_rows AS (
+        SELECT
+          ct.*,
+          COALESCE((SELECT SUM(a.allocated_amount::numeric) FROM ar_payment_allocations a WHERE a.charge_transaction_id = ct.id), 0) AS allocated
+        FROM customer_transactions ct
+        WHERE ct.org_id = ${orgId}
+          AND ct.customer_id IN (${idList})
+          AND ct.type = 'CHARGE'
+      ),
+      duplicate_refs AS (
+        SELECT customer_id, lower(reference_number) AS reference_number
+        FROM charge_rows
+        WHERE reference_number IS NOT NULL AND btrim(reference_number) <> ''
+        GROUP BY customer_id, lower(reference_number)
+        HAVING COUNT(*) > 1
+      )
+      SELECT
+        cr.customer_id,
+        COUNT(*) FILTER (WHERE cr.reference_number IS NULL OR btrim(cr.reference_number) = '')::int AS missing_reference_count,
+        COUNT(*) FILTER (WHERE cr.amount::numeric <= 0)::int AS amount_anomaly_count,
+        COUNT(*) FILTER (WHERE cr.amount::numeric - cr.allocated > 0.005 AND cr.recorded_at < NOW() - INTERVAL '120 days')::int AS old_unpaid_count,
+        COUNT(*) FILTER (WHERE cr.allocated > 0.005 AND cr.amount::numeric - cr.allocated > 0.005)::int AS partial_payment_count,
+        COUNT(*) FILTER (WHERE cr.billed = false OR cr.billed IS NULL)::int AS unbilled_count,
+        COUNT(*) FILTER (WHERE dr.reference_number IS NOT NULL)::int AS duplicate_reference_count
+      FROM charge_rows cr
+      LEFT JOIN duplicate_refs dr
+        ON dr.customer_id = cr.customer_id
+        AND dr.reference_number = lower(cr.reference_number)
+      GROUP BY cr.customer_id
+    `)) as any[];
 
-  const disputeRows = (await db.execute(sql`
-    SELECT
-      customer_id,
-      COUNT(*) FILTER (WHERE status NOT IN ('RESOLVED', 'CANCELLED'))::int AS open_dispute_count,
-      COALESCE(SUM(disputed_amount::numeric) FILTER (WHERE status NOT IN ('RESOLVED', 'CANCELLED')), 0)::text AS open_dispute_amount
-    FROM customer_disputes
-    WHERE org_id = ${orgId}
-      AND customer_id IN (${idList})
-    GROUP BY customer_id
-  `)) as any[];
+    const documentRows = (await db.execute(sql`
+      SELECT
+        c.id AS customer_id,
+        COALESCE((SELECT COUNT(*)::int FROM soa_records s WHERE s.customer_id = c.id AND s.org_id = c.org_id), 0) AS soa_count,
+        COALESCE((SELECT COUNT(*)::int FROM customer_transactions p WHERE p.customer_id = c.id AND p.org_id = c.org_id AND p.type = 'PAYMENT'), 0) AS payment_count,
+        COALESCE((SELECT COUNT(*)::int FROM customer_transactions cm WHERE cm.customer_id = c.id AND cm.org_id = c.org_id AND cm.type IN ('CREDIT_NOTE', 'ADJUSTMENT') AND (cm.type = 'CREDIT_NOTE' OR cm.notes ILIKE 'Credit Memo%')), 0) AS credit_memo_count
+      FROM customers c
+      WHERE c.org_id = ${orgId}
+        AND c.id IN (${idList})
+    `)) as any[];
 
-  const riskRows = (await db.execute(sql`
-    SELECT
-      customer_id,
-      COUNT(*) FILTER (WHERE status = 'OPEN')::int AS open_payment_risk_count,
-      COUNT(*) FILTER (WHERE event_type = 'BOUNCED_CHECK')::int AS bounced_payment_count,
-      MAX(created_at)::text AS last_payment_risk_at
-    FROM customer_payment_risk_events
-    WHERE org_id = ${orgId}
-      AND customer_id IN (${idList})
-    GROUP BY customer_id
-  `)) as any[];
+    const disputeRows = (await db.execute(sql`
+      SELECT
+        customer_id,
+        COUNT(*) FILTER (WHERE status NOT IN ('RESOLVED', 'CANCELLED'))::int AS open_dispute_count,
+        COALESCE(SUM(disputed_amount::numeric) FILTER (WHERE status NOT IN ('RESOLVED', 'CANCELLED')), 0)::text AS open_dispute_amount
+      FROM customer_disputes
+      WHERE org_id = ${orgId}
+        AND customer_id IN (${idList})
+      GROUP BY customer_id
+    `)) as any[];
 
-  const agingByCustomer = new Map(agingRows.map((row) => [row.customer_id, row]));
-  const collectionByCustomer = new Map(collectionRows.map((row) => [row.customer_id, row]));
-  const warningByCustomer = new Map(warningRows.map((row) => [row.customer_id, row]));
-  const docsByCustomer = new Map(documentRows.map((row) => [row.customer_id, row]));
-  const disputesByCustomer = new Map(disputeRows.map((row) => [row.customer_id, row]));
-  const risksByCustomer = new Map(riskRows.map((row) => [row.customer_id, row]));
+    const riskRows = (await db.execute(sql`
+      SELECT
+        customer_id,
+        COUNT(*) FILTER (WHERE status = 'OPEN')::int AS open_payment_risk_count,
+        COUNT(*) FILTER (WHERE event_type = 'BOUNCED_CHECK')::int AS bounced_payment_count,
+        MAX(created_at)::text AS last_payment_risk_at
+      FROM customer_payment_risk_events
+      WHERE org_id = ${orgId}
+        AND customer_id IN (${idList})
+      GROUP BY customer_id
+    `)) as any[];
 
-  return rows.map((row) => {
-    const aging = agingByCustomer.get(row.id);
-    const collection = collectionByCustomer.get(row.id);
-    const warnings = warningByCustomer.get(row.id);
-    const docs = docsByCustomer.get(row.id);
-    const disputes = disputesByCustomer.get(row.id);
-    const risks = risksByCustomer.get(row.id);
-    return {
-      ...row,
-      agingBuckets: aging
-        ? {
-            current: { amount: moneyValue(aging.current_amount), count: aging.current_count ?? 0 },
-            days1to30: { amount: moneyValue(aging.days_1_30_amount), count: aging.days_1_30_count ?? 0 },
-            days31to60: { amount: moneyValue(aging.days_31_60_amount), count: aging.days_31_60_count ?? 0 },
-            days61to90: { amount: moneyValue(aging.days_61_90_amount), count: aging.days_61_90_count ?? 0 },
-            days90plus: { amount: moneyValue(aging.days_90_plus_amount), count: aging.days_90_plus_count ?? 0 },
-          }
-        : emptyAgingBucket(),
-      safetySummary: buildCustomerSafetySummary(row, duplicateIndex),
-      creditControl: buildCustomerCreditControl(row),
-      collectionSummary: {
-        openNoteCount: collection?.open_note_count ?? 0,
-        dueFollowUpCount: collection?.due_follow_up_count ?? 0,
-        nextFollowUpAt: parseDate(collection?.next_follow_up_at),
-        promiseToPayDate: collection?.promise_to_pay_date ?? null,
-        promisedAmount: moneyValue(collection?.promised_amount),
-        lastContactAt: parseDate(collection?.last_contact_at),
-      },
-      invoiceWarningCounts: {
-        duplicateReferences: warnings?.duplicate_reference_count ?? 0,
-        missingReference: warnings?.missing_reference_count ?? 0,
-        amountAnomalies: warnings?.amount_anomaly_count ?? 0,
-        oldUnpaid: warnings?.old_unpaid_count ?? 0,
-        partialPayments: warnings?.partial_payment_count ?? 0,
-        unbilled: warnings?.unbilled_count ?? row.unbilledCount ?? 0,
-      },
-      documentCounts: {
-        soaRecords: docs?.soa_count ?? 0,
-        payments: docs?.payment_count ?? 0,
-        creditMemos: docs?.credit_memo_count ?? 0,
-      },
-      disputeSummary: {
-        openCount: disputes?.open_dispute_count ?? 0,
-        openAmount: moneyValue(disputes?.open_dispute_amount),
-      },
-      paymentRiskSummary: {
-        openCount: risks?.open_payment_risk_count ?? 0,
-        bouncedCount: risks?.bounced_payment_count ?? 0,
-        lastRiskAt: parseDate(risks?.last_payment_risk_at),
-      },
-    };
-  });
+    const agingByCustomer = new Map(agingRows.map((row) => [row.customer_id, row]));
+    const collectionByCustomer = new Map(collectionRows.map((row) => [row.customer_id, row]));
+    const warningByCustomer = new Map(warningRows.map((row) => [row.customer_id, row]));
+    const docsByCustomer = new Map(documentRows.map((row) => [row.customer_id, row]));
+    const disputesByCustomer = new Map(disputeRows.map((row) => [row.customer_id, row]));
+    const risksByCustomer = new Map(riskRows.map((row) => [row.customer_id, row]));
+
+    return rows.map((row) => {
+      const aging = agingByCustomer.get(row.id);
+      const collection = collectionByCustomer.get(row.id);
+      const warnings = warningByCustomer.get(row.id);
+      const docs = docsByCustomer.get(row.id);
+      const disputes = disputesByCustomer.get(row.id);
+      const risks = risksByCustomer.get(row.id);
+      return {
+        ...row,
+        agingBuckets: aging
+          ? {
+              current: { amount: moneyValue(aging.current_amount), count: aging.current_count ?? 0 },
+              days1to30: { amount: moneyValue(aging.days_1_30_amount), count: aging.days_1_30_count ?? 0 },
+              days31to60: { amount: moneyValue(aging.days_31_60_amount), count: aging.days_31_60_count ?? 0 },
+              days61to90: { amount: moneyValue(aging.days_61_90_amount), count: aging.days_61_90_count ?? 0 },
+              days90plus: { amount: moneyValue(aging.days_90_plus_amount), count: aging.days_90_plus_count ?? 0 },
+            }
+          : emptyAgingBucket(),
+        safetySummary: buildCustomerSafetySummary(row, duplicateIndex),
+        creditControl: buildCustomerCreditControl(row),
+        collectionSummary: {
+          openNoteCount: collection?.open_note_count ?? 0,
+          dueFollowUpCount: collection?.due_follow_up_count ?? 0,
+          nextFollowUpAt: parseDate(collection?.next_follow_up_at),
+          promiseToPayDate: collection?.promise_to_pay_date ?? null,
+          promisedAmount: moneyValue(collection?.promised_amount),
+          lastContactAt: parseDate(collection?.last_contact_at),
+        },
+        invoiceWarningCounts: {
+          duplicateReferences: warnings?.duplicate_reference_count ?? 0,
+          missingReference: warnings?.missing_reference_count ?? 0,
+          amountAnomalies: warnings?.amount_anomaly_count ?? 0,
+          oldUnpaid: warnings?.old_unpaid_count ?? 0,
+          partialPayments: warnings?.partial_payment_count ?? 0,
+          unbilled: warnings?.unbilled_count ?? row.unbilledCount ?? 0,
+        },
+        documentCounts: {
+          soaRecords: docs?.soa_count ?? 0,
+          payments: docs?.payment_count ?? 0,
+          creditMemos: docs?.credit_memo_count ?? 0,
+        },
+        disputeSummary: {
+          openCount: disputes?.open_dispute_count ?? 0,
+          openAmount: moneyValue(disputes?.open_dispute_amount),
+        },
+        paymentRiskSummary: {
+          openCount: risks?.open_payment_risk_count ?? 0,
+          bouncedCount: risks?.bounced_payment_count ?? 0,
+          lastRiskAt: parseDate(risks?.last_payment_risk_at),
+        },
+      };
+    });
+  } catch (error) {
+    if (!isMissingOptionalCustomerFeature(error)) throw error;
+    return buildBasicCustomerEnrichment(rows, duplicateIndex);
+  }
 }
 
 export async function listCustomerCollectionNotes(customerId: string, orgId: string) {

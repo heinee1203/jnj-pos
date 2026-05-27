@@ -600,7 +600,7 @@ export const updateLocationSchema = z.object({
 export type UpdateLocationInput = z.infer<typeof updateLocationSchema>;
 
 // ── Customer: Create (with AR fields) ──
-const CUSTOMER_TYPES = ["INDIVIDUAL", "SHOP", "FLEET", "WHOLESALE"] as const;
+const CUSTOMER_TYPES = ["INDIVIDUAL", "WHOLESALE"] as const;
 
 export const createCustomerSchema = z.object({
   name: z.string().min(1).max(255),

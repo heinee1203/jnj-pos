@@ -203,9 +203,7 @@ export default function AgingReportPage() {
           <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}
             className="h-8 rounded-lg border border-border bg-background px-2 text-[12px] outline-none">
             <option value="">All Types</option>
-            <option value="INDIVIDUAL">Individual</option>
-            <option value="SHOP">Shop</option>
-            <option value="FLEET">Fleet</option>
+            <option value="INDIVIDUAL">Retail</option>
             <option value="WHOLESALE">Wholesale</option>
           </select>
           <div className="flex items-center gap-1.5">
@@ -240,7 +238,7 @@ export default function AgingReportPage() {
               <div key={r.customer.id} className="flex items-center px-4 py-1.5 text-[13px] hover:bg-accent/50">
                 <div className="flex-1 min-w-0">
                   <span className="block truncate font-medium">{r.customer.name}</span>
-                  <span className="text-[10px] text-muted-foreground">{r.customerType} · Net {r.paymentTerms}</span>
+                  <span className="text-[10px] text-muted-foreground">{r.customerType === "WHOLESALE" ? "Wholesale" : "Retail"} · Net {r.paymentTerms}</span>
                 </div>
                 <div className="w-24 text-right tabular-nums text-[12px] text-emerald-600">{fmtCell(r.current)}</div>
                 <div className="w-24 text-right tabular-nums text-[12px] text-amber-600">{fmtCell(r.days1to30)}</div>
