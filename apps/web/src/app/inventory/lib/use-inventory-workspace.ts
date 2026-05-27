@@ -29,8 +29,6 @@ export function useInventoryWorkspace({
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [viewMode, setViewMode] = useState<"flat" | "nested">("flat");
-  const [hideSO, setHideSO] = useState(() => typeof window !== "undefined" ? localStorage.getItem("item-list-hide-so") === "true" : false);
-  const [hideDC, setHideDC] = useState(() => typeof window !== "undefined" ? localStorage.getItem("item-list-hide-dc") === "true" : false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const isAllLocations = locationId === ALL_LOCATIONS;
@@ -57,6 +55,11 @@ export function useInventoryWorkspace({
     setPage(1);
   }, [debouncedSearch, categoryFilter, stockStatusFilter, brandFilter, sortBy, sortDir, locationId, pageSize, viewMode]);
 
+  useEffect(() => {
+    localStorage.removeItem("item-list-hide-so");
+    localStorage.removeItem("item-list-hide-dc");
+  }, []);
+
   const { data, isLoading, isFetching } = useProducts(token!, apiLocationId!, {
     search: debouncedSearch,
     categoryId: categoryFilter || undefined,
@@ -68,8 +71,6 @@ export function useInventoryWorkspace({
     limit: pageSize,
     parentOnly: true,
     allLocations: isAllLocations,
-    excludeSO: hideSO || undefined,
-    excludeDC: hideDC || undefined,
   });
 
   const products = data?.data ?? [];
@@ -109,7 +110,7 @@ export function useInventoryWorkspace({
   );
 
   const hasActiveFilters =
-    categoryFilter !== "" || stockStatusFilter !== "" || brandFilter !== "" || searchQuery.trim() !== "" || hideSO || hideDC;
+    categoryFilter !== "" || stockStatusFilter !== "" || brandFilter !== "" || searchQuery.trim() !== "";
 
   const clearAllFilters = useCallback(() => {
     setCategoryFilter("");
@@ -117,27 +118,7 @@ export function useInventoryWorkspace({
     setBrandFilter("");
     setSearchQuery("");
     setDebouncedSearch("");
-    setHideSO(false);
-    setHideDC(false);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("item-list-hide-so", "false");
-      localStorage.setItem("item-list-hide-dc", "false");
-    }
   }, []);
-
-  const toggleHideSO = useCallback(() => {
-    const next = !hideSO;
-    setHideSO(next);
-    localStorage.setItem("item-list-hide-so", String(next));
-    setPage(1);
-  }, [hideSO]);
-
-  const toggleHideDC = useCallback(() => {
-    const next = !hideDC;
-    setHideDC(next);
-    localStorage.setItem("item-list-hide-dc", String(next));
-    setPage(1);
-  }, [hideDC]);
 
   return {
     brandFilter,
@@ -151,8 +132,6 @@ export function useInventoryWorkspace({
     handleSort,
     hasActiveFilters,
     hasMore,
-    hideDC,
-    hideSO,
     isAllLocations,
     isFetching,
     isLoading,
@@ -173,8 +152,6 @@ export function useInventoryWorkspace({
     sortDir,
     stockStatusFilter,
     submitSearch,
-    toggleHideDC,
-    toggleHideSO,
     totalItems,
     totalPages,
     viewMode,

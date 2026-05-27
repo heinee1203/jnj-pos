@@ -71,11 +71,7 @@ export function VariantSubRows({
               isVariantSelected
                 ? "bg-primary/[0.05]"
                 : v.stockLevel <= 0
-                  ? v.discontinued
-                    ? "bg-gray-100 hover:bg-gray-200/70"
-                    : v.specialOrder
-                      ? "bg-blue-50 hover:bg-blue-100/70"
-                      : "bg-red-50 hover:bg-red-100/70"
+                  ? "bg-red-50 hover:bg-red-100/70"
                   : "bg-background hover:bg-accent/50",
             )}
           >

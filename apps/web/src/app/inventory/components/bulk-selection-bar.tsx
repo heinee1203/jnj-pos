@@ -167,32 +167,6 @@ export function BulkSelectionBar({
         >
           Available for Sale
         </button>
-        <select
-          onChange={(e) => {
-            if (!e.target.value) return;
-            onBulkUpdate({ specialOrder: e.target.value === "mark" });
-            e.target.value = "";
-          }}
-          className="shrink-0 rounded bg-muted px-2.5 py-1 text-[11px] font-medium text-foreground transition-colors hover:bg-muted/80"
-          value=""
-        >
-          <option value="">Special Order</option>
-          <option value="mark">Mark as Special Order</option>
-          <option value="unmark">Remove Special Order</option>
-        </select>
-        <select
-          onChange={(e) => {
-            if (!e.target.value) return;
-            onBulkUpdate({ discontinued: e.target.value === "mark" });
-            e.target.value = "";
-          }}
-          className="shrink-0 rounded bg-muted px-2.5 py-1 text-[11px] font-medium text-foreground transition-colors hover:bg-muted/80"
-          value=""
-        >
-          <option value="">Discontinued</option>
-          <option value="mark">Mark as Discontinued</option>
-          <option value="unmark">Remove Discontinued</option>
-        </select>
         <button
           onClick={onOpenSerialTracking}
           className="shrink-0 whitespace-nowrap rounded bg-muted px-2.5 py-1 text-[11px] font-medium text-foreground transition-colors hover:bg-muted/80"

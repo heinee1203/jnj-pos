@@ -4,7 +4,6 @@ import { startTransition, type RefObject } from "react";
 import { Plus, Search, X } from "lucide-react";
 import type { Brand } from "@/hooks/use-brands";
 import type { CategoryRow } from "@/hooks/use-categories";
-import { cn } from "@/lib/utils";
 
 type AddModalTarget = "category" | "brand";
 
@@ -14,8 +13,6 @@ interface InventoryFiltersProps {
   categoryFilter: string;
   stockStatusFilter: string;
   brandFilter: string;
-  hideSO: boolean;
-  hideDC: boolean;
   canEdit: boolean;
   hasActiveFilters: boolean;
   totalItems: number;
@@ -27,8 +24,6 @@ interface InventoryFiltersProps {
   onCategoryChange: (value: string) => void;
   onStockStatusChange: (value: string) => void;
   onBrandChange: (value: string) => void;
-  onToggleHideSO: () => void;
-  onToggleHideDC: () => void;
   onAddModal: (target: AddModalTarget) => void;
   onClearAllFilters: () => void;
 }
@@ -39,8 +34,6 @@ export function InventoryFilters({
   categoryFilter,
   stockStatusFilter,
   brandFilter,
-  hideSO,
-  hideDC,
   canEdit,
   hasActiveFilters,
   totalItems,
@@ -52,8 +45,6 @@ export function InventoryFilters({
   onCategoryChange,
   onStockStatusChange,
   onBrandChange,
-  onToggleHideSO,
-  onToggleHideDC,
   onAddModal,
   onClearAllFilters,
 }: InventoryFiltersProps) {
@@ -119,7 +110,6 @@ export function InventoryFilters({
           <option value="">All Stock</option>
           <option value="low">Low Stock</option>
           <option value="out">Out of Stock</option>
-          <option value="special_order">Special Order</option>
         </select>
 
         <div className="flex items-center">
@@ -136,29 +126,6 @@ export function InventoryFilters({
           </select>
           {canEdit && <AddFilterButton label="Add Brand" onClick={() => onAddModal("brand")} />}
         </div>
-
-        <button
-          onClick={onToggleHideSO}
-          className={cn(
-            "h-8 rounded-lg border px-2.5 text-[11px] font-medium transition-colors",
-            hideSO
-              ? "border-blue-300 bg-blue-50 text-blue-700"
-              : "border-border bg-background text-muted-foreground hover:bg-muted",
-          )}
-        >
-          {hideSO ? "SO Hidden" : "Hide SO"}
-        </button>
-        <button
-          onClick={onToggleHideDC}
-          className={cn(
-            "h-8 rounded-lg border px-2.5 text-[11px] font-medium transition-colors",
-            hideDC
-              ? "border-gray-400 bg-gray-100 text-gray-700"
-              : "border-border bg-background text-muted-foreground hover:bg-muted",
-          )}
-        >
-          {hideDC ? "DC Hidden" : "Hide DC"}
-        </button>
       </div>
 
       {hasActiveFilters && (

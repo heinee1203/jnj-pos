@@ -22,8 +22,6 @@ export function InventoryFilterPanel({
       categoryFilter={inventory.categoryFilter}
       stockStatusFilter={inventory.stockStatusFilter}
       brandFilter={inventory.brandFilter}
-      hideSO={inventory.hideSO}
-      hideDC={inventory.hideDC}
       canEdit={canEdit}
       hasActiveFilters={inventory.hasActiveFilters}
       totalItems={inventory.totalItems}
@@ -40,8 +38,6 @@ export function InventoryFilterPanel({
         inventory.setBrandFilter(value);
         inventory.setPage(1);
       }}
-      onToggleHideSO={inventory.toggleHideSO}
-      onToggleHideDC={inventory.toggleHideDC}
       onAddModal={onAddModal}
       onClearAllFilters={inventory.clearAllFilters}
     />

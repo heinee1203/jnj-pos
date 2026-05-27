@@ -56,9 +56,7 @@ export function FlatProductRow({
           "cursor-pointer transition-colors duration-75",
           p.isParent && "bg-muted/30 hover:bg-muted/50",
           !p.isParent && isSelected && "bg-primary/[0.05]",
-          !p.isParent && !isSelected && p.stockLevel <= 0 && p.discontinued && "bg-gray-100 hover:bg-gray-200/70",
-          !p.isParent && !isSelected && p.stockLevel <= 0 && !p.discontinued && p.specialOrder && "bg-blue-50 hover:bg-blue-100/70",
-          !p.isParent && !isSelected && p.stockLevel <= 0 && !p.discontinued && !p.specialOrder && "bg-red-50 hover:bg-red-100/70",
+          !p.isParent && !isSelected && p.stockLevel <= 0 && "bg-red-50 hover:bg-red-100/70",
           !p.isParent && !isSelected && p.stockLevel > 0 && "hover:bg-accent/70",
         )}
       >
@@ -93,12 +91,6 @@ export function FlatProductRow({
             <span className={cn("block truncate text-[12px] leading-snug text-foreground", p.isParent ? "font-semibold" : "font-medium")}>
               {p.name}
             </span>
-            {p.specialOrder && (
-              <span className="shrink-0 rounded bg-blue-100 px-1.5 py-px text-[10px] font-medium text-blue-700">SO</span>
-            )}
-            {p.discontinued && (
-              <span className="shrink-0 rounded bg-gray-200 px-1.5 py-px text-[10px] font-medium text-gray-600">DC</span>
-            )}
             {p.isSerialized && !(p as any).isTire && (
               <span className="shrink-0 rounded bg-violet-100 px-1.5 py-px text-[10px] font-medium text-violet-700">SN</span>
             )}
