@@ -54,7 +54,7 @@ export function buildNewItemPayload({
   return {
     name: name.trim(),
     sku: hasInlineVariants ? "" : sku.trim(),
-    category: "GENERAL",
+    category: "SCHOOL_SUPPLIES",
     unitPrice: unitPrice || "0.00",
     costPrice: showCost ? costPrice || "0.00" : "0.00",
     barcode: hasInlineVariants ? undefined : barcode.trim() || undefined,

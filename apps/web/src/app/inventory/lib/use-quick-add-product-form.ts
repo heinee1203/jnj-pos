@@ -17,6 +17,17 @@ function slugify(name: string): string {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 }
 
+function getApiErrorMessage(err: any): string {
+  const fieldErrors = err?.body?.details?.fieldErrors as
+    | Record<string, string[] | undefined>
+    | undefined;
+  const firstFieldError = fieldErrors
+    ? Object.values(fieldErrors).flat().find(Boolean)
+    : undefined;
+
+  return firstFieldError || err?.message || "Failed to create item";
+}
+
 export function useQuickAddProductForm({
   token,
   locationId,
@@ -110,7 +121,7 @@ export function useQuickAddProductForm({
       const payload: any = {
         name: name.trim(),
         sku: sku.trim(),
-        category: "GENERAL",
+        category: "SCHOOL_SUPPLIES",
         categoryId: categoryId || undefined,
         brandId: brandId || undefined,
         unitPrice: unitPrice || "0.00",
@@ -139,7 +150,7 @@ export function useQuickAddProductForm({
         onClose();
       }
     } catch (err: any) {
-      setError(err?.message || "Failed to create item");
+      setError(getApiErrorMessage(err));
     }
   };
 
