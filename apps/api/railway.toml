@@ -1,0 +1,19 @@
+[build]
+builder = "RAILPACK"
+buildCommand = "pnpm --filter @jnj/api build"
+watchPatterns = [
+  "apps/api/**",
+  "packages/database/**",
+  "packages/types/**",
+  "package.json",
+  "pnpm-lock.yaml",
+  "pnpm-workspace.yaml",
+  "tsconfig.base.json"
+]
+
+[deploy]
+startCommand = "pnpm --filter @jnj/api start"
+healthcheckPath = "/health"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10

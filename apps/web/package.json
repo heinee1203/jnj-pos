@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "next dev --port 3011 --hostname 0.0.0.0",
     "typecheck": "tsc --noEmit",
-    "build": "next build",
-    "start": "next start --port 3011",
+    "build": "next build && node scripts/prepare-standalone.mjs",
+    "start": "node scripts/start-next.mjs",
     "lint": "next lint"
   },
   "dependencies": {
