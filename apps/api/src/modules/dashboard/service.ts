@@ -117,6 +117,15 @@ function isUndefinedTableError(err: unknown): boolean {
   return getDatabaseErrorCode(err) === "42P01";
 }
 
+async function tolerateUndefinedTable<T>(promise: Promise<T>, fallback: T): Promise<T> {
+  try {
+    return await promise;
+  } catch (err) {
+    if (isUndefinedTableError(err)) return fallback;
+    throw err;
+  }
+}
+
 // ── Query Functions ──
 
 async function getInventorySummary(
@@ -547,7 +556,10 @@ export async function getDashboardSummary(
       : Promise.resolve(null),
 
     // Low stock items: for all roles (inventory awareness)
-    getLowStockItems(orgId, inventoryLocationConditions, allLocations, 10),
+    tolerateUndefinedTable(
+      getLowStockItems(orgId, inventoryLocationConditions, allLocations, 10),
+      [],
+    ),
 
     // Recent activity: for all roles
     getRecentActivity(orgId, effectiveLocationId, 15),
