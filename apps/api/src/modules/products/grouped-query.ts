@@ -179,8 +179,8 @@ export async function handleGroupedQuery(
         b.name AS brand_name,
         p.special_order,
         p.discontinued,
-        p.is_serialized,
-        p.is_tire
+        false AS is_serialized,
+        false AS is_tire
       FROM inventory i
       INNER JOIN products p ON i.product_id = p.id
       LEFT JOIN categories cat ON p.category_id = cat.id
@@ -199,7 +199,7 @@ export async function handleGroupedQuery(
       ${allLocations ? sql`GROUP BY p.id, p.name, p.sku, p.mnemonic_sku, p.category,
                p.unit_price, p.cost_price, p.barcode, p.oem_number, p.is_variable_price,
                p.category_id, cat.name,
-               p.brand_id, b.name, p.special_order, p.discontinued, p.is_serialized, p.is_tire` : sql``}
+               p.brand_id, b.name, p.special_order, p.discontinued` : sql``}
     )
     SELECT *, count(*) OVER() AS _total_count
     FROM grouped_data

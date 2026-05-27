@@ -216,7 +216,9 @@ export async function handleAllLocationsQuery(
         p.brand_id, b.name AS brand_name,
         p.parent_product_id, p.is_parent,
         (SELECT pp.name FROM products pp WHERE pp.id = p.parent_product_id) AS parent_name,
-        p.special_order, p.discontinued, p.is_serialized, p.is_tire,
+        p.special_order, p.discontinued,
+        false AS is_serialized,
+        false AS is_tire,
         ${vehicleModelExpr} AS vehicle_model
       FROM products p
         LEFT JOIN inventory i ON i.product_id = p.id
@@ -238,7 +240,7 @@ export async function handleAllLocationsQuery(
       GROUP BY p.id, p.name, p.sku, p.mnemonic_sku, p.category,
                p.unit_price, p.cost_price, p.barcode, p.oem_number, p.is_variable_price,
                p.category_id, cat.name, p.brand_id, b.name,
-               p.parent_product_id, p.is_parent, p.special_order, p.discontinued, p.is_serialized, p.is_tire,
+               p.parent_product_id, p.is_parent, p.special_order, p.discontinued,
                (SELECT pp.name FROM products pp WHERE pp.id = p.parent_product_id)
       ${stockHaving}
     )
