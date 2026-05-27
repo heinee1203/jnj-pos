@@ -102,6 +102,21 @@ function canSeeFinancial(role: string): boolean {
   return FINANCIAL_ROLES.includes(role);
 }
 
+function getDatabaseErrorCode(err: unknown): string | undefined {
+  let current = err as { code?: unknown; cause?: unknown } | null | undefined;
+  while (current && typeof current === "object") {
+    if (typeof current.code === "string") {
+      return current.code;
+    }
+    current = current.cause as { code?: unknown; cause?: unknown } | null | undefined;
+  }
+  return undefined;
+}
+
+function isUndefinedTableError(err: unknown): boolean {
+  return getDatabaseErrorCode(err) === "42P01";
+}
+
 // ── Query Functions ──
 
 async function getInventorySummary(
@@ -181,7 +196,7 @@ async function getProcurementSummary(
     };
   } catch (err: any) {
     // 42P01 = undefined_table (not yet migrated)
-    if (err.code === "42P01") return null;
+    if (isUndefinedTableError(err)) return null;
     throw err;
   }
 }
@@ -189,23 +204,28 @@ async function getProcurementSummary(
 async function getTransferSummary(
   orgId: string,
   locationId?: string,
-): Promise<TransferSummary> {
-  const rows = await db.execute(sql`
-    SELECT
-      count(*) FILTER (WHERE status NOT IN ('RECEIVED', 'CANCELLED', 'CLOSED_WITH_VARIANCE'))::int AS open_transfers,
-      count(*) FILTER (WHERE status = 'DISPATCHED')::int AS in_transit,
-      count(*) FILTER (WHERE status = 'DRAFT')::int AS awaiting_approval
-    FROM stock_transfers
-    WHERE org_id = ${orgId}
-      ${locationId ? sql`AND (source_location_id = ${locationId} OR destination_location_id = ${locationId})` : sql``}
-  `);
+): Promise<TransferSummary | null> {
+  try {
+    const rows = await db.execute(sql`
+      SELECT
+        count(*) FILTER (WHERE status NOT IN ('RECEIVED', 'CANCELLED', 'CLOSED_WITH_VARIANCE'))::int AS open_transfers,
+        count(*) FILTER (WHERE status = 'DISPATCHED')::int AS in_transit,
+        count(*) FILTER (WHERE status = 'DRAFT')::int AS awaiting_approval
+      FROM stock_transfers
+      WHERE org_id = ${orgId}
+        ${locationId ? sql`AND (source_location_id = ${locationId} OR destination_location_id = ${locationId})` : sql``}
+    `);
 
-  const r = (rows[0] as any) ?? {};
-  return {
-    openTransfers: r.open_transfers ?? 0,
-    inTransit: r.in_transit ?? 0,
-    awaitingApproval: r.awaiting_approval ?? 0,
-  };
+    const r = (rows[0] as any) ?? {};
+    return {
+      openTransfers: r.open_transfers ?? 0,
+      inTransit: r.in_transit ?? 0,
+      awaitingApproval: r.awaiting_approval ?? 0,
+    };
+  } catch (err: any) {
+    if (isUndefinedTableError(err)) return null;
+    throw err;
+  }
 }
 
 async function getJobCardSummary(
@@ -233,7 +253,7 @@ async function getJobCardSummary(
     };
   } catch (err: any) {
     // 42P01 = undefined_table (not yet migrated)
-    if (err.code === "42P01") return null;
+    if (isUndefinedTableError(err)) return null;
     throw err;
   }
 }
@@ -298,7 +318,7 @@ async function getFinancialKPI(
   };
   } catch (err: any) {
     // 42P01 = undefined_table (job_cards not migrated)
-    if (err.code === "42P01") return null;
+    if (isUndefinedTableError(err)) return null;
     throw err;
   }
 }
@@ -415,45 +435,50 @@ async function getRecentActivity(
   // Join to stock_transfers for reference numbers (exists in DB).
   // purchase_orders, job_cards, sales may not be migrated yet —
   // use conditional LEFT JOINs only for tables known to exist.
-  const rows = await db.execute(sql`
-    SELECT
-      sj.id,
-      p.name AS product_name,
-      p.sku,
-      sj.change_quantity,
-      CASE WHEN sj.change_quantity >= 0 THEN 'IN' ELSE 'OUT' END AS direction,
-      sj.reference_type,
-      sj.balance_after,
-      l.name AS location_name,
-      u.full_name AS actor_name,
-      st.transfer_no::text AS reference_no,
-      sj.created_at
-    FROM stock_journal sj
-    INNER JOIN products p ON sj.product_id = p.id
-    INNER JOIN locations l ON sj.location_id = l.id
-    LEFT JOIN users u ON sj.user_id = u.id
-    LEFT JOIN stock_transfers st
-      ON sj.reference_id = st.id
-      AND sj.reference_type IN ('TRANSFER_IN', 'TRANSFER_OUT')
-    WHERE sj.org_id = ${orgId}
-      ${locationId ? sql`AND sj.location_id = ${locationId}` : sql``}
-    ORDER BY sj.created_at DESC
-    LIMIT ${limit}
-  `);
+  try {
+    const rows = await db.execute(sql`
+      SELECT
+        sj.id,
+        p.name AS product_name,
+        p.sku,
+        sj.change_quantity,
+        CASE WHEN sj.change_quantity >= 0 THEN 'IN' ELSE 'OUT' END AS direction,
+        sj.reference_type,
+        sj.balance_after,
+        l.name AS location_name,
+        u.full_name AS actor_name,
+        st.transfer_no::text AS reference_no,
+        sj.created_at
+      FROM stock_journal sj
+      INNER JOIN products p ON sj.product_id = p.id
+      INNER JOIN locations l ON sj.location_id = l.id
+      LEFT JOIN users u ON sj.user_id = u.id
+      LEFT JOIN stock_transfers st
+        ON sj.reference_id = st.id
+        AND sj.reference_type IN ('TRANSFER_IN', 'TRANSFER_OUT')
+      WHERE sj.org_id = ${orgId}
+        ${locationId ? sql`AND sj.location_id = ${locationId}` : sql``}
+      ORDER BY sj.created_at DESC
+      LIMIT ${limit}
+    `);
 
-  return (rows as any[]).map((r) => ({
-    id: r.id,
-    productName: r.product_name,
-    sku: r.sku,
-    changeQuantity: r.change_quantity,
-    direction: r.direction,
-    referenceType: r.reference_type,
-    referenceNo: r.reference_no,
-    balanceAfter: r.balance_after,
-    locationName: r.location_name,
-    actorName: r.actor_name,
-    createdAt: r.created_at instanceof Date ? r.created_at.toISOString() : r.created_at,
-  }));
+    return (rows as any[]).map((r) => ({
+      id: r.id,
+      productName: r.product_name,
+      sku: r.sku,
+      changeQuantity: r.change_quantity,
+      direction: r.direction,
+      referenceType: r.reference_type,
+      referenceNo: r.reference_no,
+      balanceAfter: r.balance_after,
+      locationName: r.location_name,
+      actorName: r.actor_name,
+      createdAt: r.created_at instanceof Date ? r.created_at.toISOString() : r.created_at,
+    }));
+  } catch (err: any) {
+    if (isUndefinedTableError(err)) return [];
+    throw err;
+  }
 }
 
 // ── Main Aggregator ──

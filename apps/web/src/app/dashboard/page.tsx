@@ -94,10 +94,6 @@ export default function DashboardPage() {
     void reorder({ productId: item.productId, productName: item.productName });
   }, [reorder]);
 
-  if (isLoading || !data) {
-    return <LoadingState label="Loading dashboard..." />;
-  }
-
   if (isError) {
     return (
       <WorkspacePage className="max-w-[1400px]">
@@ -109,6 +105,10 @@ export default function DashboardPage() {
         />
       </WorkspacePage>
     );
+  }
+
+  if (isLoading || !data) {
+    return <LoadingState label="Loading dashboard..." />;
   }
 
   const { scope, inventory, procurement, transfers, jobCards, lowStockItems, recentActivity } = data;
