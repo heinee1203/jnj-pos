@@ -71,7 +71,6 @@ const NAV_TOP: NavEntry[] = [
     match: /^\/sales/,
     children: [
       { label: "Receipts", href: "/sales/receipts", match: /^\/sales\/receipts/ },
-      { label: "Open Tickets", href: "/sales/open-tickets", match: /^\/sales\/open-tickets/ },
     ],
   },
   {
