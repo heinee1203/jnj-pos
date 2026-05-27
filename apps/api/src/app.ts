@@ -43,7 +43,7 @@ function getCorsOrigin() {
 
   const configuredOrigins = (process.env.CORS_ORIGINS ?? "")
     .split(",")
-    .map(s => s.trim())
+    .map(s => s.trim().replace(/^["']|["']$/g, ""))
     .filter(Boolean);
 
   return configuredOrigins.length > 0
