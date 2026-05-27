@@ -143,7 +143,7 @@ export function FindReplaceModal({
             </label>
             <label className="flex items-center gap-1.5 cursor-pointer">
               <input type="checkbox" checked={fields.has("oem")} onChange={() => toggleField("oem")} className="h-3.5 w-3.5 accent-primary" />
-              OEM
+              Supplier Code
             </label>
             <div className="ml-auto">
               <label className="flex items-center gap-1.5 cursor-pointer text-muted-foreground">

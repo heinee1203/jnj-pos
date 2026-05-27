@@ -240,21 +240,21 @@ function InventoryFields({
           type="text"
           value={barcode}
           onChange={(event) => onBarcodeChange(event.target.value.slice(0, 50))}
-          placeholder="Auto-generated if empty"
+          placeholder="Scan barcode or leave blank"
           maxLength={50}
           className={cn(fieldClass, "font-mono")}
         />
         <p className="mt-0.5 text-[10px] text-muted-foreground">
-          Leave blank to auto-generate a unique barcode
+          Leave blank to generate an internal item barcode
         </p>
       </div>
       <div className="col-span-2">
-        <FieldLabel>OEM Number</FieldLabel>
+        <FieldLabel>Supplier / Item Code</FieldLabel>
         <input
           type="text"
           value={oemNumber}
           onChange={(event) => onOemNumberChange(event.target.value.slice(0, 100))}
-          placeholder="e.g. MB295982, 04465-0K160"
+          placeholder="e.g. NBS-1224, FCB-24CT"
           maxLength={100}
           className={cn(fieldClass, "font-mono")}
         />

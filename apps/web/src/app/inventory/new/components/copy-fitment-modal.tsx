@@ -94,7 +94,7 @@ export function CopyFitmentModal({
       <div className="w-full max-w-lg rounded-xl border border-border bg-background shadow-xl">
         <div className="flex items-center justify-between border-b border-border px-5 py-3">
           <h3 className="text-sm font-semibold">
-            Copy Vehicle Fitment from Another Item
+            Copy Class / Use Details from Another Item
           </h3>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
             <X size={16} />
@@ -129,7 +129,7 @@ export function CopyFitmentModal({
           )}
           {!searching && debouncedSearch.length >= 2 && filteredResults.length === 0 && (
             <div className="py-6 text-center text-xs text-muted-foreground">
-              No products with vehicle fitments found
+              No items with class or use details found
             </div>
           )}
           {filteredResults.map((product: any) => (
@@ -146,7 +146,7 @@ export function CopyFitmentModal({
                 <div className="text-xs text-muted-foreground">{product.sku}</div>
               </div>
               <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                {product.vehicleCount} fitment{product.vehicleCount !== 1 ? "s" : ""}
+                {product.vehicleCount} detail{product.vehicleCount !== 1 ? "s" : ""}
               </span>
             </button>
           ))}
@@ -155,7 +155,7 @@ export function CopyFitmentModal({
         {selectedProduct && (
           <div className="border-t border-border px-5 py-3">
             <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Fitments to copy:
+              Details to copy:
             </div>
             {loadingVehicles ? (
               <div className="flex items-center text-xs text-muted-foreground">
@@ -188,7 +188,7 @@ export function CopyFitmentModal({
             disabled={!vehicleData?.data?.length}
             className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
           >
-            Copy {vehicleData?.data?.length ?? 0} Fitment
+            Copy {vehicleData?.data?.length ?? 0} Detail
             {(vehicleData?.data?.length ?? 0) !== 1 ? "s" : ""}
           </button>
         </div>

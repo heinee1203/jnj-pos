@@ -390,7 +390,7 @@ export function DetailDrawer({
                   </div>
                   <div>
                     <label className="mb-1 block text-[11px] font-medium text-muted-foreground">Barcode</label>
-                    <input className={cn(inputCls, "font-mono")} value={editBarcode} onChange={(e) => setEditBarcode(e.target.value)} placeholder="UPC / EAN / barcode" maxLength={50} />
+                    <input className={cn(inputCls, "font-mono")} value={editBarcode} onChange={(e) => setEditBarcode(e.target.value)} placeholder="Barcode or internal item code" maxLength={50} />
                   </div>
                   {!product.isVariablePrice && (
                     <div>
@@ -416,7 +416,7 @@ export function DetailDrawer({
                   <DetailInfoRow label="Name" value={product.name} />
                   <DetailInfoRow label="SKU" value={product.sku} mono />
                   {product.barcode && <DetailInfoRow label="Barcode" value={product.barcode} mono />}
-                  {product.oemNumber && <DetailInfoRow label="OEM Number" value={product.oemNumber} mono />}
+                  {product.oemNumber && <DetailInfoRow label="Supplier / Item Code" value={product.oemNumber} mono />}
                   {/* Sell Price — inline editable */}
                   <div className="flex justify-between py-0.5">
                     <span className="text-xs text-muted-foreground">Sell Price</span>

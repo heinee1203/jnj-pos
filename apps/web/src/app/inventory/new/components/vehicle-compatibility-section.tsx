@@ -1,6 +1,6 @@
 "use client";
 
-import { Car, Copy, Info, Plus, Trash2 } from "lucide-react";
+import { BookOpen, Copy, Info, Plus, Trash2 } from "lucide-react";
 
 import type { VehicleEntry } from "../types";
 import {
@@ -39,8 +39,8 @@ export function VehicleCompatibilitySection({
   return (
     <FormSection
       id="vehicles"
-      icon={Car}
-      title="Vehicle Compatibility"
+      icon={BookOpen}
+      title="Class / Use Compatibility"
       collapsed={collapsed}
       onToggle={onToggle}
       badge={vehicles.length > 0 ? `${vehicles.length} entries` : undefined}
@@ -66,7 +66,7 @@ export function VehicleCompatibilitySection({
             className="flex items-center gap-1.5 text-[12px] font-medium text-primary hover:text-primary/80"
           >
             <Plus size={13} />
-            Add Vehicle Fitment
+            Add Requirement
           </button>
           <button
             onClick={onCopyFromItem}
@@ -86,7 +86,7 @@ function VehicleCompatibilityHint() {
     <div className="flex items-center gap-2 rounded-lg border border-dashed border-border bg-muted/20 px-3 py-2 text-[12px] text-muted-foreground">
       <Info size={13} />
       <span>
-        Specify which vehicles this part fits. This data is persisted and searchable.
+        Note grade level, subject, bundle, or classroom use. This data is saved and searchable.
       </span>
     </div>
   );
@@ -111,7 +111,7 @@ function VehicleFitmentRow({
     <div className="space-y-2 rounded-lg border border-border bg-muted/10 p-3">
       <div className="flex items-center justify-between">
         <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-          Fitment Entry
+          Requirement Entry
         </span>
         <button
           onClick={() => onRemove(vehicle.id)}
@@ -122,7 +122,7 @@ function VehicleFitmentRow({
       </div>
       <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
         <div>
-          <FieldLabel>Make</FieldLabel>
+          <FieldLabel>Group</FieldLabel>
           <select
             value={vehicle.make}
             onChange={(event) => onUpdate(vehicle.id, "make", event.target.value)}
@@ -137,7 +137,7 @@ function VehicleFitmentRow({
           </select>
         </div>
         <div>
-          <FieldLabel>Model</FieldLabel>
+          <FieldLabel>Item Type</FieldLabel>
           <NewPageModelInput
             token={token}
             locationId={locationId}
@@ -147,56 +147,56 @@ function VehicleFitmentRow({
           />
         </div>
         <div>
-          <FieldLabel>Year From</FieldLabel>
+          <FieldLabel>Grade From</FieldLabel>
           <input
             type="number"
-            min="1990"
-            max="2030"
+            min="1"
+            max="12"
             value={vehicle.yearStart}
             onChange={(event) =>
               onUpdate(vehicle.id, "yearStart", event.target.value)
             }
-            placeholder="2016"
+            placeholder="1"
             className={fieldClass}
           />
         </div>
         <div>
-          <FieldLabel>Year To</FieldLabel>
+          <FieldLabel>Grade To</FieldLabel>
           <input
             type="number"
-            min="1990"
-            max="2030"
+            min="1"
+            max="12"
             value={vehicle.yearEnd}
             onChange={(event) =>
               onUpdate(vehicle.id, "yearEnd", event.target.value)
             }
-            placeholder="2021"
+            placeholder="6"
             className={fieldClass}
           />
         </div>
       </div>
       <div className="grid grid-cols-2 gap-2">
         <div>
-          <FieldLabel>Engine / Application</FieldLabel>
+          <FieldLabel>Subject / Application</FieldLabel>
           <input
             type="text"
             value={vehicle.engine}
             onChange={(event) =>
               onUpdate(vehicle.id, "engine", event.target.value)
             }
-            placeholder="e.g. 1.5L Turbo"
+            placeholder="e.g. Math, art class, project kit"
             className={fieldClass}
           />
         </div>
         <div>
-          <FieldLabel>Fitment Notes</FieldLabel>
+          <FieldLabel>Notes</FieldLabel>
           <input
             type="text"
             value={vehicle.notes}
             onChange={(event) =>
               onUpdate(vehicle.id, "notes", event.target.value)
             }
-            placeholder="e.g. Front only, OEM replacement"
+            placeholder="e.g. Required for Grade 4 bundle"
             className={fieldClass}
           />
         </div>

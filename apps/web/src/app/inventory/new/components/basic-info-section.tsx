@@ -89,7 +89,7 @@ export function BasicInfoSection({
             type="text"
             value={name}
             onChange={(event) => onNameChange(event.target.value)}
-            placeholder="e.g. ACDelco Brake Pad - Honda Civic 2016-2021"
+            placeholder="e.g. Cattleya Notebook 80 Leaves"
             autoFocus
             className={fieldClass}
           />
@@ -102,7 +102,7 @@ export function BasicInfoSection({
               type="text"
               value={sku}
               onChange={(event) => onSkuChange(event.target.value.toUpperCase())}
-              placeholder="e.g. HAR-050001"
+              placeholder="e.g. NBK-050001"
               className={cn(fieldClass, "font-mono")}
             />
           </div>
@@ -144,7 +144,7 @@ export function BasicInfoSection({
             value={description}
             onChange={(event) => onDescriptionChange(event.target.value)}
             rows={2}
-            placeholder="Internal notes, fitment details, handling instructions..."
+            placeholder="Internal notes, pack size, color, shelf location, or supplier details..."
             className="w-full resize-none rounded-lg border border-border bg-background px-3 py-2 text-[13px] text-foreground outline-none placeholder:text-muted-foreground/50 focus:border-primary/40 focus:ring-2 focus:ring-primary/[0.08]"
           />
         </div>
@@ -200,7 +200,7 @@ function InlineVariantsEditor({
           </span>
         </label>
         <span className="text-[10px] text-muted-foreground">
-          (e.g. Side Mirror LH / RH, Brake Pad Front / Rear)
+          (e.g. Notebook 80 / 100 leaves, Pad Paper 1/2 / 1/4)
         </span>
       </div>
 
@@ -237,7 +237,7 @@ function InlineVariantsEditor({
                             event.target.value,
                           )
                         }
-                        placeholder="e.g. LH, RH, Front"
+                        placeholder="e.g. 80 leaves, 100 leaves, Blue"
                         className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[12px] focus:border-primary focus:ring-1 focus:ring-primary/20"
                       />
                     </td>

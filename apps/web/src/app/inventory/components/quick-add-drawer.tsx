@@ -76,7 +76,7 @@ export function QuickAddDrawer({
           <div className="flex items-center justify-between border-b border-border px-5 py-3">
             <div>
               <h3 className="text-sm font-semibold text-foreground">Quick Add Item</h3>
-              <p className="text-[11px] text-muted-foreground">Create a new catalog item</p>
+              <p className="text-[11px] text-muted-foreground">Create a school supply or merchandise item</p>
             </div>
             <button
               onClick={onClose}

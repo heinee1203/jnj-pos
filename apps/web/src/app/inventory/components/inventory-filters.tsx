@@ -66,9 +66,9 @@ export function InventoryFilters({
               onSubmitSearch();
             }
           }}
-          placeholder="Search items, SKU, OEM... (press Enter)"
+          placeholder="Search items, SKU, barcode... (press Enter)"
           className="h-10 w-full rounded-xl border border-border bg-background/80 pl-9 pr-16 text-sm text-foreground shadow-sm outline-none placeholder:text-muted-foreground/50 transition-colors focus:border-primary/40 focus:ring-2 focus:ring-primary/[0.08]"
-          title="Tip: begins:NIS (starts with) | sku:SB-4122 (exact SKU) | barcode:4289 (barcode starts with) | use commas for multiple"
+          title="Tip: begins:notebook (starts with) | sku:PCL-005001 (exact SKU) | barcode:480 (barcode starts with) | use commas for multiple"
         />
         <div className="absolute right-1.5 top-1/2 flex -translate-y-1/2 items-center gap-0.5">
           {searchQuery && (

@@ -11,7 +11,7 @@ import {
   Loader2,
   Zap,
   Hash,
-  Car,
+  BookOpen,
   FileCode,
   Layers,
   Download,
@@ -37,8 +37,8 @@ type TagType = "ALL" | "TIRE_SIZE" | "VEHICLE" | "APPLICATION_CODE" | "CUSTOM";
 
 const TAG_TYPES: { key: TagType; label: string; icon: any }[] = [
   { key: "ALL", label: "All Tags", icon: Layers },
-  { key: "TIRE_SIZE", label: "Tire Sizes", icon: Hash },
-  { key: "VEHICLE", label: "Vehicle Fitment", icon: Car },
+  { key: "TIRE_SIZE", label: "Size / Pack Tags", icon: Hash },
+  { key: "VEHICLE", label: "Class / Use", icon: BookOpen },
   { key: "APPLICATION_CODE", label: "Application Codes", icon: FileCode },
   { key: "CUSTOM", label: "Custom", icon: Tag },
 ];
@@ -234,10 +234,10 @@ export default function TagManagementPage() {
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/[0.06]">
             <Tag size={16} className="text-primary" />
           </div>
-          <h1 className="text-[18px] font-semibold tracking-tight text-foreground">Tags / Fitment</h1>
+          <h1 className="text-[18px] font-semibold tracking-tight text-foreground">Tags / Item Groups</h1>
         </div>
         <p className="mt-1.5 text-[13px] leading-5 text-muted-foreground">
-          Manage product tags for tire sizes, vehicle fitment, application codes, and custom groupings.
+          Manage item tags for sizes, grade levels, subjects, applications, and custom groupings.
         </p>
 
         {/* Summary */}
@@ -292,7 +292,7 @@ export default function TagManagementPage() {
               className="flex items-center gap-1.5 h-8 rounded-lg bg-blue-600 px-3 text-[11px] font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
             >
               {autoTagTiresMut.isPending ? <Loader2 size={12} className="animate-spin" /> : <Zap size={12} />}
-              Auto-Tag Tires
+              Auto-Tag Sizes
             </button>
           )}
           <button
@@ -435,7 +435,7 @@ export default function TagManagementPage() {
                   type="text"
                   value={newTagName}
                   onChange={(e) => setNewTagName(e.target.value)}
-                  placeholder="e.g., 175/65R14"
+                  placeholder="e.g., Grade 4, Long Notebook, 24 Colors"
                   className="h-9 w-full rounded-lg border border-border bg-background px-3 text-[13px] text-foreground outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/[0.08]"
                   autoFocus
                 />
@@ -447,8 +447,8 @@ export default function TagManagementPage() {
                   onChange={(e) => setNewTagType(e.target.value)}
                   className="h-9 w-full rounded-lg border border-border bg-background px-3 text-[13px] text-foreground outline-none focus:border-primary/40"
                 >
-                  <option value="TIRE_SIZE">Tire Size</option>
-                  <option value="VEHICLE">Vehicle Fitment</option>
+                  <option value="TIRE_SIZE">Size / Pack</option>
+                  <option value="VEHICLE">Class / Use</option>
                   <option value="APPLICATION_CODE">Application Code</option>
                   <option value="CUSTOM">Custom</option>
                 </select>

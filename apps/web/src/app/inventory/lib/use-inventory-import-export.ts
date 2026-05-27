@@ -98,7 +98,7 @@ function generateHandle(name: string): string {
 
 function buildCSV(items: ExportProduct[], locs: Array<{ id: string; name: string }>): string {
   const staticHeaders = [
-    "Handle", "Name", "SKU", "Barcode", "OEM Number",
+    "Handle", "Name", "SKU", "Barcode", "Supplier Code",
     "Category", "Brand",
     "Default Price", "Cost", "Variable Price", "Track Stock", "Description",
     "Units per Case", "Packaging Unit",
@@ -278,7 +278,7 @@ function mapCSVRowToPayload(row: Record<string, string>, rawHeaders: string[]) {
     sku: get("sku"),
     handle: get("handle"),
     barcode: get("barcode"),
-    oemNumber: get("oemnumber", "oem number"),
+    oemNumber: get("suppliercode", "supplier code", "itemcode", "item code", "oemnumber", "oem number"),
     category: get("category"),
     brand: get("brand"),
     unitPrice: get("defaultprice", "default price", "sellprice", "unitprice"),
@@ -359,10 +359,10 @@ export function useInventoryImportExport({
     ];
 
     const sampleRow = [
-      "l-wrench",
-      "10032",
-      "GTX L WRENCH",
-      "Tools",
+      "mongol-pencil-no2",
+      "PCL-0001",
+      "Mongol No. 2 Pencil",
+      "Writing Supplies",
       "Sample item - delete this row",
       "N",
       "SIZE",
