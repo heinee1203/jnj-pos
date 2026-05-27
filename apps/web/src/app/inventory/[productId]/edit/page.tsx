@@ -314,13 +314,27 @@ export default function EditInventoryItemPage() {
 
   const addPriceTier = (label = "", quantity = "") => {
     setPriceTiers((prev) => {
-      if (quantity && prev.some((tier) => tier.quantity === quantity)) return prev;
+      const normalizedLabel = normalizeUom(label);
+      const normalizedQuantity =
+        quantity && prev.some((tier) => tier.quantity === quantity) ? "" : quantity;
+
+      if (
+        normalizedLabel &&
+        prev.some(
+          (tier) =>
+            normalizeUom(tier.label) === normalizedLabel &&
+            (!normalizedQuantity || tier.quantity === normalizedQuantity),
+        )
+      ) {
+        return prev;
+      }
+
       return [
         ...prev,
         {
           localId: makeLocalId(),
-          label: normalizeUom(label),
-          quantity,
+          label: normalizedLabel,
+          quantity: normalizedQuantity,
           price: "",
         },
       ];
