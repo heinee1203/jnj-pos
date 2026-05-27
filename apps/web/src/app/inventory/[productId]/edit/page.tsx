@@ -9,6 +9,7 @@ import {
   Check,
   DollarSign,
   Loader2,
+  MapPin,
   Package,
   Plus,
   Trash2,
@@ -21,6 +22,7 @@ import { useSidebar } from "@/app/sidebar-context";
 import { SelectWithQuickAdd } from "@/components/select-with-quick-add";
 import { useBrands, useCreateBrand } from "@/hooks/use-brands";
 import { useCategories, useCreateCategory } from "@/hooks/use-categories";
+import { useProductLocations, type ProductLocationRow } from "@/hooks/use-product-locations";
 import { useProductDetail, useUpdateProduct, type ProductPriceTier } from "@/hooks/use-products";
 import { cn } from "@/lib/utils";
 
@@ -40,6 +42,12 @@ type UnitPriceTierDraft = {
   label: string;
   quantity: string;
   price: string;
+};
+
+type DisplayUnitOption = {
+  key: string;
+  label: string;
+  quantity: number;
 };
 
 function makeLocalId() {
@@ -65,6 +73,84 @@ function isMoney(value: string) {
   return /^\d+(\.\d{1,2})?$/.test(value);
 }
 
+function unitKey(label: string, quantity: number) {
+  return `${label.trim().toLowerCase()}::${quantity}`;
+}
+
+function addDisplayUnitOption(
+  options: DisplayUnitOption[],
+  label: string | null | undefined,
+  quantity: number,
+) {
+  const normalizedLabel = label?.trim();
+  const normalizedQty = Math.max(1, Math.floor(quantity || 1));
+  if (!normalizedLabel) return;
+
+  const key = unitKey(normalizedLabel, normalizedQty);
+  if (options.some((option) => option.key === key)) return;
+  options.push({ key, label: normalizedLabel, quantity: normalizedQty });
+}
+
+function getLocationDefaultUnitKey(
+  row: ProductLocationRow,
+  options: DisplayUnitOption[],
+  preferred: {
+    baseUnit: string;
+    purchaseUnit: string;
+    packagingUnit: string;
+    unitsPerCase: number;
+  },
+) {
+  const base =
+    options.find((option) => option.quantity === 1) ??
+    options[0];
+  if (!base) return "";
+
+  if (["WAREHOUSE", "TRANSIT_BUFFER"].includes(row.locationType)) {
+    const purchaseMatch = options.find(
+      (option) =>
+        preferred.purchaseUnit &&
+        option.label.toLowerCase() === preferred.purchaseUnit.toLowerCase(),
+    );
+    if (purchaseMatch && purchaseMatch.quantity > 1) return purchaseMatch.key;
+
+    const packageMatch = options.find(
+      (option) =>
+        preferred.packagingUnit &&
+        option.label.toLowerCase() === preferred.packagingUnit.toLowerCase(),
+    );
+    if (packageMatch && packageMatch.quantity > 1) return packageMatch.key;
+
+    const caseMatch = options.find((option) => option.quantity === preferred.unitsPerCase);
+    if (caseMatch && caseMatch.quantity > 1) return caseMatch.key;
+
+    const largest = [...options].sort((a, b) => b.quantity - a.quantity)[0];
+    if (largest && largest.quantity > 1) return largest.key;
+  }
+
+  const explicitSellingUnit = options.find(
+    (option) => option.label.toLowerCase() === preferred.baseUnit.toLowerCase(),
+  );
+  return explicitSellingUnit?.key ?? base.key;
+}
+
+function formatUnitQuantity(stockLevel: number, unit: DisplayUnitOption | undefined, baseUnit: string) {
+  const quantity = Math.max(1, unit?.quantity ?? 1);
+  const label = unit?.label ?? baseUnit;
+  const stock = Math.max(0, Math.floor(stockLevel || 0));
+
+  if (quantity <= 1) {
+    return `${stock.toLocaleString()} ${label}`;
+  }
+
+  const whole = Math.floor(stock / quantity);
+  const remainder = stock % quantity;
+  if (remainder === 0) {
+    return `${whole.toLocaleString()} ${label}`;
+  }
+  return `${whole.toLocaleString()} ${label} + ${remainder.toLocaleString()} ${baseUnit}`;
+}
+
 export default function EditInventoryItemPage() {
   const params = useParams<{ productId: string }>();
   const productId = params?.productId ?? null;
@@ -74,6 +160,7 @@ export default function EditInventoryItemPage() {
   const showCost = ["ADMIN", "MANAGER"].includes(user?.role ?? "");
 
   const productQuery = useProductDetail(token, locationId, productId);
+  const locationsQuery = useProductLocations(token, locationId, productId);
   const updateProduct = useUpdateProduct(token, locationId);
   const categoriesQuery = useCategories(token, locationId, { activeOnly: true });
   const brandsQuery = useBrands(token, locationId);
@@ -99,6 +186,7 @@ export default function EditInventoryItemPage() {
   const [sellingUnit, setSellingUnit] = useState("piece");
   const [purchaseUnit, setPurchaseUnit] = useState("");
   const [conversionFactor, setConversionFactor] = useState("1");
+  const [locationUnitOverrides, setLocationUnitOverrides] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
 
@@ -129,7 +217,52 @@ export default function EditInventoryItemPage() {
     setSellingUnit(product.sellingUnit ?? "piece");
     setPurchaseUnit(product.purchaseUnit ?? "");
     setConversionFactor(String(product.conversionFactor ?? 1));
+    setLocationUnitOverrides({});
   }, [loadedId, product]);
+
+  const displayUnitOptions = useMemo(() => {
+    const options: DisplayUnitOption[] = [];
+    const baseUnit = sellingUnit || "piece";
+    const caseQty = Math.max(1, parseInt(unitsPerCase, 10) || 1);
+    const purchaseQty = Math.max(1, Math.floor(parseFloat(conversionFactor) || 1));
+
+    addDisplayUnitOption(options, baseUnit, 1);
+    for (const tier of priceTiers) {
+      const quantity = parseInt(tier.quantity, 10);
+      if (Number.isInteger(quantity) && quantity > 0) {
+        addDisplayUnitOption(options, tier.label, quantity);
+      }
+    }
+    if (caseQty > 1) {
+      addDisplayUnitOption(options, packagingUnit || "CASE", caseQty);
+    }
+    if (purchaseUnit && purchaseQty > 1) {
+      addDisplayUnitOption(options, purchaseUnit, purchaseQty);
+    }
+
+    return options.sort((a, b) => a.quantity - b.quantity || a.label.localeCompare(b.label));
+  }, [conversionFactor, packagingUnit, priceTiers, purchaseUnit, sellingUnit, unitsPerCase]);
+
+  const locationRows = locationsQuery.data?.data ?? [];
+  const locationDisplayDefaults = useMemo(() => {
+    const defaults: Record<string, string> = {};
+    const preferred = {
+      baseUnit: sellingUnit || "piece",
+      purchaseUnit,
+      packagingUnit,
+      unitsPerCase: Math.max(1, parseInt(unitsPerCase, 10) || 1),
+    };
+
+    for (const row of locationRows) {
+      defaults[row.locationId] = getLocationDefaultUnitKey(row, displayUnitOptions, preferred);
+    }
+    return defaults;
+  }, [displayUnitOptions, locationRows, packagingUnit, purchaseUnit, sellingUnit, unitsPerCase]);
+
+  const displayUnitByKey = useMemo(
+    () => new Map(displayUnitOptions.map((option) => [option.key, option])),
+    [displayUnitOptions],
+  );
 
   const margin = useMemo(() => {
     const sell = parseFloat(unitPrice) || 0;
@@ -406,6 +539,21 @@ export default function EditInventoryItemPage() {
             />
           </div>
         </SetupSection>
+
+        <SetupSection icon={MapPin} title="Inventory by Location">
+          <LocationInventoryTable
+            baseUnit={sellingUnit || "piece"}
+            displayUnitByKey={displayUnitByKey}
+            displayUnitOptions={displayUnitOptions}
+            isLoading={locationsQuery.isLoading}
+            locationDisplayDefaults={locationDisplayDefaults}
+            locationUnitOverrides={locationUnitOverrides}
+            rows={locationRows}
+            onDisplayUnitChange={(locationId, key) =>
+              setLocationUnitOverrides((prev) => ({ ...prev, [locationId]: key }))
+            }
+          />
+        </SetupSection>
       </div>
 
       <div
@@ -549,6 +697,121 @@ function UnitPriceTiersEditor({
             );
           })
         )}
+      </div>
+    </div>
+  );
+}
+
+function LocationInventoryTable({
+  baseUnit,
+  displayUnitByKey,
+  displayUnitOptions,
+  isLoading,
+  locationDisplayDefaults,
+  locationUnitOverrides,
+  rows,
+  onDisplayUnitChange,
+}: {
+  baseUnit: string;
+  displayUnitByKey: Map<string, DisplayUnitOption>;
+  displayUnitOptions: DisplayUnitOption[];
+  isLoading: boolean;
+  locationDisplayDefaults: Record<string, string>;
+  locationUnitOverrides: Record<string, string>;
+  rows: ProductLocationRow[];
+  onDisplayUnitChange: (locationId: string, key: string) => void;
+}) {
+  if (isLoading) {
+    return (
+      <div className="flex h-24 items-center justify-center text-[12px] text-muted-foreground">
+        <Loader2 size={14} className="mr-2 animate-spin" />
+        Loading location inventory...
+      </div>
+    );
+  }
+
+  if (rows.length === 0) {
+    return (
+      <div className="rounded-lg border border-dashed border-border px-3 py-6 text-center text-[12px] text-muted-foreground">
+        No active locations found.
+      </div>
+    );
+  }
+
+  const gridClass = "grid min-w-[860px] grid-cols-[1.35fr_1.05fr_1fr_0.9fr_1fr_0.9fr] gap-3";
+
+  return (
+    <div className="overflow-x-auto rounded-lg border border-border">
+      <div className={cn(gridClass, "border-b border-border bg-muted/40 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground")}>
+        <div>Location</div>
+        <div>Display UOM</div>
+        <div className="text-right">On Hand</div>
+        <div className="text-right">Reserved</div>
+        <div className="text-right">Available</div>
+        <div className="text-right">Reorder</div>
+      </div>
+      <div className="min-w-[860px] divide-y divide-border">
+        {rows.map((row) => {
+          const selectedKey =
+            locationUnitOverrides[row.locationId] ||
+            locationDisplayDefaults[row.locationId] ||
+            displayUnitOptions[0]?.key ||
+            "";
+          const unit = displayUnitByKey.get(selectedKey) ?? displayUnitOptions[0];
+          const available = Math.max(0, row.stockLevel - row.reservedLevel);
+
+          return (
+            <div key={row.locationId} className={cn(gridClass, "items-center px-3 py-2.5")}>
+              <div className="min-w-0">
+                <p className="truncate text-[13px] font-medium text-foreground">{row.locationName}</p>
+                <p className="text-[11px] text-muted-foreground">{row.locationType.replace(/_/g, " ")}</p>
+              </div>
+              <select
+                value={selectedKey}
+                onChange={(event) => onDisplayUnitChange(row.locationId, event.target.value)}
+                className="h-8 rounded-md border border-border bg-background px-2 text-[12px] text-foreground outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/[0.08]"
+              >
+                {displayUnitOptions.map((option) => (
+                  <option key={option.key} value={option.key}>
+                    {option.quantity > 1 ? `${option.label} (${option.quantity} ${baseUnit})` : option.label}
+                  </option>
+                ))}
+              </select>
+              <div className="text-right">
+                <p className="text-[13px] font-semibold tabular-nums text-foreground">
+                  {formatUnitQuantity(row.stockLevel, unit, baseUnit)}
+                </p>
+                {unit?.quantity && unit.quantity > 1 && (
+                  <p className="text-[11px] text-muted-foreground">
+                    {row.stockLevel.toLocaleString()} {baseUnit}
+                  </p>
+                )}
+              </div>
+              <div className="text-right text-[12px] tabular-nums text-muted-foreground">
+                {formatUnitQuantity(row.reservedLevel, unit, baseUnit)}
+              </div>
+              <div className="text-right">
+                <p className="text-[12px] font-medium tabular-nums text-foreground">
+                  {formatUnitQuantity(available, unit, baseUnit)}
+                </p>
+                {!row.availableForSale && (
+                  <p className="text-[10px] font-medium text-muted-foreground">Not for sale</p>
+                )}
+              </div>
+              <div className="text-right">
+                <p className="text-[12px] tabular-nums text-muted-foreground">
+                  {formatUnitQuantity(row.reorderPoint, unit, baseUnit)}
+                </p>
+                <p className={cn(
+                  "text-[10px] font-medium",
+                  available <= row.reorderPoint ? "text-amber-600" : "text-muted-foreground",
+                )}>
+                  {available <= row.reorderPoint ? "Below reorder" : "Available"}
+                </p>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
