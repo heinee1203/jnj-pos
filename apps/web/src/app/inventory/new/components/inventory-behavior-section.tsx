@@ -30,8 +30,6 @@ type InventoryBehaviorSectionProps = {
   barcode: string;
   onGenerateBarcode: () => void;
   onBarcodeChange: (value: string) => void;
-  oemNumber: string;
-  onOemNumberChange: (value: string) => void;
   unitsPerCase: number;
   onUnitsPerCaseChange: (value: number) => void;
   packagingUnit: string | null;
@@ -64,8 +62,6 @@ export function InventoryBehaviorSection({
   barcode,
   onGenerateBarcode,
   onBarcodeChange,
-  oemNumber,
-  onOemNumberChange,
   unitsPerCase,
   onUnitsPerCaseChange,
   packagingUnit,
@@ -114,8 +110,6 @@ export function InventoryBehaviorSection({
               barcode={barcode}
               onGenerateBarcode={onGenerateBarcode}
               onBarcodeChange={onBarcodeChange}
-              oemNumber={oemNumber}
-              onOemNumberChange={onOemNumberChange}
             />
           </div>
         )}
@@ -157,8 +151,6 @@ function InventoryFields({
   barcode,
   onGenerateBarcode,
   onBarcodeChange,
-  oemNumber,
-  onOemNumberChange,
 }: Pick<
   InventoryBehaviorSectionProps,
   | "unitOfMeasure"
@@ -174,8 +166,6 @@ function InventoryFields({
   | "barcode"
   | "onGenerateBarcode"
   | "onBarcodeChange"
-  | "oemNumber"
-  | "onOemNumberChange"
 >) {
   return (
     <>
@@ -265,17 +255,6 @@ function InventoryFields({
         <p className="mt-0.5 text-[10px] text-muted-foreground">
           Generate an internal EAN-13 barcode for labels, or scan a supplier barcode.
         </p>
-      </div>
-      <div className="col-span-2">
-        <FieldLabel>Supplier / Item Code</FieldLabel>
-        <input
-          type="text"
-          value={oemNumber}
-          onChange={(event) => onOemNumberChange(event.target.value.slice(0, 100))}
-          placeholder="e.g. NBS-1224, FCB-24CT"
-          maxLength={100}
-          className={cn(fieldClass, "font-mono")}
-        />
       </div>
     </>
   );

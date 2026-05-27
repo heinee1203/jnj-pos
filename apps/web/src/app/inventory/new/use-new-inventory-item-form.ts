@@ -73,7 +73,6 @@ export function useNewInventoryItemForm({
   const [optimalStock, setOptimalStock] = useState("0");
   const [leadTimeDays, setLeadTimeDays] = useState("7");
   const [barcode, setBarcode] = useState("");
-  const [oemNumber, setOemNumber] = useState("");
   const [initialStock, setInitialStock] = useState("0");
   const [unitsPerCase, setUnitsPerCase] = useState(1);
   const [packagingUnit, setPackagingUnit] = useState<string | null>(null);
@@ -283,7 +282,6 @@ export function useNewInventoryItemForm({
     setCostPrice("");
     setDescription("");
     setBarcode("");
-    setOemNumber("");
     setInitialStock("0");
     setVehicles([]);
     setAttributes([]);
@@ -310,7 +308,6 @@ export function useNewInventoryItemForm({
           showCost,
           costPrice,
           barcode,
-          oemNumber,
           categoryId,
           brandId,
           description,
@@ -399,8 +396,6 @@ export function useNewInventoryItemForm({
       barcode,
       onGenerateBarcode: handleGenerateBarcode,
       onBarcodeChange: setBarcode,
-      oemNumber,
-      onOemNumberChange: setOemNumber,
       unitsPerCase,
       onUnitsPerCaseChange: setUnitsPerCase,
       packagingUnit,

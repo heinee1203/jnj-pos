@@ -40,7 +40,6 @@ export function QuickAddDrawer({
     initialStock,
     isValid,
     name,
-    oemNumber,
     quickAddBrand,
     quickAddCategory,
     setBarcode,
@@ -48,7 +47,6 @@ export function QuickAddDrawer({
     setCostPrice,
     setInitialStock,
     setName,
-    setOemNumber,
     setSku,
     setTrackInventory,
     setUnitPrice,
@@ -127,9 +125,7 @@ export function QuickAddDrawer({
             <QuickAddIdentifiersSection
               barcode={barcode}
               onGenerateBarcode={handleGenerateBarcode}
-              oemNumber={oemNumber}
               setBarcode={setBarcode}
-              setOemNumber={setOemNumber}
             />
 
             <QuickAddStockSection

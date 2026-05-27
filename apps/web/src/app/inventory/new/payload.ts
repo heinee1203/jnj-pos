@@ -8,7 +8,6 @@ type BuildNewItemPayloadInput = {
   showCost: boolean;
   costPrice: string;
   barcode: string;
-  oemNumber: string;
   categoryId: string;
   brandId: string;
   description: string;
@@ -35,7 +34,6 @@ export function buildNewItemPayload({
   showCost,
   costPrice,
   barcode,
-  oemNumber,
   categoryId,
   brandId,
   description,
@@ -60,7 +58,6 @@ export function buildNewItemPayload({
     unitPrice: unitPrice || "0.00",
     costPrice: showCost ? costPrice || "0.00" : "0.00",
     barcode: hasInlineVariants ? undefined : barcode.trim() || undefined,
-    oemNumber: oemNumber.trim() || undefined,
     categoryId: categoryId || null,
     brandId: brandId || undefined,
     isParent: hasInlineVariants || undefined,

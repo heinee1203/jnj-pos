@@ -10,7 +10,6 @@ interface Product {
   id: string;
   name: string;
   sku: string;
-  oemNumber?: string | null;
 }
 
 export function FindReplaceModal({
@@ -57,9 +56,6 @@ export function FindReplaceModal({
       }
       if (fields.has("sku") && p.sku && re.test(p.sku)) {
         affected.push({ id: p.id, field: "sku", before: p.sku, after: p.sku.replace(re, replace) });
-      }
-      if (fields.has("oem") && p.oemNumber && re.test(p.oemNumber)) {
-        affected.push({ id: p.id, field: "oem", before: p.oemNumber, after: p.oemNumber.replace(re, replace) });
       }
     }
     return { affected, total: new Set(affected.map((a) => a.id)).size };
@@ -140,10 +136,6 @@ export function FindReplaceModal({
             <label className="flex items-center gap-1.5 cursor-pointer">
               <input type="checkbox" checked={fields.has("sku")} onChange={() => toggleField("sku")} className="h-3.5 w-3.5 accent-primary" />
               SKU
-            </label>
-            <label className="flex items-center gap-1.5 cursor-pointer">
-              <input type="checkbox" checked={fields.has("oem")} onChange={() => toggleField("oem")} className="h-3.5 w-3.5 accent-primary" />
-              Supplier Code
             </label>
             <div className="ml-auto">
               <label className="flex items-center gap-1.5 cursor-pointer text-muted-foreground">

@@ -31,7 +31,6 @@ export function useQuickAddProductForm({
   const [unitPrice, setUnitPrice] = useState("");
   const [costPrice, setCostPrice] = useState("");
   const [barcode, setBarcode] = useState("");
-  const [oemNumber, setOemNumber] = useState("");
   const [trackInventory, setTrackInventory] = useState(true);
   const [initialStock, setInitialStock] = useState("0");
   const [error, setError] = useState<string | null>(null);
@@ -117,7 +116,6 @@ export function useQuickAddProductForm({
         unitPrice: unitPrice || "0.00",
         costPrice: showCost ? (costPrice || "0.00") : "0.00",
         barcode: barcode.trim() || undefined,
-        oemNumber: oemNumber.trim() || undefined,
         trackInventory,
         initialStock: trackInventory ? parseInt(initialStock, 10) || 0 : 0,
         reorderPoint: 10,
@@ -157,7 +155,6 @@ export function useQuickAddProductForm({
     initialStock,
     isValid,
     name,
-    oemNumber,
     quickAddBrand,
     quickAddCategory,
     setBarcode,
@@ -165,7 +162,6 @@ export function useQuickAddProductForm({
     setCostPrice,
     setInitialStock,
     setName,
-    setOemNumber,
     setSku,
     setTrackInventory,
     setUnitPrice,

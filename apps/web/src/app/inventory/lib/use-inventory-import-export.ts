@@ -10,7 +10,6 @@ interface ExportProduct {
   name: string;
   sku: string;
   barcode: string | null;
-  oemNumber: string | null;
   description: string | null;
   unitPrice: string;
   costPrice?: string;
@@ -98,7 +97,7 @@ function generateHandle(name: string): string {
 
 function buildCSV(items: ExportProduct[], locs: Array<{ id: string; name: string }>): string {
   const staticHeaders = [
-    "Handle", "Name", "SKU", "Barcode", "Supplier Code",
+    "Handle", "Name", "SKU", "Barcode",
     "Category", "Brand",
     "Default Price", "Cost", "Variable Price", "Track Stock", "Description",
     "Units per Case", "Packaging Unit",
@@ -133,7 +132,6 @@ function buildCSV(items: ExportProduct[], locs: Array<{ id: string; name: string
       displayName,
       item.sku ?? "",
       item.barcode ?? "",
-      item.oemNumber ?? "",
       sanitizeText(item.categoryName ?? ""),
       item.brandName ?? "",
       item.unitPrice ?? "0.00",
@@ -278,7 +276,6 @@ function mapCSVRowToPayload(row: Record<string, string>, rawHeaders: string[]) {
     sku: get("sku"),
     handle: get("handle"),
     barcode: get("barcode"),
-    oemNumber: get("suppliercode", "supplier code", "itemcode", "item code", "oemnumber", "oem number"),
     category: get("category"),
     brand: get("brand"),
     unitPrice: get("defaultprice", "default price", "sellprice", "unitprice"),
