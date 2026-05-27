@@ -26,8 +26,8 @@ interface PageHeaderProps {
 export function PageHeader({ eyebrow, title, description, icon: Icon, actions }: PageHeaderProps) {
   return (
     <div className="surface-card relative overflow-hidden rounded-2xl px-5 py-4 sm:px-6">
-      <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_top_right,rgba(181,101,29,0.13),transparent_18rem)]" />
-      <div className="relative flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="pointer-events-none absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_top_right,rgba(181,101,29,0.13),transparent_18rem)]" />
+      <div className="relative z-10 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex min-w-0 items-start gap-3">
           {Icon && (
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
