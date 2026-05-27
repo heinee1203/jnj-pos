@@ -26,19 +26,30 @@ function createRouteRecorder() {
   return { app, routes };
 }
 
-test("procurement route registration keeps supplier, PO core, lifecycle, and edit routes first", async () => {
+test("procurement route registration keeps supplier, RTV compatibility, PO core, lifecycle, and edit routes first", async () => {
   process.env.DATABASE_URL ??= "postgres://jnj:jnj@localhost:5432/jnj_test";
   const { procurementRoutes } = await import("./routes");
   const { app, routes } = createRouteRecorder();
 
   await procurementRoutes(app as any, {} as any);
 
-  assert.deepEqual(routes.slice(0, 17), [
+  assert.deepEqual(routes.slice(0, 28), [
     { method: "get", path: "/suppliers" },
     { method: "post", path: "/suppliers" },
     { method: "patch", path: "/suppliers/:id" },
     { method: "delete", path: "/suppliers/:id" },
     { method: "post", path: "/suppliers/merge" },
+    { method: "get", path: "/supplier-returns/analytics" },
+    { method: "get", path: "/supplier-returns/po-returnable-lines" },
+    { method: "get", path: "/supplier-returns" },
+    { method: "post", path: "/supplier-returns" },
+    { method: "get", path: "/supplier-returns/:id/attachments" },
+    { method: "post", path: "/supplier-returns/:id/attachments" },
+    { method: "delete", path: "/supplier-returns/:id/attachments/:attachmentId" },
+    { method: "get", path: "/supplier-returns/:id" },
+    { method: "patch", path: "/supplier-returns/:id" },
+    { method: "delete", path: "/supplier-returns/:id" },
+    { method: "post", path: "/supplier-returns/:id/:action" },
     { method: "post", path: "/purchase-orders" },
     { method: "get", path: "/purchase-orders" },
     { method: "get", path: "/purchase-orders/by-number/:poNo" },
@@ -73,12 +84,21 @@ test("procurement route registration preserves static-before-dynamic PO paths", 
   const supplierDetailPatchIndex = routes.findIndex(
     (route) => route.method === "patch" && route.path === "/suppliers/:id",
   );
+  const supplierReturnAnalyticsIndex = routes.findIndex(
+    (route) => route.method === "get" && route.path === "/supplier-returns/analytics",
+  );
+  const supplierReturnDetailIndex = routes.findIndex(
+    (route) => route.method === "get" && route.path === "/supplier-returns/:id",
+  );
 
   assert.ok(byNumberIndex > -1);
   assert.ok(detailIndex > -1);
   assert.ok(supplierProductsIndex > -1);
   assert.ok(supplierDetailPatchIndex > -1);
+  assert.ok(supplierReturnAnalyticsIndex > -1);
+  assert.ok(supplierReturnDetailIndex > -1);
   assert.ok(byNumberIndex < detailIndex);
+  assert.ok(supplierReturnAnalyticsIndex < supplierReturnDetailIndex);
 });
 
 test("procurement route registration preserves auxiliary route order", async () => {

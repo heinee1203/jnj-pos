@@ -106,12 +106,9 @@ export default function SupplierReturnsPage() {
             Manage return-to-vendor orders, credits, and inventory adjustments
           </p>
         </div>
-        <Link
-          href="/procurement/supplier-returns/new"
-          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-        >
-          + New RTV
-        </Link>
+        <span className="rounded-md border border-border bg-muted px-4 py-2 text-sm font-medium text-muted-foreground">
+          RTV Disabled
+        </span>
       </div>
 
       {/* Summary Cards */}
@@ -244,7 +241,7 @@ export default function SupplierReturnsPage() {
             {rtvs.length === 0 ? (
               <tr>
                 <td colSpan={8} className="px-3 py-8 text-center text-sm text-muted-foreground">
-                  No supplier returns found. Click &apos;+ New RTV&apos; to create one.
+                  No supplier returns recorded.
                 </td>
               </tr>
             ) : (
