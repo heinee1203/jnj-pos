@@ -41,7 +41,7 @@ test("tag route registration preserves public endpoint order", async () => {
     { method: "get", path: "/:id/products" },
     { method: "post", path: "/:id/bulk-assign" },
     { method: "post", path: "/bulk-assign-by-search" },
-    { method: "post", path: "/auto-tag-tires" },
+    { method: "post", path: "/bulk-tag" },
     { method: "get", path: "/demand" },
     { method: "get", path: "/demand/:tagId" },
     { method: "get", path: "/by-product/:productId" },

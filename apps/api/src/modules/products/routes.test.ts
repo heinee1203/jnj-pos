@@ -44,16 +44,10 @@ test("product route registration keeps static routes before dynamic product deta
   const detailIndex = routes.findIndex((route) => route.method === "get" && route.path === "/:id");
   const groupedCountsIndex = routes.findIndex((route) => route.method === "get" && route.path === "/grouped-counts");
   const barcodeIndex = routes.findIndex((route) => route.method === "get" && route.path === "/by-barcode/:barcode");
-  const familiesIndex = routes.findIndex((route) => route.method === "get" && route.path === "/families");
-  const vehiclesIndex = routes.findIndex((route) => route.method === "get" && route.path === "/vehicles/makes");
 
   assert.ok(groupedCountsIndex > -1);
   assert.ok(detailIndex > -1);
   assert.ok(barcodeIndex > -1);
-  assert.ok(familiesIndex > -1);
-  assert.ok(vehiclesIndex > -1);
   assert.ok(groupedCountsIndex < detailIndex);
   assert.ok(barcodeIndex > detailIndex);
-  assert.ok(familiesIndex > barcodeIndex);
-  assert.ok(vehiclesIndex > familiesIndex);
 });

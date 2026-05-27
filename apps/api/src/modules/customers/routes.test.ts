@@ -78,8 +78,6 @@ test("customer route registration preserves public endpoint order", async () => 
     { method: "patch", path: "/:id/transactions/:txnId" },
     { method: "delete", path: "/:id/transactions/:txnId" },
     { method: "get", path: "/:id/transactions/:txnId/settled-invoices" },
-    { method: "get", path: "/:id/vehicles" },
-    { method: "post", path: "/:id/vehicles" },
     { method: "post", path: "/:id/soa/generate" },
     { method: "get", path: "/:id/soa/history" },
     { method: "get", path: "/:id/soa/:soaId/payment-summary" },

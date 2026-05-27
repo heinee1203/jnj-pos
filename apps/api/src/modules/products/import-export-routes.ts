@@ -35,6 +35,7 @@ export function registerProductImportExportRoutes(app: FastifyInstance) {
       sortDir,
       includeCost,
       includeStock,
+      includeNonItems,
       activeFilter,
     } = parseProductExportQuery(request.query as Record<string, string | undefined>);
 
@@ -49,6 +50,9 @@ export function registerProductImportExportRoutes(app: FastifyInstance) {
       conditions.push(
         sql`(${products.isActive} = false OR ${products.discontinued} = true)`,
       );
+    }
+    if (!includeNonItems) {
+      conditions.push(eq(products.trackInventory, true));
     }
 
     if (search && search.length >= 2) {

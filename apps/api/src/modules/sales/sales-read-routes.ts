@@ -40,7 +40,36 @@ export async function registerSalesReadRoutes(app: FastifyInstance) {
     return reply.send(result);
   });
 
-  // Historical sales routes removed (historical_sales schema deleted)
+  // Historical import storage was removed. Keep these endpoints as empty
+  // compatibility responses so the Receipts page never turns a missing
+  // optional import-history feature into a 404/500.
+  app.get("/history", async (_request, reply) => {
+    return reply.send({ data: [], nextCursor: null, hasMore: false });
+  });
+
+  app.get("/history/receipts", async (request, reply) => {
+    const q = request.query as Record<string, string | undefined>;
+    const limit = Math.min(Math.max(parseInt(q.limit ?? "50", 10) || 50, 1), 200);
+
+    return reply.send({
+      data: [],
+      total: 0,
+      totalRevenue: 0,
+      hasMore: false,
+      limit,
+    });
+  });
+
+  app.get("/history/receipt/:receiptNumber", async (request, reply) => {
+    const { receiptNumber } = request.params as { receiptNumber: string };
+    return reply.status(404).send({
+      error: `Imported receipt "${receiptNumber}" was not found`,
+    });
+  });
+
+  app.post("/history/deduplicate", async (_request, reply) => {
+    return reply.send({ deduplicated: 0 });
+  });
 
   // Auto-increment receipt number for BIR compliance
   app.get("/next-receipt-number", async (request, reply) => {

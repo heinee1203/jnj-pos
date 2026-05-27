@@ -6,6 +6,7 @@ export type ProductExportQuery = {
   sortDir: string;
   includeCost: boolean;
   includeStock: boolean;
+  includeNonItems: boolean;
   activeFilter?: string;
 };
 
@@ -52,6 +53,7 @@ export function parseProductExportQuery(
     sortDir: query.sortDir || "asc",
     includeCost: query.includeCost === "true",
     includeStock: query.includeStock === "true",
+    includeNonItems: query.includeNonItems === "true",
     activeFilter: query.active,
   };
 }

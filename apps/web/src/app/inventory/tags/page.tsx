@@ -110,8 +110,7 @@ export default function TagManagementPage() {
   // ── Expanded products ──
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  // ── Bulk auto-tag result ──
-  const [autoTagResult, setAutoTagResult] = useState<string | null>(null);
+  const [bulkTagResult, setBulkTagResult] = useState<string | null>(null);
 
   // ── Bulk tag by search ──
   const [showBulkTag, setShowBulkTag] = useState(false);
@@ -162,24 +161,6 @@ export default function TagManagementPage() {
     },
   });
 
-  const autoTagTiresMut = useMutation({
-    mutationFn: () =>
-      apiFetch<{ data: { tagged: number } }>("/tags/auto-tag-tires", {
-        method: "POST",
-        token: token!,
-        locationId: locationId ?? undefined,
-      }),
-    onSuccess: (result) => {
-      queryClient.invalidateQueries({ queryKey: ["tags"] });
-      setAutoTagResult(`Auto-tagged ${result.data.tagged} tire products.`);
-      setTimeout(() => setAutoTagResult(null), 5000);
-    },
-    onError: (err: any) => {
-      setAutoTagResult(`Error: ${err.message}`);
-      setTimeout(() => setAutoTagResult(null), 5000);
-    },
-  });
-
   const bulkTagMut = useMutation({
     mutationFn: (body: { search: string; tagId?: string; tagName?: string; tagType?: string }) =>
       apiFetch<{ data: { tagged: number } }>("/tags/bulk-tag", {
@@ -194,8 +175,12 @@ export default function TagManagementPage() {
       setBulkSearch("");
       setBulkTagId("");
       setBulkNewTagName("");
-      setAutoTagResult(`Bulk tagged ${result.data.tagged} products.`);
-      setTimeout(() => setAutoTagResult(null), 5000);
+      setBulkTagResult(`Tagged ${result.data.tagged} matching items.`);
+      setTimeout(() => setBulkTagResult(null), 5000);
+    },
+    onError: (err: any) => {
+      setBulkTagResult(`Error: ${err.message}`);
+      setTimeout(() => setBulkTagResult(null), 5000);
     },
   });
 
@@ -252,12 +237,12 @@ export default function TagManagementPage() {
         </div>
       </div>
 
-      {/* Auto-tag result banner */}
-      {autoTagResult && (
+      {/* Bulk tag result banner */}
+      {bulkTagResult && (
         <div className="mb-3 flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/[0.04] px-4 py-2 text-[13px] text-foreground">
           <Zap size={14} className="text-primary" />
-          {autoTagResult}
-          <button onClick={() => setAutoTagResult(null)} className="ml-auto text-muted-foreground hover:text-foreground">
+          {bulkTagResult}
+          <button onClick={() => setBulkTagResult(null)} className="ml-auto text-muted-foreground hover:text-foreground">
             <X size={14} />
           </button>
         </div>
@@ -285,16 +270,6 @@ export default function TagManagementPage() {
         })}
 
         <div className="ml-auto flex items-center gap-2">
-          {activeTab === "TIRE_SIZE" && (
-            <button
-              onClick={() => autoTagTiresMut.mutate()}
-              disabled={autoTagTiresMut.isPending}
-              className="flex items-center gap-1.5 h-8 rounded-lg bg-blue-600 px-3 text-[11px] font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
-            >
-              {autoTagTiresMut.isPending ? <Loader2 size={12} className="animate-spin" /> : <Zap size={12} />}
-              Auto-Tag Sizes
-            </button>
-          )}
           <button
             onClick={() => setShowBulkTag(true)}
             className="flex items-center gap-1.5 h-8 rounded-lg border border-border px-3 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
@@ -575,7 +550,7 @@ export default function TagManagementPage() {
                   type="text"
                   value={bulkSearch}
                   onChange={(e) => setBulkSearch(e.target.value)}
-                  placeholder="e.g., 175/65R14 or Toyota"
+                  placeholder="e.g., notebook, pencil, Grade 4"
                   className="h-9 w-full rounded-lg border border-border bg-background px-3 text-[13px] text-foreground outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/[0.08]"
                   autoFocus
                 />

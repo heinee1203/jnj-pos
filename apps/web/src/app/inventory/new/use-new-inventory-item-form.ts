@@ -1,30 +1,24 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
 
 import type { LocationInfo } from "@/app/auth-context";
 import { useBrands, useCreateBrand } from "@/hooks/use-brands";
 import { useCategories, useCreateCategory } from "@/hooks/use-categories";
 import { useCreateProduct } from "@/hooks/use-products";
-import { useVehicleMakes } from "@/hooks/use-vehicles";
-import { mergeVehicleMakes } from "@/lib/vehicle-makes";
 
 import { generateEan13Barcode, generateSku } from "../lib/identifier-generators";
 import type {
   AttributeEntry,
   InlineVariant,
   OptionTypeEntry,
-  VehicleEntry,
 } from "./types";
 import {
   createAttributeEntry,
   createInlineVariant,
   createOptionTypeEntry,
-  createVehicleEntry,
   makeSlug,
 } from "./form-helpers";
-import { mergeCopiedFitments } from "./fitment-utils";
 import { buildNewItemPayload } from "./payload";
 import { generateVariants } from "./variant-utils";
 
@@ -48,14 +42,9 @@ export function useNewInventoryItemForm({
   const brandsQuery = useBrands(token, locationId);
   const createBrandMut = useCreateBrand(token, locationId);
   const createCategoryMut = useCreateCategory(token, locationId);
-  const { data: dbMakesData } = useVehicleMakes(token, locationId);
 
   const allCategories = categoriesQuery.data?.data ?? [];
   const brandsList = brandsQuery.data?.data ?? [];
-  const allMakes = useMemo(
-    () => mergeVehicleMakes(dbMakesData?.data ?? []),
-    [dbMakesData],
-  );
   const showCost = ["ADMIN", "MANAGER"].includes(role ?? "");
 
   const [name, setName] = useState("");
@@ -89,8 +78,6 @@ export function useNewInventoryItemForm({
   const [hasVariants, setHasVariants] = useState(false);
   const [optionTypes, setOptionTypes] = useState<OptionTypeEntry[]>([]);
   const [variantPrices, setVariantPrices] = useState<Record<string, string>>({});
-  const [vehicles, setVehicles] = useState<VehicleEntry[]>([]);
-  const [copyModalOpen, setCopyModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [savingStep, setSavingStep] = useState<string | null>(null);
@@ -241,38 +228,6 @@ export function useNewInventoryItemForm({
     setVariantPrices((prev) => ({ ...prev, [key]: value }));
   };
 
-  const addVehicle = () => {
-    setVehicles((prev) => [...prev, createVehicleEntry()]);
-  };
-
-  const updateVehicle = (
-    id: string,
-    field: keyof VehicleEntry,
-    value: string,
-  ) => {
-    setVehicles((prev) =>
-      prev.map((vehicle) =>
-        vehicle.id === id ? { ...vehicle, [field]: value } : vehicle,
-      ),
-    );
-  };
-
-  const removeVehicle = (id: string) => {
-    setVehicles((prev) => prev.filter((vehicle) => vehicle.id !== id));
-  };
-
-  const handleCopyFitments = (copiedEntries: VehicleEntry[]) => {
-    setVehicles((prev) => {
-      const result = mergeCopiedFitments(prev, copiedEntries);
-      if (result.skippedCount > 0) {
-        toast.info(
-          `Copied ${result.copiedCount} entries (${result.skippedCount} duplicates skipped)`,
-        );
-      }
-      return result.entries;
-    });
-  };
-
   const resetForAddAnother = () => {
     setName("");
     setSku("");
@@ -283,7 +238,6 @@ export function useNewInventoryItemForm({
     setDescription("");
     setBarcode("");
     setInitialStock("0");
-    setVehicles([]);
     setAttributes([]);
     setHasVariants(false);
     setOptionTypes([]);
@@ -322,7 +276,7 @@ export function useNewInventoryItemForm({
           conversionFactor,
           initialStock,
           selectedLocations,
-          vehicles,
+          vehicles: [],
           inlineVariants,
         }),
       );
@@ -431,23 +385,6 @@ export function useNewInventoryItemForm({
       onAddAttribute: addAttribute,
       onUpdateAttribute: updateAttribute,
       onRemoveAttribute: removeAttribute,
-    },
-    vehicles: {
-      vehicles,
-      allMakes,
-      token,
-      locationId,
-      onAddVehicle: addVehicle,
-      onUpdateVehicle: updateVehicle,
-      onRemoveVehicle: removeVehicle,
-      onCopyFromItem: () => setCopyModalOpen(true),
-    },
-    fitmentModal: {
-      open: copyModalOpen,
-      onClose: () => setCopyModalOpen(false),
-      onCopy: handleCopyFitments,
-      token,
-      locationId,
     },
     status: {
       error,

@@ -9,13 +9,11 @@ import { useSidebar } from "@/app/sidebar-context";
 
 import { AttributesSection } from "./components/attributes-section";
 import { BasicInfoSection } from "./components/basic-info-section";
-import { CopyFitmentModal } from "./components/copy-fitment-modal";
 import { InventoryBehaviorSection } from "./components/inventory-behavior-section";
 import { LocationAvailabilitySection } from "./components/location-availability-section";
 import { NewItemActionBar } from "./components/new-item-action-bar";
 import { PricingSection } from "./components/pricing-section";
 import { VariantSetupSection } from "./components/variant-setup-section";
-import { VehicleCompatibilitySection } from "./components/vehicle-compatibility-section";
 import { useNewInventoryItemForm } from "./use-new-inventory-item-form";
 
 export default function AddItemPage() {
@@ -58,7 +56,7 @@ export default function AddItemPage() {
               Add New Item
             </h2>
             <p className="text-[12px] text-muted-foreground">
-              Full item setup - catalog, pricing, inventory, and compatibility
+              Full item setup - catalog, pricing, and inventory
             </p>
           </div>
         </div>
@@ -116,14 +114,7 @@ export default function AddItemPage() {
           />
         )}
 
-        <VehicleCompatibilitySection
-          collapsed={collapsedSections.has("vehicles")}
-          onToggle={() => toggleSection("vehicles")}
-          {...form.vehicles}
-        />
       </div>
-
-      <CopyFitmentModal {...form.fitmentModal} />
 
       <NewItemActionBar
         isCollapsed={isCollapsed}

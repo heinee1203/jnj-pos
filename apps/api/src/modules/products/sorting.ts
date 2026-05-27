@@ -11,6 +11,7 @@ export const SORT_COLUMNS: Record<string, any> = {
   stockLevel: inventory.stockLevel,
   reorderPoint: inventory.reorderPoint,
   categoryName: categories.name,
+  subcategoryName: categories.name,
   brandName: brands.name,
   margin: sql`CASE WHEN CAST(${products.unitPrice} AS numeric) > 0 THEN (CAST(${products.unitPrice} AS numeric) - CAST(${products.costPrice} AS numeric)) / CAST(${products.unitPrice} AS numeric) * 100 ELSE 0 END`,
 };

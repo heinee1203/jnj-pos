@@ -7,6 +7,20 @@ import {
 } from "@jnj/database/schema";
 import { eq, and, or, sql, ilike, gt, type SQL, inArray } from "drizzle-orm";
 
+const emptyHistoricalSalesCte = sql`
+  historical_sales AS (
+    SELECT
+      NULL::uuid AS org_id,
+      NULL::uuid AS product_id,
+      NULL::uuid AS location_id,
+      NULL::text AS reason_type,
+      NULL::timestamptz AS movement_date,
+      0::numeric AS quantity,
+      0::numeric AS net_sales
+    WHERE false
+  )
+`;
+
 // ─── Tag CRUD ────────────────────────────────────────────────────────
 
 export async function listTags(opts: {
@@ -444,7 +458,7 @@ export async function getDemandByTag(opts: {
   const cursorFilter = cursor ? sql`AND t.id > ${cursor}` : sql``;
 
   const rows = await db.execute(sql`
-    WITH sale_data AS (
+    WITH ${emptyHistoricalSalesCte}, sale_data AS (
       SELECT sl.product_id, sl.quantity AS qty,
              sl.line_total::numeric AS revenue
       FROM sale_lines sl
@@ -553,7 +567,7 @@ export async function getTagDemandDetail(opts: {
     : sql``;
 
   const rows = await db.execute(sql`
-    WITH sale_data AS (
+    WITH ${emptyHistoricalSalesCte}, sale_data AS (
       SELECT sl.product_id, sl.quantity AS qty,
              sl.line_total::numeric AS revenue
       FROM sale_lines sl

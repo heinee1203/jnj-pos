@@ -34,12 +34,32 @@ function buildCompletedSaleConditions(orgId: string, opts: DateRangeOpts): SQL[]
   return conditions;
 }
 
+const emptyHistoricalSalesCte = sql`
+  historical_sales AS (
+    SELECT
+      NULL::uuid AS org_id,
+      NULL::uuid AS product_id,
+      NULL::uuid AS location_id,
+      NULL::uuid AS technician_id,
+      NULL::text AS employee_name,
+      NULL::text AS reason_type,
+      NULL::text AS reason_reference,
+      NULL::timestamptz AS movement_date,
+      0::numeric AS quantity,
+      0::numeric AS net_sales,
+      0::numeric AS cost_amount,
+      0::numeric AS discount_amount,
+      0::numeric AS unit_price
+    WHERE false
+  )
+`;
+
 /**
  * Sales by Item — aggregate sale_lines + historical_sales grouped by product
  */
 export async function getSalesByItem(orgId: string, opts: DateRangeOpts) {
   const rows = await db.execute(sql`
-    WITH combined AS (
+    WITH ${emptyHistoricalSalesCte}, combined AS (
       -- POS sales
       SELECT
         sl.product_id,
@@ -116,7 +136,7 @@ export async function getSalesByItem(orgId: string, opts: DateRangeOpts) {
  */
 export async function getSalesByCategory(orgId: string, opts: DateRangeOpts) {
   const rows = await db.execute(sql`
-    WITH combined AS (
+    WITH ${emptyHistoricalSalesCte}, combined AS (
       -- POS sales
       SELECT
         sl.product_id,
@@ -175,7 +195,7 @@ export async function getSalesByCategory(orgId: string, opts: DateRangeOpts) {
  */
 export async function getSalesByEmployee(orgId: string, opts: DateRangeOpts) {
   const rows = await db.execute(sql`
-    WITH combined AS (
+    WITH ${emptyHistoricalSalesCte}, combined AS (
       -- POS sales
       SELECT
         u.full_name AS employee_name,
@@ -228,7 +248,7 @@ export async function getSalesByEmployee(orgId: string, opts: DateRangeOpts) {
  */
 export async function getSalesSummary(orgId: string, opts: DateRangeOpts) {
   const rows = await db.execute(sql`
-    WITH combined AS (
+    WITH ${emptyHistoricalSalesCte}, combined AS (
       SELECT s.grand_total::numeric AS amount, s.discount_total::numeric AS discount,
         CASE WHEN s.status = 'COMPLETED' THEN 'sale' ELSE 'refund' END AS txn_type
       FROM sales s
@@ -273,7 +293,7 @@ export async function getSalesSummary(orgId: string, opts: DateRangeOpts) {
 export async function getDailySalesSummary(orgId: string, opts: DashboardOpts) {
   // Pass 1 — Sales aggregation grouped by date (POS + imported historical)
   const salesRows = await db.execute(sql`
-    WITH combined_sales AS (
+    WITH ${emptyHistoricalSalesCte}, combined_sales AS (
       -- POS transactions
       SELECT
         DATE(s.completed_at AT TIME ZONE 'UTC') AS sale_date,
@@ -317,7 +337,7 @@ export async function getDailySalesSummary(orgId: string, opts: DashboardOpts) {
 
   // Pass 2 — COGS aggregation grouped by date (POS + historical)
   const cogsRows = await db.execute(sql`
-    WITH combined_cogs AS (
+    WITH ${emptyHistoricalSalesCte}, combined_cogs AS (
       SELECT
         DATE(s.completed_at AT TIME ZONE 'UTC') AS cogs_date,
         (sl.quantity * p.cost_price::numeric) AS cost
@@ -392,7 +412,7 @@ export async function getSalesKPIs(orgId: string, opts: DashboardOpts) {
   ) {
     // Sales aggregation (POS + imported historical)
     const salesRows = await db.execute(sql`
-      WITH combined AS (
+      WITH ${emptyHistoricalSalesCte}, combined AS (
         SELECT s.grand_total::numeric AS amount, s.discount_total::numeric AS discount,
           CASE WHEN s.status = 'COMPLETED' THEN 'sale' ELSE 'refund' END AS txn_type
         FROM sales s
@@ -421,7 +441,7 @@ export async function getSalesKPIs(orgId: string, opts: DashboardOpts) {
 
     // COGS aggregation (POS + historical)
     const cogsRows = await db.execute(sql`
-      WITH combined_cogs AS (
+      WITH ${emptyHistoricalSalesCte}, combined_cogs AS (
         SELECT (sl.quantity * p.cost_price::numeric) AS cost
         FROM sale_lines sl
         JOIN sales s ON sl.sale_id = s.id
@@ -664,6 +684,7 @@ export async function getMechanicProductivity(orgId: string, opts: DateRangeOpts
   const hsToFilter = opts.to ? sql`AND hs.movement_date <= ${opts.to}` : sql``;
 
   const rows = await db.execute(sql`
+    WITH ${emptyHistoricalSalesCte}
     SELECT
       technician_id,
       technician_name,

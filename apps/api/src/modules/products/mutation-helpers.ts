@@ -43,12 +43,20 @@ export function splitProductUpdatePayload<T extends Record<string, any>>(updates
     (productUpdates as Record<string, any>).conversionFactor = String(rawConversionFactor);
   }
 
-  return {
-    newVariants,
-    priceTiers,
+  const result: {
+    newVariants?: typeof newVariants;
+    priceTiers?: typeof priceTiers;
+    productUpdates: typeof productUpdates;
+    reorderPoint: typeof reorderPoint;
+  } = {
     productUpdates,
     reorderPoint,
   };
+
+  if (newVariants !== undefined) result.newVariants = newVariants;
+  if (priceTiers !== undefined) result.priceTiers = priceTiers;
+
+  return result;
 }
 
 export function isValidProductId(value: string) {
