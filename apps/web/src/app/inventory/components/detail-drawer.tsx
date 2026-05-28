@@ -23,6 +23,12 @@ import { useConfirm } from "@/components/confirm-dialog";
 import { SelectWithQuickAdd } from "@/components/select-with-quick-add";
 import { cn } from "@/lib/utils";
 import { getMarginPercent, formatPrice } from "../lib/inventory-utils";
+import {
+  formatWarehouseStock,
+  formatWarehouseStockText,
+  stockDisplayText,
+  stockPackageContext,
+} from "../lib/stock-format";
 import { DetailHistorySection } from "./detail-history-section";
 import { DetailInfoRow } from "./detail-info-row";
 import { DetailLabelPrintSection } from "./detail-label-print-section";
@@ -46,7 +52,47 @@ export function DetailDrawer({
 }) {
   const sell = parseFloat(product.unitPrice) || 0;
   const cost = parseFloat(product.costPrice) || 0;
-  const { token, apiLocationId: locationId } = useAuth();
+  const { token, apiLocationId: locationId, locations: authLocations } = useAuth();
+  const activeLocation = useMemo(
+    () => authLocations.find((loc) => loc.id === locationId),
+    [authLocations, locationId],
+  );
+  const isWarehouseStockView = activeLocation?.type?.toUpperCase() === "WAREHOUSE";
+  const stockContext = useMemo(
+    () => stockPackageContext({
+      conversionFactor: product.conversionFactor,
+      packagingUnit: product.packagingUnit,
+      purchaseUnit: product.purchaseUnit,
+      sellingUnit: product.sellingUnit,
+      unitsPerCase: product.unitsPerCase,
+    }),
+    [
+      product.conversionFactor,
+      product.packagingUnit,
+      product.purchaseUnit,
+      product.sellingUnit,
+      product.unitsPerCase,
+    ],
+  );
+  const formatStockForDrawer = useCallback(
+    (quantity: number, warehouseView = isWarehouseStockView) => {
+      if (warehouseView) {
+        return stockDisplayText(formatWarehouseStock(quantity, stockContext));
+      }
+      return Math.max(0, Math.floor(quantity)).toLocaleString();
+    },
+    [isWarehouseStockView, stockContext],
+  );
+  const formatHistoryQuantity = useCallback(
+    (quantity: number) => {
+      if (isWarehouseStockView) {
+        return formatWarehouseStockText(quantity, stockContext, { signed: true });
+      }
+      const sign = quantity > 0 ? "+" : "";
+      return `${sign}${Math.floor(quantity).toLocaleString()} ${stockContext.sellingUnit}`;
+    },
+    [isWarehouseStockView, stockContext],
+  );
 
   // ── Print Label ──
   const [showPrintSection, setShowPrintSection] = useState(false);
@@ -532,7 +578,7 @@ export function DetailDrawer({
                 <div className="space-y-2.5">
                   <div className="flex justify-between py-0.5">
                     <span className="text-[11px] text-muted-foreground">In Stock</span>
-                    <span className="text-sm font-medium">{product.stockLevel.toLocaleString()}</span>
+                    <span className="text-sm font-medium">{formatStockForDrawer(product.stockLevel)}</span>
                   </div>
                   <div>
                     <label className="mb-1 block text-[11px] font-medium text-muted-foreground">Reorder Point</label>
@@ -541,8 +587,8 @@ export function DetailDrawer({
                 </div>
               ) : (
                 <div className="space-y-1.5 text-sm">
-                  <DetailInfoRow label="In Stock" value={product.stockLevel.toLocaleString()} />
-                  <DetailInfoRow label="Reorder Point" value={product.reorderPoint.toLocaleString()} />
+                  <DetailInfoRow label="In Stock" value={formatStockForDrawer(product.stockLevel)} />
+                  <DetailInfoRow label="Reorder Point" value={formatStockForDrawer(product.reorderPoint)} />
                   <DetailInfoRow
                     label="Status"
                     value={
@@ -601,7 +647,7 @@ export function DetailDrawer({
                   </label>
 
                   {/* Header row */}
-                  <div className="mt-1 grid grid-cols-[20px_1fr_50px_50px_50px] items-center gap-x-2 px-1 pb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70">
+                  <div className="mt-1 grid grid-cols-[20px_1fr_72px_64px_64px] items-center gap-x-2 px-1 pb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70">
                     <span />
                     <span>Store</span>
                     <span className="text-right">Stock</span>
@@ -613,11 +659,12 @@ export function DetailDrawer({
                   {locationRows.map((row) => {
                     const isChecked = localAvailability[row.locationId] ?? row.availableForSale;
                     const isChanged = localAvailability[row.locationId] !== originalAvailability[row.locationId];
+                    const rowWarehouseView = row.locationType?.toUpperCase() === "WAREHOUSE";
                     return (
                       <label
                         key={row.locationId}
                         className={cn(
-                          "grid cursor-pointer grid-cols-[20px_1fr_50px_50px_50px] items-center gap-x-2 rounded-md px-1 py-1 hover:bg-accent/50",
+                          "grid cursor-pointer grid-cols-[20px_1fr_72px_64px_64px] items-center gap-x-2 rounded-md px-1 py-1 hover:bg-accent/50",
                           isChanged && "bg-amber-50 ring-1 ring-amber-200 dark:bg-amber-950/30 dark:ring-amber-800",
                         )}
                       >
@@ -635,9 +682,9 @@ export function DetailDrawer({
                           {isChecked && <Check size={12} strokeWidth={3} />}
                         </span>
                         <span className="truncate text-xs">{row.locationName}</span>
-                        <span className="text-right font-mono text-xs tabular-nums">{row.stockLevel}</span>
-                        <span className="text-right font-mono text-xs tabular-nums text-muted-foreground">{row.reorderPoint}</span>
-                        <span className="text-right font-mono text-xs tabular-nums text-muted-foreground">{row.optimalStock ?? 0}</span>
+                        <span className="text-right font-mono text-xs tabular-nums">{formatStockForDrawer(row.stockLevel, rowWarehouseView)}</span>
+                        <span className="text-right font-mono text-xs tabular-nums text-muted-foreground">{formatStockForDrawer(row.reorderPoint, rowWarehouseView)}</span>
+                        <span className="text-right font-mono text-xs tabular-nums text-muted-foreground">{formatStockForDrawer(row.optimalStock ?? 0, rowWarehouseView)}</span>
                       </label>
                     );
                   })}
@@ -651,7 +698,7 @@ export function DetailDrawer({
             )}
 
             {/* ── Item History ── */}
-            <DetailHistorySection productId={product.id} token={token} locationId={locationId} />
+            <DetailHistorySection productId={product.id} token={token} locationId={locationId} formatQuantity={formatHistoryQuantity} />
 
           </div>
 

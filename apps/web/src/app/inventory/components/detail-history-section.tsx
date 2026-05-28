@@ -57,10 +57,12 @@ const HISTORY_COLORS: Record<string, string> = {
 interface DetailHistorySectionProps {
   locationId: string;
   productId: string;
+  formatQuantity?: (quantity: number) => string;
   token: string;
 }
 
 export function DetailHistorySection({
+  formatQuantity,
   locationId,
   productId,
   token,
@@ -108,6 +110,9 @@ export function DetailHistorySection({
             const label = HISTORY_LABELS[entry.referenceType] ?? entry.referenceType;
             const color = HISTORY_COLORS[entry.referenceType] ?? "text-muted-foreground";
             const qty = entry.changeQuantity;
+            const qtyLabel = formatQuantity
+              ? formatQuantity(qty)
+              : `${qty > 0 ? "+" : ""}${qty} unit${Math.abs(qty) !== 1 ? "s" : ""}`;
             const price = entry.unitPrice ? parseFloat(entry.unitPrice) : null;
             const ref = entry.referenceNumber;
             return (
@@ -120,7 +125,7 @@ export function DetailHistorySection({
                   <div className="flex items-center gap-1.5">
                     <span className={cn("text-[11px] font-semibold", color)}>{label}</span>
                     <span className="text-[11px] text-foreground">
-                      {qty > 0 ? "+" : ""}{qty} unit{Math.abs(qty) !== 1 ? "s" : ""}
+                      {qtyLabel}
                       {price ? ` @ \u20B1${price.toLocaleString("en-PH", { minimumFractionDigits: 2 })}` : ""}
                     </span>
                   </div>

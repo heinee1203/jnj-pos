@@ -317,6 +317,7 @@ export async function receivePO(
       await tx
         .update(products)
         .set({
+          costPrice: newCost,
           currentCostPrice: newCost,
           mnemonicCostCode: newMnemonicCostCode,
         })

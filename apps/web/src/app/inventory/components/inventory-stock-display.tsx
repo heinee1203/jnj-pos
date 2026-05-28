@@ -7,6 +7,12 @@ import { Loader2 } from "lucide-react";
 import { ALL_LOCATIONS, useAuth } from "@/app/auth-context";
 import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import {
+  formatPackageSummary,
+  formatWarehouseStock,
+  stockPackageContext,
+  type StockPackageContext,
+} from "../lib/stock-format";
 
 type ProductLocationRow = {
   inventoryId: string | null;
@@ -50,71 +56,6 @@ type StockPopoverProps = {
   conversionFactor?: string | number | null;
   warehouseStockView?: boolean;
 };
-
-function normalizeUnit(unit: string | null | undefined, fallback: string) {
-  return (unit || fallback).trim().toUpperCase();
-}
-
-function stockPackageContext({
-  conversionFactor,
-  packagingUnit,
-  purchaseUnit,
-  sellingUnit,
-  unitsPerCase,
-}: {
-  conversionFactor?: string | number | null;
-  packagingUnit?: string | null;
-  purchaseUnit?: string | null;
-  sellingUnit?: string | null;
-  unitsPerCase?: number;
-}) {
-  const parsedFactor = Number(conversionFactor);
-  const factor = Number.isFinite(parsedFactor) && parsedFactor > 1
-    ? parsedFactor
-    : unitsPerCase && unitsPerCase > 1
-      ? unitsPerCase
-      : 1;
-
-  return {
-    factor,
-    packageUnit: normalizeUnit(purchaseUnit || packagingUnit, "CASE"),
-    sellingUnit: normalizeUnit(sellingUnit, "PCS"),
-  };
-}
-
-function formatWarehouseStock(
-  stockLevel: number,
-  context: ReturnType<typeof stockPackageContext>,
-) {
-  const stock = Math.max(0, Math.floor(stockLevel));
-  const factor = Math.max(1, Math.floor(context.factor));
-  if (factor <= 1) {
-    return {
-      primary: `${stock.toLocaleString()} ${context.sellingUnit}`,
-      secondary: null as string | null,
-    };
-  }
-
-  const packages = Math.floor(stock / factor);
-  const loose = stock % factor;
-  return {
-    primary: `${packages.toLocaleString()} ${context.packageUnit}`,
-    secondary: loose > 0 ? `+ ${loose.toLocaleString()} ${context.sellingUnit}` : null,
-  };
-}
-
-function formatPackageSummary(
-  stockLevel: number,
-  context: ReturnType<typeof stockPackageContext>,
-) {
-  const stock = Math.max(0, Math.floor(stockLevel));
-  const factor = Math.max(1, Math.floor(context.factor));
-  if (factor <= 1 || stock < factor) return null;
-
-  const packages = Math.floor(stock / factor);
-  const loose = stock % factor;
-  return `${packages.toLocaleString()} ${context.packageUnit}${loose > 0 ? ` + ${loose.toLocaleString()} ${context.sellingUnit}` : ""}`;
-}
 
 export function StockPopover({
   productId,
@@ -325,7 +266,7 @@ function LocationStockValue({
   stockLevel,
   warehouseStockView,
 }: {
-  packageContext: ReturnType<typeof stockPackageContext>;
+  packageContext: StockPackageContext;
   stockLevel: number;
   warehouseStockView: boolean;
 }) {
