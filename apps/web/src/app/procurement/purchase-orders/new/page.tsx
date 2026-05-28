@@ -10,10 +10,11 @@ import { useSuppliers, type SupplierRow } from "@/hooks/use-suppliers";
 import { useLocations } from "@/hooks/use-locations";
 import { getProductDisplayName } from "@/lib/format";
 import { CSVPreviewModal } from "./components/csv-preview-modal";
+import { AdditionalFeesCard } from "./components/additional-fees-card";
 import { LineItemsCard } from "./components/line-items-card";
 import { OrderDetailsCard } from "./components/order-details-card";
 import { PurchaseOrderActionBar } from "./components/purchase-order-action-bar";
-import type { CSVPreviewRow, ProductSearchResult } from "./types";
+import type { CSVPreviewRow, POFeeInput, ProductSearchResult } from "./types";
 import { usePurchaseOrderLines } from "./use-purchase-order-lines";
 import { usePurchaseOrderProductSearch } from "./use-purchase-order-product-search";
 
@@ -28,6 +29,31 @@ function internalSupplierMnemonic(name: string) {
   const initials = words.map((word) => word[0]).join("");
   const letters = (initials.length >= 2 ? initials : words.join("")).replace(/[^A-Z]/g, "");
   return letters ? letters.slice(0, 2).padEnd(2, "X") : undefined;
+}
+
+function makeLocalId() {
+  return typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+function parseMoney(value: string) {
+  const amount = Number.parseFloat(value.replace(/,/g, ""));
+  return Number.isFinite(amount) ? Math.max(0, amount) : 0;
+}
+
+function buildNotesWithFees(notes: string, fees: POFeeInput[]) {
+  const cleanNotes = notes.trim();
+  const validFees = fees
+    .map((fee) => ({ label: fee.label.trim(), amount: parseMoney(fee.amount) }))
+    .filter((fee) => fee.label && fee.amount > 0);
+
+  if (validFees.length === 0) return cleanNotes || undefined;
+
+  const feeLines = validFees.map((fee) => `- ${fee.label}: PHP ${fee.amount.toFixed(2)}`);
+  return [cleanNotes, "Additional Fees:", ...feeLines]
+    .filter(Boolean)
+    .join("\n");
 }
 
 // ══════════════════════════════════════════════════════════
@@ -64,6 +90,7 @@ function NewPurchaseOrderInner() {
   const [destinationId, setDestinationId] = useState("");
   const [expectedDelivery, setExpectedDelivery] = useState("");
   const [notes, setNotes] = useState("");
+  const [fees, setFees] = useState<POFeeInput[]>([]);
 
   // Auto-set destination to current location (use apiLocationId as fallback when "All Locations" is selected)
   useEffect(() => {
@@ -160,6 +187,39 @@ function NewPurchaseOrderInner() {
   const [submitting, setSubmitting] = useState(false);
   const [submitAction, setSubmitAction] = useState<"draft" | "submit" | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const feesTotal = useMemo(
+    () => fees.reduce((sum, fee) => sum + parseMoney(fee.amount), 0),
+    [fees],
+  );
+  const orderTotal = grandTotal + feesTotal;
+
+  const addFee = () => {
+    setFees((current) => [
+      ...current,
+      { localId: makeLocalId(), label: current.length === 0 ? "Freight" : "", amount: "" },
+    ]);
+  };
+
+  const updateFee = (
+    localId: string,
+    field: keyof Omit<POFeeInput, "localId">,
+    value: string,
+  ) => {
+    setFees((current) =>
+      current.map((fee) =>
+        fee.localId === localId
+          ? {
+              ...fee,
+              [field]: field === "label" ? value.slice(0, 80) : value.replace(/[^\d.,]/g, "").slice(0, 20),
+            }
+          : fee,
+      ),
+    );
+  };
+
+  const removeFee = (localId: string) => {
+    setFees((current) => current.filter((fee) => fee.localId !== localId));
+  };
 
   // ── Add product to lines ──
   const addProduct = (product: ProductSearchResult) => {
@@ -224,13 +284,19 @@ function NewPurchaseOrderInner() {
     setError(null);
 
     try {
+      const notesWithFees = buildNotesWithFees(notes, fees);
+      if ((notesWithFees?.length ?? 0) > 1000) {
+        setError("Notes and additional fees must be 1000 characters or fewer.");
+        return;
+      }
+
       const body = {
         supplierId,
         destinationLocationId: destinationId,
         expectedDeliveryDate: expectedDelivery
           ? new Date(expectedDelivery).toISOString()
           : undefined,
-        notes: notes.trim() || undefined,
+        notes: notesWithFees,
         lines: lines.map((l) => {
           const actualQty = l.entryUnit === "case" ? l.orderedQty * l.unitsPerCase : l.orderedQty;
           const actualUnitCost = l.entryUnit === "case"
@@ -470,6 +536,16 @@ function NewPurchaseOrderInner() {
         onDownloadTemplate={handleDownloadPOTemplate}
         onRemoveLine={removeLine}
         onUpdateLine={updateLine}
+      />
+
+      <AdditionalFeesCard
+        fees={fees}
+        feesTotal={feesTotal}
+        itemsTotal={grandTotal}
+        orderTotal={orderTotal}
+        onAddFee={addFee}
+        onRemoveFee={removeFee}
+        onUpdateFee={updateFee}
       />
 
       <PurchaseOrderActionBar

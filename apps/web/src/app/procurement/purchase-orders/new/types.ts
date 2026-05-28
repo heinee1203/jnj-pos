@@ -33,6 +33,12 @@ export interface POLineInput {
   conversionFactor: number;
 }
 
+export interface POFeeInput {
+  localId: string;
+  label: string;
+  amount: string;
+}
+
 export interface CSVPreviewRow {
   sku: string;
   qty: number;
