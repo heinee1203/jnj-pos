@@ -971,11 +971,13 @@ function NumberField({
           <label className="text-[12px] font-medium text-muted-foreground">{label}</label>
           <span
             tabIndex={0}
-            title={tooltip}
             aria-label={`${label}: ${tooltip}`}
-            className="inline-flex h-4 w-4 cursor-help items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-primary focus:text-primary focus:outline-none"
+            className="group relative inline-flex h-4 w-4 cursor-help items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-primary focus:text-primary focus:outline-none"
           >
             <HelpCircle size={13} />
+            <span className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 hidden w-72 -translate-x-1/2 rounded-md border border-border bg-popover px-3 py-2 text-left text-xs font-normal leading-relaxed text-popover-foreground shadow-lg group-hover:block group-focus:block">
+              {tooltip}
+            </span>
           </span>
         </div>
       ) : (
