@@ -700,7 +700,7 @@ function UnitPriceTiersEditor({
             const equivalent = quantity > 1 && price > 0 ? (price / quantity).toFixed(2) : null;
 
             return (
-              <div key={tier.localId} className="grid grid-cols-[1.1fr_0.8fr_1fr_auto] items-end gap-2">
+              <div key={tier.localId} className="grid grid-cols-[1.1fr_0.8fr_1fr_auto] items-start gap-2">
                 <div>
                   <FieldLabel>Unit</FieldLabel>
                   <input
@@ -731,16 +731,14 @@ function UnitPriceTiersEditor({
                     placeholder="0.00"
                     className={fieldClass}
                   />
-                  {equivalent && (
-                    <p className="mt-1 text-[11px] text-muted-foreground">
-                      {equivalent} per {baseUnitLabel}
-                    </p>
-                  )}
+                  <p className="mt-1 min-h-4 text-[11px] leading-4 text-muted-foreground">
+                    {equivalent ? `${equivalent} per ${baseUnitLabel}` : ""}
+                  </p>
                 </div>
                 <button
                   type="button"
                   onClick={() => onRemove(tier.localId)}
-                  className="mb-0.5 flex h-8 w-8 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                  className="mt-6 flex h-8 w-8 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                   aria-label={`Remove ${tier.label || "unit price"}`}
                 >
                   <Trash2 size={14} />
