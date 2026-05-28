@@ -298,19 +298,16 @@ function NewPurchaseOrderInner() {
           : undefined,
         notes: notesWithFees,
         lines: lines.map((l) => {
-          const actualQty = l.entryUnit === "case" ? l.orderedQty * l.unitsPerCase : l.orderedQty;
-          const actualUnitCost = l.entryUnit === "case"
-            ? String((parseFloat(l.netCost) / l.unitsPerCase).toFixed(2))
-            : l.netCost;
-          const actualListPrice = l.entryUnit === "case" && l.listPrice
-            ? String((parseFloat(l.listPrice) / l.unitsPerCase).toFixed(2))
-            : l.listPrice;
+          const unit = l.entryUnit === "case" ? (l.packagingUnit || "CASE") : l.sellingUnit;
+          const conversionFactor = l.entryUnit === "case" ? l.unitsPerCase : 1;
           return {
             productId: l.productId,
-            orderedQty: actualQty,
-            unitCost: actualUnitCost,
-            listPrice: actualListPrice,
+            orderedQty: l.orderedQty,
+            unitCost: l.netCost,
+            listPrice: l.listPrice,
             discountChain: l.discountChain || undefined,
+            unit,
+            conversionFactor,
           };
         }),
       };

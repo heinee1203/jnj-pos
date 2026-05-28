@@ -29,6 +29,8 @@ export interface POLine {
   unitCost: string;
   listPrice: string | null;
   discountChain: string | null;
+  unit: string | null;
+  poConversionFactor: string | null;
   createdAt: string;
   productName: string;
   sku: string;
