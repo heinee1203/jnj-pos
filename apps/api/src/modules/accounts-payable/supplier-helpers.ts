@@ -461,7 +461,7 @@ export function buildSupplierApUpdateFields(input: SupplierApUpdateInput) {
   if (input.contactEmail !== undefined) setFields.contactEmail = input.contactEmail;
   if (input.address !== undefined) setFields.address = input.address;
   if (input.tin !== undefined) setFields.tin = input.tin;
-  if (input.mnemonicCode !== undefined) setFields.mnemonicCode = input.mnemonicCode;
+  if (input.mnemonicCode !== undefined) setFields.mnemonicCode = normalizeSupplierMnemonic(input.mnemonicCode);
   if (input.paymentTermsDays !== undefined) setFields.paymentTermsDays = input.paymentTermsDays;
   if (input.creditLimit !== undefined) setFields.creditLimit = input.creditLimit;
   if (input.bankName !== undefined) setFields.bankName = input.bankName;
@@ -476,15 +476,17 @@ export function buildSupplierApUpdateFields(input: SupplierApUpdateInput) {
 export function buildSupplierApCreateValues(orgId: string, input: SupplierApCreateInput) {
   if (!input.name?.trim()) throw new Error("Supplier name is required");
 
+  const name = input.name.trim();
+
   return {
     orgId,
-    name: input.name.trim(),
+    name,
     contactPerson: input.contactPerson ?? null,
     contactPhone: input.contactPhone ?? null,
     contactEmail: input.contactEmail ?? null,
     address: input.address ?? null,
     tin: input.tin ?? null,
-    mnemonicCode: input.mnemonicCode ?? null,
+    mnemonicCode: normalizeSupplierMnemonic(input.mnemonicCode ?? name),
     paymentTermsDays: input.paymentTermsDays ?? 30,
     creditLimit: input.creditLimit ?? "0.00",
     bankName: input.bankName ?? null,
@@ -493,6 +495,14 @@ export function buildSupplierApCreateValues(orgId: string, input: SupplierApCrea
     notes: input.notes ?? null,
     isActive: true,
   };
+}
+
+function normalizeSupplierMnemonic(value: string | null | undefined): string | null {
+  const source = (value ?? "").toUpperCase();
+  const words = source.match(/[A-Z]+/g) ?? [];
+  const initials = words.map((word) => word[0]).join("");
+  const letters = (initials.length >= 2 ? initials : words.join("")).replace(/[^A-Z]/g, "");
+  return letters ? letters.slice(0, 2).padEnd(2, "X") : null;
 }
 
 function hasText(value: string | null | undefined): boolean {

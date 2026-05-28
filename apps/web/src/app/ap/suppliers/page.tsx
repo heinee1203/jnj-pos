@@ -114,6 +114,14 @@ function nullable(value: string) {
   return trimmed ? trimmed : null;
 }
 
+function internalSupplierMnemonic(name: string, existing?: string | null) {
+  const source = (existing || name).toUpperCase();
+  const words = source.match(/[A-Z]+/g) ?? [];
+  const initials = words.map((word) => word[0]).join("");
+  const letters = (initials.length >= 2 ? initials : words.join("")).replace(/[^A-Z]/g, "");
+  return letters ? letters.slice(0, 2).padEnd(2, "X") : null;
+}
+
 function termsLabel(days: number | null | undefined) {
   if (days == null) return "No terms";
   if (days === 0) return "COD";
@@ -262,7 +270,7 @@ function SupplierFormModal({
         contactEmail: nullable(form.contactEmail),
         address: nullable(form.address),
         tin: nullable(form.tin),
-        mnemonicCode: nullable(form.mnemonicCode),
+        mnemonicCode: internalSupplierMnemonic(form.name, form.mnemonicCode),
         paymentTermsDays,
         creditLimit: (form.creditLimit || "0.00").replace(/,/g, ""),
         bankName: nullable(form.bankName),
@@ -336,16 +344,6 @@ function SupplierFormModal({
                 value={form.contactPerson}
                 onChange={(event) => update("contactPerson", event.target.value)}
                 className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-              />
-            </label>
-
-            <label className="space-y-1.5">
-              <span className="text-sm font-semibold text-slate-700">Mnemonic Code</span>
-              <input
-                value={form.mnemonicCode}
-                onChange={(event) => update("mnemonicCode", event.target.value.toUpperCase())}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm uppercase outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                placeholder="QUICKBROWN"
               />
             </label>
 
@@ -519,7 +517,6 @@ export default function SuppliersPage() {
       if (!q) return true;
       return [
         supplier.name,
-        supplier.mnemonicCode,
         supplier.contactPerson,
         supplier.contactPhone,
         supplier.contactEmail,
@@ -598,7 +595,7 @@ export default function SuppliersPage() {
               <input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search suppliers, code, contact, TIN..."
+                placeholder="Search suppliers, contact, TIN..."
                 className="w-full rounded-lg border border-slate-200 py-2 pl-9 pr-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
             </div>
@@ -703,9 +700,9 @@ export default function SuppliersPage() {
                               {supplier.isActive ? "Active" : "Inactive"}
                             </span>
                           </div>
-                          <p className="mt-1 text-xs text-slate-500">
-                            {supplier.mnemonicCode || "No mnemonic"} {supplier.tin ? `- TIN ${supplier.tin}` : ""}
-                          </p>
+                          {supplier.tin && (
+                            <p className="mt-1 text-xs text-slate-500">TIN {supplier.tin}</p>
+                          )}
                           {badges.length > 0 && (
                             <div className="mt-2 flex flex-wrap gap-1.5">
                               {badges.map((badge) => <RiskBadge key={`${supplier.id}-${badge.code}`} badge={badge} />)}

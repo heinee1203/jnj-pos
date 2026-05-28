@@ -396,7 +396,7 @@ test("buildSupplierApCreateValues preserves AP defaults and supplier-name guard"
       contactEmail: null,
       address: null,
       tin: null,
-      mnemonicCode: null,
+      mnemonicCode: "NS",
       paymentTermsDays: 0,
       creditLimit: "0.00",
       bankName: null,

@@ -22,6 +22,13 @@ import { usePurchaseOrderProductSearch } from "./use-purchase-order-product-sear
 
 // ── Helpers ──
 
+function internalSupplierMnemonic(name: string) {
+  const source = name.toUpperCase();
+  const words = source.match(/[A-Z]+/g) ?? [];
+  const initials = words.map((word) => word[0]).join("");
+  const letters = (initials.length >= 2 ? initials : words.join("")).replace(/[^A-Z]/g, "");
+  return letters ? letters.slice(0, 2).padEnd(2, "X") : undefined;
+}
 
 // ══════════════════════════════════════════════════════════
 // New Purchase Order Page
@@ -179,7 +186,7 @@ function NewPurchaseOrderInner() {
         method: "POST",
         body: JSON.stringify({
           name: newSupplierForm.name.trim(),
-          mnemonicCode: newSupplierForm.mnemonicCode.trim() || undefined,
+          mnemonicCode: internalSupplierMnemonic(newSupplierForm.name),
           contactEmail: newSupplierForm.contactEmail.trim() || undefined,
           contactPhone: newSupplierForm.contactPhone.trim() || undefined,
         }),

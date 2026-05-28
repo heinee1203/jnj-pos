@@ -73,7 +73,6 @@ export function OrderDetailsCard({
               <option value="">Select a supplier...</option>
               {suppliers.map((s) => (
                 <option key={s.id} value={s.id}>
-                  {s.mnemonicCode ? `[${s.mnemonicCode}] ` : ""}
                   {s.name}
                 </option>
               ))}
@@ -152,19 +151,6 @@ export function OrderDetailsCard({
               onChange={(e) =>
                 onNewSupplierFormChange((f) => ({ ...f, name: e.target.value }))
               }
-              className="rounded-md border border-border bg-background px-3 py-1.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
-            />
-            <input
-              type="text"
-              placeholder="Code (2 chars)"
-              value={newSupplierForm.mnemonicCode}
-              onChange={(e) =>
-                onNewSupplierFormChange((f) => ({
-                  ...f,
-                  mnemonicCode: e.target.value.toUpperCase().slice(0, 2),
-                }))
-              }
-              maxLength={2}
               className="rounded-md border border-border bg-background px-3 py-1.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
             />
             <input

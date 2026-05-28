@@ -36,12 +36,6 @@ export function registerProcurementSupplierRoutes(app: FastifyInstance) {
       return reply.status(400).send({ error: "Supplier name is required" });
     }
 
-    if (body.mnemonicCode && body.mnemonicCode.length > 2) {
-      return reply
-        .status(400)
-        .send({ error: "Mnemonic code must be at most 2 characters" });
-    }
-
     if (
       body.avgLeadTimeDays !== undefined &&
       (!Number.isFinite(body.avgLeadTimeDays) || body.avgLeadTimeDays < 0)
@@ -83,12 +77,6 @@ export function registerProcurementSupplierRoutes(app: FastifyInstance) {
       paymentTermsDays?: number;
       isActive?: boolean;
     };
-
-    if (body.mnemonicCode && body.mnemonicCode.length > 2) {
-      return reply
-        .status(400)
-        .send({ error: "Mnemonic code must be at most 2 characters" });
-    }
 
     if (
       body.avgLeadTimeDays !== undefined &&

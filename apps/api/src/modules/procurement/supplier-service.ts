@@ -35,15 +35,16 @@ export async function createSupplier(
     isActive?: boolean;
   },
 ) {
+  const name = input.name.trim();
   const [supplier] = await db
     .insert(suppliers)
     .values({
       orgId,
-      name: input.name,
+      name,
       contactEmail: input.contactEmail ?? null,
       contactPhone: input.contactPhone ?? null,
       address: input.address ?? null,
-      mnemonicCode: input.mnemonicCode ?? null,
+      mnemonicCode: normalizeSupplierMnemonic(input.mnemonicCode ?? name),
       avgLeadTimeDays: input.avgLeadTimeDays ?? 7,
       paymentTermsDays: input.paymentTermsDays ?? 30,
       isActive: input.isActive ?? true,
@@ -75,7 +76,7 @@ export async function updateSupplier(
     setFields.contactPhone = input.contactPhone;
   if (input.address !== undefined) setFields.address = input.address;
   if (input.mnemonicCode !== undefined)
-    setFields.mnemonicCode = input.mnemonicCode;
+    setFields.mnemonicCode = normalizeSupplierMnemonic(input.mnemonicCode);
   if (input.avgLeadTimeDays !== undefined)
     setFields.avgLeadTimeDays = input.avgLeadTimeDays;
   if (input.paymentTermsDays !== undefined)
@@ -97,6 +98,14 @@ export async function updateSupplier(
   }
 
   return updated;
+}
+
+function normalizeSupplierMnemonic(value: string | null | undefined): string | null {
+  const source = (value ?? "").toUpperCase();
+  const words = source.match(/[A-Z]+/g) ?? [];
+  const initials = words.map((word) => word[0]).join("");
+  const letters = (initials.length >= 2 ? initials : words.join("")).replace(/[^A-Z]/g, "");
+  return letters ? letters.slice(0, 2).padEnd(2, "X") : null;
 }
 
 export async function deleteSupplier(orgId: string, supplierId: string) {
