@@ -27,7 +27,6 @@ import { DetailHistorySection } from "./detail-history-section";
 import { DetailInfoRow } from "./detail-info-row";
 import { DetailLabelPrintSection } from "./detail-label-print-section";
 import { DetailOptionsVariants } from "./detail-options-variants";
-import { DetailVelocitySection } from "./detail-velocity-section";
 
 /* ─────────────────────────────────────────────
  * Detail Drawer
@@ -654,8 +653,6 @@ export function DetailDrawer({
             {/* ── Item History ── */}
             <DetailHistorySection productId={product.id} token={token} locationId={locationId} />
 
-            {/* ── Stock Velocity ── */}
-            <DetailVelocitySection productId={product.id} token={token} locationId={locationId} />
           </div>
 
           {/* Sticky save bar — shown when any unsaved changes exist */}
