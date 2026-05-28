@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
   AlertCircle,
   ArrowLeft,
@@ -424,6 +425,7 @@ export default function EditInventoryItemPage() {
       });
       setUnitPrice(baseUnitPrice);
       setSaved(true);
+      toast.success("Item setup saved successfully");
       if (closeAfterSave) {
         router.push("/inventory");
       }
