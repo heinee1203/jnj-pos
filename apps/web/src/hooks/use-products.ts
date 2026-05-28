@@ -29,6 +29,9 @@ export interface ProductRow {
   oemNumber: string | null;
   unitsPerCase: number;
   packagingUnit: string | null;
+  sellingUnit?: string | null;
+  purchaseUnit?: string | null;
+  conversionFactor?: string | number | null;
   primarySupplierId: string | null;
   reorderEnabled: boolean;
   customReorderPoint: number | null;

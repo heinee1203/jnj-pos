@@ -25,6 +25,7 @@ type FlatProductRowProps = {
   colCount: number;
   onDeleteSingle: (id: string, name: string, isParent?: boolean) => void;
   canEdit?: boolean;
+  warehouseStockView?: boolean;
 };
 
 export function FlatProductRow({
@@ -42,6 +43,7 @@ export function FlatProductRow({
   colCount,
   onDeleteSingle,
   canEdit = true,
+  warehouseStockView = false,
 }: FlatProductRowProps) {
   const sell = parseFloat(p.unitPrice) || 0;
   const cost = parseFloat(p.costPrice) || 0;
@@ -112,6 +114,10 @@ export function FlatProductRow({
             reorderPoint={p.reorderPoint}
             unitsPerCase={p.unitsPerCase}
             packagingUnit={p.packagingUnit}
+            sellingUnit={p.sellingUnit}
+            purchaseUnit={p.purchaseUnit}
+            conversionFactor={p.conversionFactor}
+            warehouseStockView={warehouseStockView}
           />
         </td>
         <td className="px-3 py-[5px] text-right font-medium tabular-nums text-foreground">

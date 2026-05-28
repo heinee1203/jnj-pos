@@ -45,7 +45,7 @@ export function InventoryTableSection({
       token={token!}
       apiLocationId={apiLocationId!}
       stockStatusFilter={inventory.stockStatusFilter}
-
+      warehouseStockView={inventory.warehouseStockView}
       categoryFilter={inventory.categoryFilter}
       brandFilter={inventory.brandFilter}
       isAllLocations={inventory.isAllLocations}

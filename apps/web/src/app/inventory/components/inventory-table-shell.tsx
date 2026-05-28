@@ -28,6 +28,7 @@ interface InventoryTableShellProps {
   token: string;
   apiLocationId: string;
   stockStatusFilter: string;
+  warehouseStockView: boolean;
   categoryFilter: string;
   brandFilter: string;
   isAllLocations: boolean;
@@ -59,6 +60,7 @@ export function InventoryTableShell({
   token,
   apiLocationId,
   stockStatusFilter,
+  warehouseStockView,
   categoryFilter,
   brandFilter,
   isAllLocations,
@@ -183,8 +185,8 @@ export function InventoryTableShell({
               <th scope="col" className="min-w-[200px] px-3 py-[7px] text-left">
                 <SortableHeader label="Item Name" field="name" activeField={sortBy} activeDir={sortDir} onSort={onSort} />
               </th>
-              <th scope="col" className="w-[70px] px-2 py-[7px] text-right">
-                <SortableHeader label="Stock" field="stockLevel" activeField={sortBy} activeDir={sortDir} onSort={onSort} align="right" />
+              <th scope="col" className={cn("px-2 py-[7px] text-right", warehouseStockView ? "w-[115px]" : "w-[70px]")}>
+                <SortableHeader label={warehouseStockView ? "Stock (Pkg)" : "Stock"} field="stockLevel" activeField={sortBy} activeDir={sortDir} onSort={onSort} align="right" />
               </th>
               <th scope="col" className="w-[85px] px-3 py-[7px] text-right">
                 <SortableHeader label="Sell" field="unitPrice" activeField={sortBy} activeDir={sortDir} onSort={onSort} align="right" />
@@ -239,6 +241,7 @@ export function InventoryTableShell({
                   colCount={colCount}
                   onDeleteSingle={onDeleteSingle}
                   canEdit={canEdit}
+                  warehouseStockView={warehouseStockView}
                 />
               ))
             )}

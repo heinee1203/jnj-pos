@@ -38,6 +38,11 @@ export function useInventoryWorkspace({
   const orgLocations = useMemo(() => {
     return (locationsQuery.data?.data ?? []).filter((location: LocationRow) => location.isActive);
   }, [locationsQuery.data]);
+  const currentLocation = useMemo(
+    () => orgLocations.find((location: LocationRow) => location.id === locationId) ?? null,
+    [orgLocations, locationId],
+  );
+  const warehouseStockView = !isAllLocations && currentLocation?.type === "WAREHOUSE";
 
   const categoriesQuery = useCategories(token!, apiLocationId!);
   const filteredCategories = useMemo(() => {
@@ -135,6 +140,7 @@ export function useInventoryWorkspace({
     isAllLocations,
     isFetching,
     isLoading,
+    warehouseStockView,
     orgLocations,
     page,
     pageSize,

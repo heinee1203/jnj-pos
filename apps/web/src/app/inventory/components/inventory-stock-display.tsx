@@ -45,7 +45,76 @@ type StockPopoverProps = {
   reorderPoint: number;
   unitsPerCase?: number;
   packagingUnit?: string | null;
+  sellingUnit?: string | null;
+  purchaseUnit?: string | null;
+  conversionFactor?: string | number | null;
+  warehouseStockView?: boolean;
 };
+
+function normalizeUnit(unit: string | null | undefined, fallback: string) {
+  return (unit || fallback).trim().toUpperCase();
+}
+
+function stockPackageContext({
+  conversionFactor,
+  packagingUnit,
+  purchaseUnit,
+  sellingUnit,
+  unitsPerCase,
+}: {
+  conversionFactor?: string | number | null;
+  packagingUnit?: string | null;
+  purchaseUnit?: string | null;
+  sellingUnit?: string | null;
+  unitsPerCase?: number;
+}) {
+  const parsedFactor = Number(conversionFactor);
+  const factor = Number.isFinite(parsedFactor) && parsedFactor > 1
+    ? parsedFactor
+    : unitsPerCase && unitsPerCase > 1
+      ? unitsPerCase
+      : 1;
+
+  return {
+    factor,
+    packageUnit: normalizeUnit(purchaseUnit || packagingUnit, "CASE"),
+    sellingUnit: normalizeUnit(sellingUnit, "PCS"),
+  };
+}
+
+function formatWarehouseStock(
+  stockLevel: number,
+  context: ReturnType<typeof stockPackageContext>,
+) {
+  const stock = Math.max(0, Math.floor(stockLevel));
+  const factor = Math.max(1, Math.floor(context.factor));
+  if (factor <= 1) {
+    return {
+      primary: `${stock.toLocaleString()} ${context.sellingUnit}`,
+      secondary: null as string | null,
+    };
+  }
+
+  const packages = Math.floor(stock / factor);
+  const loose = stock % factor;
+  return {
+    primary: `${packages.toLocaleString()} ${context.packageUnit}`,
+    secondary: loose > 0 ? `+ ${loose.toLocaleString()} ${context.sellingUnit}` : null,
+  };
+}
+
+function formatPackageSummary(
+  stockLevel: number,
+  context: ReturnType<typeof stockPackageContext>,
+) {
+  const stock = Math.max(0, Math.floor(stockLevel));
+  const factor = Math.max(1, Math.floor(context.factor));
+  if (factor <= 1 || stock < factor) return null;
+
+  const packages = Math.floor(stock / factor);
+  const loose = stock % factor;
+  return `${packages.toLocaleString()} ${context.packageUnit}${loose > 0 ? ` + ${loose.toLocaleString()} ${context.sellingUnit}` : ""}`;
+}
 
 export function StockPopover({
   productId,
@@ -53,10 +122,22 @@ export function StockPopover({
   reorderPoint,
   unitsPerCase = 1,
   packagingUnit,
+  sellingUnit,
+  purchaseUnit,
+  conversionFactor,
+  warehouseStockView = false,
 }: StockPopoverProps) {
-  const upc = unitsPerCase > 1 ? unitsPerCase : 0;
-  const pkgUnit = packagingUnit || "case";
-  const hasPkg = upc > 1;
+  const packageContext = stockPackageContext({
+    conversionFactor,
+    packagingUnit,
+    purchaseUnit,
+    sellingUnit,
+    unitsPerCase,
+  });
+  const hasPkg = packageContext.factor > 1;
+  const displayStock = warehouseStockView
+    ? formatWarehouseStock(stockLevel, packageContext)
+    : { primary: (stockLevel <= 0 ? 0 : stockLevel).toLocaleString(), secondary: null as string | null };
   const [open, setOpen] = useState(false);
   const [openUpward, setOpenUpward] = useState(false);
   const [popoverPos, setPopoverPos] = useState({ top: 0, left: 0 });
@@ -123,15 +204,21 @@ export function StockPopover({
       >
         <span
           className={cn(
-            "inline-flex min-w-[36px] items-center justify-end rounded-md px-2 py-0.5 text-[12px] font-semibold tabular-nums cursor-pointer transition-all",
+            "inline-flex min-w-[36px] flex-col items-end justify-center rounded-md px-2 py-0.5 text-[12px] font-semibold tabular-nums cursor-pointer transition-all",
+            warehouseStockView && "min-w-[78px]",
             stockLevel <= 0
               ? "bg-red-50 text-red-700 group-hover:bg-red-100"
               : stockLevel <= reorderPoint
                 ? "bg-amber-50 text-amber-700 group-hover:bg-amber-100"
-                : "text-foreground group-hover:bg-muted",
+              : "text-foreground group-hover:bg-muted",
           )}
         >
-          {(stockLevel <= 0 ? 0 : stockLevel).toLocaleString()}
+          <span>{displayStock.primary}</span>
+          {displayStock.secondary && (
+            <span className="text-[9px] font-medium leading-none text-muted-foreground">
+              {displayStock.secondary}
+            </span>
+          )}
         </span>
       </button>
 
@@ -150,7 +237,7 @@ export function StockPopover({
               <span className="text-[11px] font-semibold text-foreground">Stock by Location</span>
               {hasPkg && (
                 <div className="text-[10px] text-muted-foreground mt-0.5">
-                  1 {pkgUnit} = {upc} pieces
+                  1 {packageContext.packageUnit} = {packageContext.factor} {packageContext.sellingUnit}
                 </div>
               )}
             </div>
@@ -194,7 +281,11 @@ export function StockPopover({
                         </span>
                       </div>
                       <div className="ml-2 shrink-0 text-right">
-                        <LocationStockValue hasPkg={hasPkg} pkgUnit={pkgUnit} stockLevel={loc.stockLevel} upc={upc} />
+                        <LocationStockValue
+                          packageContext={packageContext}
+                          stockLevel={loc.stockLevel}
+                          warehouseStockView={warehouseStockView}
+                        />
                       </div>
                     </div>
                   );
@@ -207,9 +298,18 @@ export function StockPopover({
                 <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Total</span>
                 <div className="text-right">
                   <span className="text-[11px] font-bold tabular-nums text-foreground">
-                    {total.toLocaleString()}
+                    {warehouseStockView ? formatWarehouseStock(total, packageContext).primary : total.toLocaleString()}
                   </span>
-                  {hasPkg && total >= upc && <PackageBreakdown count={total} pkgUnit={pkgUnit} upc={upc} />}
+                  {warehouseStockView && formatWarehouseStock(total, packageContext).secondary && (
+                    <span className="ml-1 text-[9px] text-muted-foreground">
+                      {formatWarehouseStock(total, packageContext).secondary}
+                    </span>
+                  )}
+                  {!warehouseStockView && formatPackageSummary(total, packageContext) && (
+                    <span className="ml-1 text-[9px] text-muted-foreground">
+                      ({formatPackageSummary(total, packageContext)})
+                    </span>
+                  )}
                 </div>
               </div>
             )}
@@ -221,45 +321,43 @@ export function StockPopover({
 }
 
 function LocationStockValue({
-  hasPkg,
-  pkgUnit,
+  packageContext,
   stockLevel,
-  upc,
+  warehouseStockView,
 }: {
-  hasPkg: boolean;
-  pkgUnit: string;
+  packageContext: ReturnType<typeof stockPackageContext>;
   stockLevel: number;
-  upc: number;
+  warehouseStockView: boolean;
 }) {
   const s = Math.max(0, stockLevel);
+  const packageSummary = formatPackageSummary(s, packageContext);
 
-  if (hasPkg && s >= upc) {
+  if (warehouseStockView) {
+    const display = formatWarehouseStock(s, packageContext);
     return (
       <>
         <span className="text-[11px] font-semibold tabular-nums text-foreground">
-          {s.toLocaleString()}
+          {display.primary}
         </span>
-        <PackageBreakdown count={s} pkgUnit={pkgUnit} upc={upc} />
+        {display.secondary && (
+          <span className="ml-1 text-[9px] text-muted-foreground">
+            {display.secondary}
+          </span>
+        )}
       </>
     );
   }
 
   return (
-    <span className={cn("text-[11px] font-semibold tabular-nums", s === 0 ? "text-red-600" : "text-foreground")}>
-      {s.toLocaleString()}
-    </span>
-  );
-}
-
-function PackageBreakdown({ count, pkgUnit, upc }: { count: number; pkgUnit: string; upc: number }) {
-  const cases = Math.floor(count / upc);
-  const loose = count % upc;
-
-  return (
-    <span className="text-[9px] text-muted-foreground ml-1">
-      ({cases}
-      {loose > 0 ? `.${loose}` : ""} {pkgUnit}
-      {cases !== 1 ? "s" : ""})
-    </span>
+    <>
+      <span className={cn("text-[11px] font-semibold tabular-nums", s === 0 ? "text-red-600" : "text-foreground")}>
+        {s.toLocaleString()}
+      </span>
+      {packageSummary && (
+        <span className="ml-1 text-[9px] text-muted-foreground">
+          ({packageSummary})
+        </span>
+      )}
+    </>
   );
 }
