@@ -84,18 +84,6 @@ export async function handleAllLocationsQuery(
           AND (child.sku ILIKE ${t + "%"} OR child.sku ILIKE ${"%-" + t + "%"}
                OR child.barcode ILIKE ${fullPattern} OR child.name ILIKE ${fullPattern})
         )
-        OR EXISTS (
-          SELECT 1 FROM vehicle_compatibility vc
-          WHERE vc.product_id = p.id
-          AND (vc.make ILIKE ${fullPattern} OR vc.model ILIKE ${fullPattern}
-               OR vc.engine ILIKE ${fullPattern} OR vc.notes ILIKE ${fullPattern})
-        )
-        OR EXISTS (
-          SELECT 1 FROM product_tags pt
-          JOIN tags t ON pt.tag_id = t.id
-          WHERE pt.product_id = p.id
-          AND t.name ILIKE ${fullPattern}
-        )
       )`;
     }
 
@@ -108,18 +96,6 @@ export async function handleAllLocationsQuery(
       OR p.sku ILIKE ${fullPattern}
       OR p.barcode ILIKE ${fullPattern}
       OR p.oem_number ILIKE ${fullPattern}
-      OR EXISTS (
-        SELECT 1 FROM vehicle_compatibility vc
-        WHERE vc.product_id = p.id
-        AND (vc.make ILIKE ${fullPattern} OR vc.model ILIKE ${fullPattern}
-             OR vc.engine ILIKE ${fullPattern} OR vc.notes ILIKE ${fullPattern})
-      )
-      OR EXISTS (
-        SELECT 1 FROM product_tags pt
-        JOIN tags t ON pt.tag_id = t.id
-        WHERE pt.product_id = p.id
-        AND t.name ILIKE ${fullPattern}
-      )
     )`;
   })();
 

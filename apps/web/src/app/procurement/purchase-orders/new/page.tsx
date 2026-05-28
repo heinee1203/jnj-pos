@@ -147,7 +147,7 @@ function NewPurchaseOrderInner() {
 
   const productSearchController = usePurchaseOrderProductSearch({
     token,
-    locationId,
+    locationId: apiLocationId || locationId,
   });
 
   // ── CSV state ──
@@ -163,6 +163,7 @@ function NewPurchaseOrderInner() {
 
   // ── Add product to lines ──
   const addProduct = (product: ProductSearchResult) => {
+    setCsvError(null);
     addProductLine(product);
     productSearchController.clearAndFocusSearch();
   };
@@ -171,6 +172,9 @@ function NewPurchaseOrderInner() {
     const product = await productSearchController.findManualProduct();
     if (product) {
       addProduct(product);
+    } else {
+      const query = productSearchController.productSearch.trim();
+      setCsvError(query ? `No product found for "${query}".` : "Enter an item name, SKU, or barcode first.");
     }
   };
 

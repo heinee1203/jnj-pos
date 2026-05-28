@@ -203,18 +203,6 @@ function addStandardProductSearchConditions(conditions: SQL[], search: string | 
           AND (child.sku ILIKE ${startPattern} OR child.sku ILIKE ${hyphenPattern}
                OR child.barcode ILIKE ${substringPattern} OR child.name ILIKE ${substringPattern})
         )
-        OR EXISTS (
-          SELECT 1 FROM vehicle_compatibility vc
-          WHERE vc.product_id = ${products.id}
-          AND (vc.make ILIKE ${substringPattern} OR vc.model ILIKE ${substringPattern}
-               OR vc.engine ILIKE ${substringPattern} OR vc.notes ILIKE ${substringPattern})
-        )
-        OR EXISTS (
-          SELECT 1 FROM product_tags pt
-          JOIN tags t ON pt.tag_id = t.id
-          WHERE pt.product_id = ${products.id}
-          AND t.name ILIKE ${substringPattern}
-        )
       )`,
     );
     return;
@@ -231,18 +219,6 @@ function addStandardProductSearchConditions(conditions: SQL[], search: string | 
       OR ${products.sku} ILIKE ${fullSearchTerm}
       OR ${products.barcode} ILIKE ${fullSearchTerm}
       OR ${products.oemNumber} ILIKE ${fullSearchTerm}
-      OR EXISTS (
-        SELECT 1 FROM vehicle_compatibility vc
-        WHERE vc.product_id = ${products.id}
-        AND (vc.make ILIKE ${fullSearchTerm} OR vc.model ILIKE ${fullSearchTerm}
-             OR vc.engine ILIKE ${fullSearchTerm} OR vc.notes ILIKE ${fullSearchTerm})
-      )
-      OR EXISTS (
-        SELECT 1 FROM product_tags pt
-        JOIN tags t ON pt.tag_id = t.id
-        WHERE pt.product_id = ${products.id}
-        AND t.name ILIKE ${fullSearchTerm}
-      )
     )`,
   );
 }
