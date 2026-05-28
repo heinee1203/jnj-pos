@@ -97,6 +97,8 @@ function LineItemRow({
   const lineTotal = line.orderedQty * (parseFloat(line.netCost) || 0);
   const hasDiscount = line.discountChain.trim().length > 0;
   const isAutoCalc = hasDiscount && !line.isManualCost;
+  const sellingUnit = line.sellingUnit.toUpperCase();
+  const purchaseUnit = (line.packagingUnit || line.purchaseUnit || "CASE").toUpperCase();
 
   return (
     <tr className="border-b border-border last:border-b-0">
@@ -113,8 +115,8 @@ function LineItemRow({
               onChange={(event) => onUpdateLine(line.localId, "entryUnit", event.target.value as "piece" | "case")}
               className="w-auto rounded border border-border px-1 py-1 text-xs"
             >
-              <option value="piece">pc</option>
-              <option value="case">{line.packagingUnit || "case"} ({line.unitsPerCase}/cs)</option>
+              <option value="piece">{sellingUnit}</option>
+              <option value="case">{purchaseUnit} ({line.unitsPerCase} {sellingUnit})</option>
             </select>
           )}
           <input
@@ -127,7 +129,7 @@ function LineItemRow({
         </div>
         {line.entryUnit === "case" && line.unitsPerCase > 1 && (
           <div className="mt-0.5 text-right text-[10px] text-muted-foreground">
-            = {line.orderedQty * line.unitsPerCase} pcs
+            = {line.orderedQty * line.unitsPerCase} {sellingUnit}
           </div>
         )}
       </td>

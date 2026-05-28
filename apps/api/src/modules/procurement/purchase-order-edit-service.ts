@@ -99,6 +99,10 @@ export async function addPurchaseOrderLine(
       unitCost: body.unitCost,
       listPrice: body.listPrice ?? null,
       discountChain: body.discountChain ?? null,
+      unit: body.unit ?? null,
+      poConversionFactor: body.conversionFactor
+        ? String(body.conversionFactor)
+        : null,
     })
     .returning();
 
@@ -139,6 +143,10 @@ export async function updatePurchaseOrderLine(
   if (body.listPrice !== undefined) updates.listPrice = body.listPrice;
   if (body.discountChain !== undefined)
     updates.discountChain = body.discountChain;
+  if (body.unit !== undefined) updates.unit = body.unit;
+  if (body.conversionFactor !== undefined) {
+    updates.poConversionFactor = String(body.conversionFactor);
+  }
 
   if (Object.keys(updates).length === 0) {
     return line;

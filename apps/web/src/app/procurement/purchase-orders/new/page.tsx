@@ -56,6 +56,32 @@ function buildNotesWithFees(notes: string, fees: POFeeInput[]) {
     .join("\n");
 }
 
+function purchaseFactor(product: {
+  conversionFactor?: number | string | null;
+  unitsPerCase?: number | null;
+}) {
+  const conversionFactor = parseFloat(String(product.conversionFactor ?? ""));
+  if (Number.isFinite(conversionFactor) && conversionFactor > 1) {
+    return conversionFactor;
+  }
+  return product.unitsPerCase && product.unitsPerCase > 1 ? product.unitsPerCase : 1;
+}
+
+function purchaseUnit(product: {
+  purchaseUnit?: string | null;
+  packagingUnit?: string | null;
+}) {
+  return product.purchaseUnit || product.packagingUnit || null;
+}
+
+function defaultPurchaseCost(product: {
+  costPrice?: string | null;
+}, factor: number) {
+  const baseCost = parseFloat(product.costPrice || "0");
+  if (!Number.isFinite(baseCost) || baseCost <= 0) return product.costPrice || "0.00";
+  return factor > 1 ? (baseCost * factor).toFixed(2) : product.costPrice || "0.00";
+}
+
 // ══════════════════════════════════════════════════════════
 // New Purchase Order Page
 // ══════════════════════════════════════════════════════════
@@ -126,7 +152,11 @@ function NewPurchaseOrderInner() {
         if (!product?.id) return;
         const qty = Math.max(parseInt(qQty || "1", 10) || 1, 1);
         // Use unitCost from query param (last PO cost), fall back to product cost price
-        const cost = qUnitCost && parseFloat(qUnitCost) > 0 ? qUnitCost : (product.costPrice || "0.00");
+        const factor = purchaseFactor(product);
+        const cost = qUnitCost && parseFloat(qUnitCost) > 0
+          ? qUnitCost
+          : defaultPurchaseCost(product, factor);
+        const unit = purchaseUnit(product);
         setLines([{
           localId: crypto.randomUUID(),
           productId: product.id,
@@ -137,12 +167,12 @@ function NewPurchaseOrderInner() {
           discountChain: "",
           netCost: cost,
           isManualCost: false,
-          unitsPerCase: product.unitsPerCase ?? 1,
-          packagingUnit: product.packagingUnit ?? null,
-          entryUnit: (product.unitsPerCase ?? 1) > 1 ? "case" : "piece",
+          unitsPerCase: factor,
+          packagingUnit: unit,
+          entryUnit: factor > 1 ? "case" : "piece",
           sellingUnit: product.sellingUnit ?? "piece",
           purchaseUnit: product.purchaseUnit ?? null,
-          conversionFactor: parseFloat(String(product.conversionFactor ?? "1")) || 1,
+          conversionFactor: factor,
         }]);
       } catch {
         // Ignore — user can add manually
@@ -298,8 +328,8 @@ function NewPurchaseOrderInner() {
           : undefined,
         notes: notesWithFees,
         lines: lines.map((l) => {
-          const unit = l.entryUnit === "case" ? (l.packagingUnit || "CASE") : l.sellingUnit;
-          const conversionFactor = l.entryUnit === "case" ? l.unitsPerCase : 1;
+          const unit = l.entryUnit === "case" ? (l.packagingUnit || l.purchaseUnit || "CASE") : l.sellingUnit;
+          const conversionFactor = l.entryUnit === "case" ? l.conversionFactor || l.unitsPerCase : 1;
           return {
             productId: l.productId,
             orderedQty: l.orderedQty,

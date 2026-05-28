@@ -11,6 +11,24 @@ import { getProductDisplayName } from "@/lib/format";
 import type { CSVPreviewRow, POLineInput, ProductSearchResult } from "./types";
 import { calculateNetCost } from "./utils";
 
+function productPurchaseFactor(product: ProductSearchResult) {
+  const conversionFactor = parseFloat(String(product.conversionFactor ?? ""));
+  if (Number.isFinite(conversionFactor) && conversionFactor > 1) {
+    return conversionFactor;
+  }
+  return product.unitsPerCase && product.unitsPerCase > 1 ? product.unitsPerCase : 1;
+}
+
+function productPurchaseUnit(product: ProductSearchResult) {
+  return product.purchaseUnit || product.packagingUnit || null;
+}
+
+function defaultLineCost(product: ProductSearchResult, purchaseFactor: number) {
+  const baseCost = parseFloat(product.costPrice || "0");
+  if (!Number.isFinite(baseCost) || baseCost <= 0) return product.costPrice || "0.00";
+  return purchaseFactor > 1 ? (baseCost * purchaseFactor).toFixed(2) : product.costPrice || "0.00";
+}
+
 export type PurchaseOrderLinesController = {
   lines: POLineInput[];
   setLines: Dispatch<SetStateAction<POLineInput[]>>;
@@ -39,7 +57,9 @@ export function usePurchaseOrderLines(): PurchaseOrderLinesController {
         );
       }
 
-      const costPrice = product.costPrice || "0.00";
+      const purchaseFactor = productPurchaseFactor(product);
+      const purchaseUnit = productPurchaseUnit(product);
+      const costPrice = defaultLineCost(product, purchaseFactor);
       return [
         ...prev,
         {
@@ -52,13 +72,12 @@ export function usePurchaseOrderLines(): PurchaseOrderLinesController {
           discountChain: "",
           netCost: costPrice,
           isManualCost: false,
-          unitsPerCase: product.unitsPerCase ?? 1,
-          packagingUnit: product.packagingUnit ?? null,
-          entryUnit: (product.unitsPerCase ?? 1) > 1 ? "case" : "piece",
+          unitsPerCase: purchaseFactor,
+          packagingUnit: purchaseUnit,
+          entryUnit: purchaseFactor > 1 ? "case" : "piece",
           sellingUnit: product.sellingUnit ?? "piece",
           purchaseUnit: product.purchaseUnit ?? null,
-          conversionFactor:
-            parseFloat(String(product.conversionFactor ?? "1")) || 1,
+          conversionFactor: purchaseFactor,
         },
       ];
     });
@@ -85,6 +104,9 @@ export function usePurchaseOrderLines(): PurchaseOrderLinesController {
           ? String(calculateNetCost(parseFloat(listPrice), discountChain))
           : listPrice;
 
+        const purchaseFactor = productPurchaseFactor(product);
+        const purchaseUnit = productPurchaseUnit(product);
+
         return [
           ...prev,
           {
@@ -97,13 +119,12 @@ export function usePurchaseOrderLines(): PurchaseOrderLinesController {
             discountChain,
             netCost,
             isManualCost: false,
-            unitsPerCase: product.unitsPerCase ?? 1,
-            packagingUnit: product.packagingUnit ?? null,
+            unitsPerCase: purchaseFactor,
+            packagingUnit: purchaseUnit,
             entryUnit: "piece",
             sellingUnit: product.sellingUnit ?? "piece",
             purchaseUnit: product.purchaseUnit ?? null,
-            conversionFactor:
-              parseFloat(String(product.conversionFactor ?? "1")) || 1,
+            conversionFactor: purchaseFactor,
           },
         ];
       });
