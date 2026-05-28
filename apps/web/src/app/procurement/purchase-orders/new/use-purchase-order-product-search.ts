@@ -24,6 +24,7 @@ export type PurchaseOrderProductSearchController = {
   dropdownRef: RefObject<HTMLDivElement | null>;
   setProductSearch: (value: string) => void;
   setShowDropdown: (value: boolean) => void;
+  findManualProduct: () => Promise<ProductSearchResult | null>;
   clearAndFocusSearch: () => void;
 };
 
@@ -93,6 +94,42 @@ export function usePurchaseOrderProductSearch({
     searchRef.current?.focus();
   }, []);
 
+  const findManualProduct = useCallback(async () => {
+    const query = productSearch.trim();
+    if (!query || !token || !locationId) return null;
+
+    setSearchLoading(true);
+    try {
+      const res = await apiFetch<{ data: ProductSearchResult[] }>(
+        `/products?search=${encodeURIComponent(query)}&limit=10`,
+        {
+          token,
+          locationId,
+        },
+      );
+      const results = res.data ?? [];
+      setProductResults(results);
+      setShowDropdown(results.length > 0);
+
+      const normalized = query.toLowerCase();
+      return (
+        results.find((product) =>
+          [product.sku, product.mnemonicSku, product.barcode]
+            .filter(Boolean)
+            .some((value) => String(value).toLowerCase() === normalized),
+        )
+        ?? results[0]
+        ?? null
+      );
+    } catch {
+      setProductResults([]);
+      setShowDropdown(false);
+      return null;
+    } finally {
+      setSearchLoading(false);
+    }
+  }, [locationId, productSearch, token]);
+
   return {
     productSearch,
     productResults,
@@ -102,6 +139,7 @@ export function usePurchaseOrderProductSearch({
     dropdownRef,
     setProductSearch,
     setShowDropdown,
+    findManualProduct,
     clearAndFocusSearch,
   };
 }

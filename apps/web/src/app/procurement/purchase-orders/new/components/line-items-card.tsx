@@ -12,6 +12,7 @@ type LineItemsCardProps = {
   csvError: string | null;
   productSearchController: PurchaseOrderProductSearchController;
   fileInputRef: RefObject<HTMLInputElement | null>;
+  onManualAdd: () => void;
   onAddProduct: (product: ProductSearchResult) => void;
   onCSVUpload: (event: ChangeEvent<HTMLInputElement>) => void;
   onDownloadTemplate: () => void;
@@ -29,6 +30,7 @@ export function LineItemsCard({
   csvError,
   productSearchController,
   fileInputRef,
+  onManualAdd,
   onAddProduct,
   onCSVUpload,
   onDownloadTemplate,
@@ -52,6 +54,7 @@ export function LineItemsCard({
         dropdownRef={productSearchController.dropdownRef}
         fileInputRef={fileInputRef}
         onProductSearchChange={productSearchController.setProductSearch}
+        onManualAdd={onManualAdd}
         onAddProduct={onAddProduct}
         onCSVUpload={onCSVUpload}
         onDownloadTemplate={onDownloadTemplate}

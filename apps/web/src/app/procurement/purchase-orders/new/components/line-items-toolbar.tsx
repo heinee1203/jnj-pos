@@ -15,6 +15,7 @@ interface LineItemsToolbarProps {
   dropdownRef: RefObject<HTMLDivElement | null>;
   fileInputRef: RefObject<HTMLInputElement | null>;
   onProductSearchChange: (value: string) => void;
+  onManualAdd: () => void;
   onAddProduct: (product: ProductSearchResult) => void;
   onCSVUpload: (event: ChangeEvent<HTMLInputElement>) => void;
   onDownloadTemplate: () => void;
@@ -29,6 +30,7 @@ export function LineItemsToolbar({
   dropdownRef,
   fileInputRef,
   onProductSearchChange,
+  onManualAdd,
   onAddProduct,
   onCSVUpload,
   onDownloadTemplate,
@@ -54,6 +56,12 @@ export function LineItemsToolbar({
           type="text"
           value={productSearch}
           onChange={(e) => onProductSearchChange(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              onManualAdd();
+            }
+          }}
           placeholder="Search products to add..."
           className="w-full rounded-md border border-border bg-background py-2 pl-9 pr-3 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
         />
@@ -69,6 +77,7 @@ export function LineItemsToolbar({
           >
             {productResults.map((p) => (
               <button
+                type="button"
                 key={p.id}
                 onClick={() => onAddProduct(p)}
                 className="flex w-full items-center justify-between px-3 py-2 text-left text-sm transition-colors hover:bg-accent"

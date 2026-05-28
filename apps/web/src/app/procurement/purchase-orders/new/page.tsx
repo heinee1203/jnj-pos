@@ -167,6 +167,13 @@ function NewPurchaseOrderInner() {
     productSearchController.clearAndFocusSearch();
   };
 
+  const addManualProduct = async () => {
+    const product = await productSearchController.findManualProduct();
+    if (product) {
+      addProduct(product);
+    }
+  };
+
   // ── Can save? ──
   const canSave =
     !!supplierId &&
@@ -453,6 +460,7 @@ function NewPurchaseOrderInner() {
         csvError={csvError}
         productSearchController={productSearchController}
         fileInputRef={fileInputRef}
+        onManualAdd={addManualProduct}
         onAddProduct={addProduct}
         onCSVUpload={handleCSVUpload}
         onDownloadTemplate={handleDownloadPOTemplate}
