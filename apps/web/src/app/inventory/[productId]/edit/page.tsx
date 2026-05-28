@@ -391,7 +391,7 @@ export default function EditInventoryItemPage() {
     return rows;
   };
 
-  const handleSave = async () => {
+  const handleSave = async ({ closeAfterSave = false }: { closeAfterSave?: boolean } = {}) => {
     if (!productId || !isValid) return;
     setError(null);
     setSaved(false);
@@ -424,6 +424,9 @@ export default function EditInventoryItemPage() {
       });
       setUnitPrice(baseUnitPrice);
       setSaved(true);
+      if (closeAfterSave) {
+        router.push("/inventory");
+      }
     } catch (err: any) {
       setError(err?.message || "Failed to save item setup");
     }
@@ -620,14 +623,24 @@ export default function EditInventoryItemPage() {
           >
             Cancel
           </button>
-          <button
-            onClick={handleSave}
-            disabled={!isValid || isSaving}
-            className="flex items-center gap-1.5 rounded-lg bg-primary px-5 py-2 text-[13px] font-medium text-primary-foreground shadow-sm transition-all hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {isSaving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
-            {isSaving ? "Saving..." : "Save Setup"}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => handleSave()}
+              disabled={!isValid || isSaving}
+              className="flex items-center gap-1.5 rounded-lg border border-primary/25 bg-background px-5 py-2 text-[13px] font-medium text-primary shadow-sm transition-all hover:bg-primary/[0.06] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isSaving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+              {isSaving ? "Saving..." : "Save Setup"}
+            </button>
+            <button
+              onClick={() => handleSave({ closeAfterSave: true })}
+              disabled={!isValid || isSaving}
+              className="flex items-center gap-1.5 rounded-lg bg-primary px-5 py-2 text-[13px] font-medium text-primary-foreground shadow-sm transition-all hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isSaving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+              {isSaving ? "Saving..." : "Save & Close"}
+            </button>
+          </div>
         </div>
       </div>
     </div>
