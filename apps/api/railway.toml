@@ -12,7 +12,7 @@ watchPatterns = [
 ]
 
 [deploy]
-startCommand = "pnpm --filter @jnj/api start"
+startCommand = "pnpm --filter @jnj/database migrate && pnpm --filter @jnj/api start"
 healthcheckPath = "/health"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
