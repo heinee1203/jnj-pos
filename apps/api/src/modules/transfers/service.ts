@@ -303,14 +303,17 @@ export async function listTransfers(
       st.destination_location_id,
       dst.name AS destination_location_name,
       st.created_at,
-      COUNT(sti.id)::int AS line_count
+      (
+        SELECT COUNT(*)::int
+        FROM stock_transfer_items sti
+        WHERE sti.transfer_id = st.id
+          AND sti.org_id = st.org_id
+      ) AS line_count
     FROM stock_transfers st
     INNER JOIN locations src ON src.id = st.source_location_id
     INNER JOIN locations dst ON dst.id = st.destination_location_id
-    LEFT JOIN stock_transfer_items sti ON sti.transfer_id = st.id
     WHERE st.org_id = ${orgId}
     ${cursorFilter}
-    GROUP BY st.id, src.name, dst.name
     ORDER BY st.created_at DESC, st.id DESC
     LIMIT ${limit + 1}
   `);
