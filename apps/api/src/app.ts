@@ -32,6 +32,7 @@ import { notificationRoutes } from "./modules/notifications/routes";
 import { deviceRoutes } from "./modules/devices/routes";
 import { rbacRoutes } from "./modules/rbac/routes";
 import { printingRoutes } from "./modules/printing/routes";
+import { transferRoutes } from "./modules/transfers/routes";
 import discountRoutes from "./modules/discounts/routes";
 
 const DEFAULT_PRODUCTION_CORS_ORIGINS = ["https://jeffnjulie.up.railway.app"];
@@ -109,6 +110,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(deviceRoutes, { prefix: "/devices" });
   await app.register(rbacRoutes, { prefix: "/rbac" });
   await app.register(printingRoutes, { prefix: "/printing" });
+  await app.register(transferRoutes, { prefix: "/transfers" });
   await app.register(discountRoutes, { prefix: "/discounts" });
 
   return app;

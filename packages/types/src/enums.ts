@@ -146,6 +146,19 @@ export const PurchaseOrderStatus = {
 export type PurchaseOrderStatus =
   (typeof PurchaseOrderStatus)[keyof typeof PurchaseOrderStatus];
 
+export const StockTransferStatus = {
+  DRAFT: "DRAFT",
+  APPROVED: "APPROVED",
+  PICKING: "PICKING",
+  DISPATCHED: "DISPATCHED",
+  PARTIALLY_RECEIVED: "PARTIALLY_RECEIVED",
+  RECEIVED: "RECEIVED",
+  CLOSED_WITH_VARIANCE: "CLOSED_WITH_VARIANCE",
+  CANCELLED: "CANCELLED",
+} as const;
+export type StockTransferStatus =
+  (typeof StockTransferStatus)[keyof typeof StockTransferStatus];
+
 
 export const CountStatus = {
   DRAFT: "DRAFT",

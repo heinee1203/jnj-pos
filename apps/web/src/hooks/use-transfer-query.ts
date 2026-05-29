@@ -20,9 +20,14 @@ export interface TransferItem {
   dispatchedQty: number;
   receivedQty: number;
   varianceQty: number;
+  unit: string;
+  conversionFactor: number;
+  inventoryRequestedQty: number;
   mnemonicSku: string;
   productName: string;
   sku: string;
+  barcode: string | null;
+  sellingUnit: string;
   remainingReceivable: number;
   remainingDispatchable: number;
   createdAt: string;
@@ -76,11 +81,17 @@ export function useTransferQuery(
   token: string,
   locationId: string,
 ) {
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+    transferNo,
+  );
+
   return useQuery<TransferDetail>({
     queryKey: ["transfer", transferNo, locationId],
     queryFn: () =>
       apiFetch<TransferDetail>(
-        `/transfers/by-number/${encodeURIComponent(transferNo)}`,
+        isUuid
+          ? `/transfers/${transferNo}`
+          : `/transfers/by-number/${encodeURIComponent(transferNo)}`,
         { token, locationId },
       ),
     enabled: !!transferNo && !!token && !!locationId,

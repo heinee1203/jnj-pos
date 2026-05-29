@@ -398,7 +398,7 @@ export default function DashboardPage() {
           {isOperationalRole(role) && (
             <>
               <QuickAction icon={Plus} label="New Adjustment" href="/procurement/stock-adjustments" />
-              <QuickAction icon={ArrowLeftRight} label="New Transfer" href="/procurement/transfer-orders" />
+              <QuickAction icon={ArrowLeftRight} label="New Transfer" href="/procurement/transfer-orders/new" />
               <QuickAction icon={FileText} label="New Purchase Order" href="/procurement/purchase-orders" />
             </>
           )}

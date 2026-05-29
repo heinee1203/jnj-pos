@@ -450,6 +450,78 @@ export const cancelPOSchema = z.object({
 });
 export type CancelPOInput = z.infer<typeof cancelPOSchema>;
 
+// -- Stock Transfers --
+export const createTransferSchema = z.object({
+  sourceLocationId: z.string().uuid(),
+  destinationLocationId: z.string().uuid(),
+  notes: z.string().max(1000).optional(),
+  lines: z
+    .array(
+      z.object({
+        productId: z.string().uuid(),
+        requestedQty: z.number().int().min(1),
+        unit: z
+          .string()
+          .trim()
+          .min(1)
+          .max(20)
+          .transform((value) => value.toUpperCase()),
+        conversionFactor: z.number().positive().optional(),
+      }),
+    )
+    .min(1, "At least one transfer line is required"),
+});
+export type CreateTransferInput = z.infer<typeof createTransferSchema>;
+
+export const transferActionSchema = z.object({
+  idempotencyKey: z.string().min(1).max(255),
+  notes: z.string().max(1000).optional(),
+});
+export type TransferActionInput = z.infer<typeof transferActionSchema>;
+
+export const dispatchTransferSchema = z.object({
+  idempotencyKey: z.string().min(1).max(255),
+  lines: z
+    .array(
+      z.object({
+        transferItemId: z.string().uuid(),
+        dispatchQty: z.number().int().min(1),
+      }),
+    )
+    .min(1, "At least one transfer line is required"),
+  notes: z.string().max(1000).optional(),
+});
+export type DispatchTransferInput = z.infer<typeof dispatchTransferSchema>;
+
+export const receiveTransferSchema = z.object({
+  idempotencyKey: z.string().min(1).max(255),
+  lines: z
+    .array(
+      z.object({
+        transferItemId: z.string().uuid(),
+        receiveQty: z.number().int().min(1),
+      }),
+    )
+    .min(1, "At least one transfer line is required"),
+  notes: z.string().max(1000).optional(),
+});
+export type ReceiveTransferInput = z.infer<typeof receiveTransferSchema>;
+
+export const varianceTransferSchema = z.object({
+  idempotencyKey: z.string().min(1).max(255),
+  lines: z
+    .array(
+      z.object({
+        transferItemId: z.string().uuid(),
+        varianceQty: z.number().int().min(1),
+        reasonCode: z.string().max(100).optional(),
+        notes: z.string().max(500).optional(),
+      }),
+    )
+    .min(1, "At least one transfer line is required"),
+});
+export type VarianceTransferInput = z.infer<typeof varianceTransferSchema>;
+
 
 // ══════════════════════════════════════════════
 // Inventory Counts
