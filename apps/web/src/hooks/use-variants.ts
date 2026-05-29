@@ -57,6 +57,7 @@ export function useCreateVariant(token: string, locationId: string) {
       }),
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ["variants", vars.parentId] });
+      qc.invalidateQueries({ queryKey: ["product-detail", vars.parentId] });
       qc.invalidateQueries({ queryKey: ["products"] });
     },
   });
@@ -87,6 +88,7 @@ export function useCreateVariantBatch(token: string, locationId: string) {
       }),
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ["variants", vars.parentId] });
+      qc.invalidateQueries({ queryKey: ["product-detail", vars.parentId] });
       qc.invalidateQueries({ queryKey: ["products"] });
     },
   });
@@ -103,6 +105,7 @@ export function useDeleteVariant(token: string, locationId: string) {
       }),
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ["variants", vars.parentId] });
+      qc.invalidateQueries({ queryKey: ["product-detail", vars.parentId] });
       qc.invalidateQueries({ queryKey: ["products"] });
     },
   });
@@ -120,6 +123,7 @@ export function useUpdateVariant(token: string, locationId: string) {
       }),
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ["variants", vars.parentId] });
+      qc.invalidateQueries({ queryKey: ["product-detail", vars.parentId] });
       qc.invalidateQueries({ queryKey: ["products"] });
     },
   });

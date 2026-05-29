@@ -37,7 +37,9 @@ export function useCreateOptionType(token: string, locationId: string) {
       }),
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ["product-options", vars.productId] });
+      qc.invalidateQueries({ queryKey: ["variants", vars.productId] });
       qc.invalidateQueries({ queryKey: ["product-detail", vars.productId] });
+      qc.invalidateQueries({ queryKey: ["products"] });
     },
   });
 }
@@ -51,7 +53,12 @@ export function useDeleteOptionType(token: string, locationId: string) {
         locationId,
         method: "DELETE",
       }),
-    onSuccess: (_, vars) => qc.invalidateQueries({ queryKey: ["product-options", vars.productId] }),
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ["product-options", vars.productId] });
+      qc.invalidateQueries({ queryKey: ["variants", vars.productId] });
+      qc.invalidateQueries({ queryKey: ["product-detail", vars.productId] });
+      qc.invalidateQueries({ queryKey: ["products"] });
+    },
   });
 }
 
@@ -65,7 +72,12 @@ export function useAddOptionValue(token: string, locationId: string) {
         method: "POST",
         body: JSON.stringify({ value }),
       }),
-    onSuccess: (_, vars) => qc.invalidateQueries({ queryKey: ["product-options", vars.productId] }),
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ["product-options", vars.productId] });
+      qc.invalidateQueries({ queryKey: ["variants", vars.productId] });
+      qc.invalidateQueries({ queryKey: ["product-detail", vars.productId] });
+      qc.invalidateQueries({ queryKey: ["products"] });
+    },
   });
 }
 
@@ -78,6 +90,11 @@ export function useDeleteOptionValue(token: string, locationId: string) {
         locationId,
         method: "DELETE",
       }),
-    onSuccess: (_, vars) => qc.invalidateQueries({ queryKey: ["product-options", vars.productId] }),
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ["product-options", vars.productId] });
+      qc.invalidateQueries({ queryKey: ["variants", vars.productId] });
+      qc.invalidateQueries({ queryKey: ["product-detail", vars.productId] });
+      qc.invalidateQueries({ queryKey: ["products"] });
+    },
   });
 }

@@ -15,6 +15,7 @@ import {
   MapPin,
   Package,
   Plus,
+  Settings,
   Trash2,
   Warehouse,
   type LucideIcon,
@@ -32,6 +33,7 @@ import { cn } from "@/lib/utils";
 
 import { generateEan13Barcode } from "../../lib/identifier-generators";
 import { makeSlug } from "../../new/form-helpers";
+import { ItemVariantsSection } from "./item-variants-section";
 
 const fieldClass =
   "h-9 w-full rounded-lg border border-border bg-background px-3 text-[13px] text-foreground outline-none placeholder:text-muted-foreground/50 focus:border-primary/40 focus:ring-2 focus:ring-primary/[0.08]";
@@ -525,6 +527,15 @@ export default function EditInventoryItemPage() {
               />
             </div>
           </div>
+        </SetupSection>
+
+        <SetupSection icon={Settings} title="Variants">
+          <ItemVariantsSection
+            product={product}
+            token={token}
+            locationId={locationId}
+            showCost={showCost}
+          />
         </SetupSection>
 
         <SetupSection icon={DollarSign} title="Pricing">
