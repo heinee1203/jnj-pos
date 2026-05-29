@@ -3,12 +3,13 @@
 import { Loader2 } from "lucide-react";
 import { useVariants } from "@/hooks/use-variants";
 import { cn } from "@/lib/utils";
-import { formatPrice, getMarginPercent } from "../lib/inventory-utils";
+import { formatPrice, getMarginPercent, getVariantDisplayName } from "../lib/inventory-utils";
 import { costForStockUom, stockCostUnitLabel, stockPackageContext } from "../lib/stock-format";
 import { StockPopover } from "./inventory-stock-display";
 
 type VariantSubRowsProps = {
   parentId: string;
+  parentName: string;
   token: string;
   locationId: string;
   showFinancials: boolean;
@@ -21,6 +22,7 @@ type VariantSubRowsProps = {
 
 export function VariantSubRows({
   parentId,
+  parentName,
   token,
   locationId,
   showFinancials,
@@ -31,7 +33,13 @@ export function VariantSubRows({
   onSelectProduct,
 }: VariantSubRowsProps) {
   const { data, isLoading } = useVariants(token, locationId, parentId);
-  const variants = (data?.data ?? []).slice().sort((a, b) => a.name.localeCompare(b.name));
+  const variants = (data?.data ?? [])
+    .slice()
+    .sort((a, b) =>
+      getVariantDisplayName(a.name, a.options, parentName).localeCompare(
+        getVariantDisplayName(b.name, b.options, parentName),
+      ),
+    );
 
   if (isLoading) {
     return (
@@ -73,6 +81,7 @@ export function VariantSubRows({
         const costPerWarehouseUom = costForStockUom(cost, stockContext);
         const costUnit = stockCostUnitLabel(stockContext);
         const isVariantSelected = selectedIds.has(v.id);
+        const displayName = getVariantDisplayName(v.name, v.options, parentName) || v.sku;
 
         return (
           <tr
@@ -98,21 +107,12 @@ export function VariantSubRows({
             </td>
             <td className="py-[4px] pl-8 pr-3">
               <div className="flex flex-col gap-0.5">
-                <span className="block truncate text-[12px] font-medium leading-snug text-foreground">
-                  {v.name || v.sku}
+                <span
+                  className="block truncate text-[12px] font-medium leading-snug text-foreground"
+                  title={v.name || displayName}
+                >
+                  {displayName}
                 </span>
-                {v.options.length > 0 && (
-                  <div className="flex items-center gap-1 flex-wrap">
-                    {v.options.map((o, idx) => (
-                      <span
-                        key={idx}
-                        className="inline-flex items-center rounded-md bg-muted px-1.5 py-px text-[10px] font-medium text-muted-foreground"
-                      >
-                        {o.value}
-                      </span>
-                    ))}
-                  </div>
-                )}
               </div>
             </td>
             <td className="px-2 py-[4px] text-right">

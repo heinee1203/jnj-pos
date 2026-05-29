@@ -182,7 +182,7 @@ export async function createVariant(
     }
   }
 
-  // Build a descriptive name from parent name + option values
+  // Store the variant name as the option descriptor. Parent context is already available separately.
   let variantName = input.name || parent.name;
   if (!input.name && input.optionValueIds.length > 0) {
     const optionVals = await db
@@ -192,7 +192,7 @@ export async function createVariant(
       .where(sql`${productOptionValues.id} IN ${input.optionValueIds}`)
       .orderBy(productOptionTypes.sortOrder);
     if (optionVals.length > 0) {
-      variantName = `${parent.name} — ${optionVals.map((v) => v.value).join(" / ")}`;
+      variantName = optionVals.map((v) => v.value).join(" / ");
     }
   }
 

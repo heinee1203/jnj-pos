@@ -19,10 +19,47 @@ function formatPrice(amount: number): string {
   return amount.toLocaleString("en-PH", { minimumFractionDigits: 2 });
 }
 
-/** Extract variant descriptor from product name. */
-function getVariantDescriptor(name: string): string {
-  return name;
+type VariantOptionDisplay = {
+  typeName?: string | null;
+  value?: string | null;
+};
+
+function getVariantOptionLabel(options?: VariantOptionDisplay[], separator = " / "): string {
+  return (options ?? [])
+    .map((option) => option.value?.trim())
+    .filter((value): value is string => !!value)
+    .join(separator);
 }
 
-export { PAGE_SIZES, DEFAULT_PAGE_SIZE, getStockStatus, getMarginPercent, formatPrice, getVariantDescriptor };
+/** Extract the distinguishing part of a variant name for nested variant rows. */
+function getVariantDisplayName(
+  name: string | null | undefined,
+  options?: VariantOptionDisplay[],
+  parentName?: string | null,
+): string {
+  const optionLabel = getVariantOptionLabel(options);
+  if (optionLabel) return optionLabel;
+
+  const trimmedName = name?.trim() ?? "";
+  const trimmedParent = parentName?.trim() ?? "";
+  if (trimmedName && trimmedParent && trimmedName.toLowerCase().startsWith(trimmedParent.toLowerCase())) {
+    const suffix = trimmedName
+      .slice(trimmedParent.length)
+      .replace(/^[\s\u2013\u2014\-:|/]+/, "")
+      .trim();
+    if (suffix) return suffix;
+  }
+
+  return trimmedName;
+}
+
+export {
+  PAGE_SIZES,
+  DEFAULT_PAGE_SIZE,
+  getStockStatus,
+  getMarginPercent,
+  formatPrice,
+  getVariantOptionLabel,
+  getVariantDisplayName,
+};
 export type { StockStatus };

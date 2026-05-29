@@ -204,6 +204,7 @@ export function FlatProductRow({
       {p.isParent && isParentExpanded && (
         <VariantSubRows
           parentId={p.id}
+          parentName={p.name}
           token={token}
           locationId={locationId}
           showFinancials={showFinancials}

@@ -21,6 +21,7 @@ import {
   type VariantRow,
 } from "@/hooks/use-variants";
 import { cn } from "@/lib/utils";
+import { getVariantDisplayName } from "../../lib/inventory-utils";
 
 const inputClass =
   "h-9 w-full rounded-lg border border-border bg-background px-3 text-[13px] text-foreground outline-none placeholder:text-muted-foreground/50 focus:border-primary/40 focus:ring-2 focus:ring-primary/[0.08]";
@@ -243,6 +244,7 @@ export function ItemVariantsSection({ locationId, product, showCost, token }: Pr
     if (!canGenerate) return;
     const usedSkus = new Set([product.sku, ...variants.map((variant) => variant.sku)].filter(Boolean));
     const variantPayload = missingCombinations.map((combo) => ({
+      name: combo.labels.join(" / "),
       sku: buildVariantSku(product.sku || product.mnemonicSku || "ITEM", combo.labels, usedSkus),
       unitPrice: formatMoney(product.unitPrice),
       costPrice: formatMoney(product.costPrice),
@@ -473,49 +475,54 @@ export function ItemVariantsSection({ locationId, product, showCost, token }: Pr
               <div />
             </div>
             <div className="min-w-[760px] divide-y divide-border">
-              {variants.map((variant) => (
-                <div key={variant.id} className="grid grid-cols-[1.25fr_1.2fr_0.65fr_0.65fr_0.45fr_auto] items-center gap-3 px-3 py-2.5">
-                  <div className="min-w-0">
-                    <p className="truncate text-[13px] font-medium text-foreground">{variant.name}</p>
-                    <p className="truncate font-mono text-[11px] text-muted-foreground">{variant.sku}</p>
-                  </div>
-                  <div className="flex flex-wrap gap-1">
-                    {variant.options.length > 0 ? (
-                      variant.options.map((option) => (
-                        <span
-                          key={`${variant.id}-${option.typeName}-${option.value}`}
-                          className="rounded-full bg-primary/[0.07] px-2 py-0.5 text-[11px] font-medium text-primary"
-                        >
-                          {option.typeName}: {option.value}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-[12px] text-muted-foreground">No options</span>
-                    )}
-                  </div>
-                  <div className="text-right text-[12px] font-medium tabular-nums text-foreground">
-                    {formatMoney(variant.unitPrice)}
-                  </div>
-                  {showCost ? (
-                    <div className="text-right text-[12px] tabular-nums text-muted-foreground">
-                      {formatMoney(variant.costPrice)}
+              {variants.map((variant) => {
+                const displayName = getVariantDisplayName(variant.name, variant.options, product.name) || variant.sku;
+                return (
+                  <div key={variant.id} className="grid grid-cols-[1.25fr_1.2fr_0.65fr_0.65fr_0.45fr_auto] items-center gap-3 px-3 py-2.5">
+                    <div className="min-w-0">
+                      <p className="truncate text-[13px] font-medium text-foreground" title={variant.name}>
+                        {displayName}
+                      </p>
+                      <p className="truncate font-mono text-[11px] text-muted-foreground">{variant.sku}</p>
                     </div>
-                  ) : (
-                    <div />
-                  )}
-                  <div className="text-right text-[12px] tabular-nums text-foreground">
-                    {variant.stockLevel.toLocaleString()}
+                    <div className="flex flex-wrap gap-1">
+                      {variant.options.length > 0 ? (
+                        variant.options.map((option) => (
+                          <span
+                            key={`${variant.id}-${option.typeName}-${option.value}`}
+                            className="rounded-full bg-primary/[0.07] px-2 py-0.5 text-[11px] font-medium text-primary"
+                          >
+                            {option.typeName}: {option.value}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-[12px] text-muted-foreground">No options</span>
+                      )}
+                    </div>
+                    <div className="text-right text-[12px] font-medium tabular-nums text-foreground">
+                      {formatMoney(variant.unitPrice)}
+                    </div>
+                    {showCost ? (
+                      <div className="text-right text-[12px] tabular-nums text-muted-foreground">
+                        {formatMoney(variant.costPrice)}
+                      </div>
+                    ) : (
+                      <div />
+                    )}
+                    <div className="text-right text-[12px] tabular-nums text-foreground">
+                      {variant.stockLevel.toLocaleString()}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeVariant(variant)}
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                      aria-label={`Delete ${displayName || variant.sku}`}
+                    >
+                      <Trash2 size={14} />
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => removeVariant(variant)}
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
-                    aria-label={`Delete ${variant.name || variant.sku}`}
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}

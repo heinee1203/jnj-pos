@@ -12,7 +12,7 @@ import {
   useDeleteOptionValue,
 } from "@/hooks/use-product-options";
 import { useConfirm } from "@/components/confirm-dialog";
-import { formatPrice } from "../lib/inventory-utils";
+import { formatPrice, getVariantDisplayName } from "../lib/inventory-utils";
 
 interface DetailOptionsVariantsProps {
   locationId: string;
@@ -103,6 +103,7 @@ export function DetailOptionsVariants({
       const labels = labelCombinations[index];
       const suffix = labels.map((label) => label.slice(0, 2).toUpperCase()).join("-");
       return {
+        name: labels.join(" / "),
         sku: `${parentSku}-${suffix}`,
         optionValueIds: ids,
       };
@@ -253,12 +254,15 @@ export function DetailOptionsVariants({
           <div className="space-y-1">
             {variants.map((variant) => {
               const optLabel = variant.options.map((option) => option.value).join(" \u00B7 ");
+              const displayName = getVariantDisplayName(variant.name, variant.options, product.name) || variant.sku;
               const price = parseFloat(variant.unitPrice) || 0;
               return (
                 <div key={variant.id} className="flex items-center gap-2 rounded-md border border-border bg-background px-2.5 py-1.5">
                   <div className="min-w-0 flex-1">
                     <div className="mb-0.5 flex items-center justify-between">
-                      <span className="truncate text-[12px] font-semibold text-foreground">{variant.name}</span>
+                      <span className="truncate text-[12px] font-semibold text-foreground" title={variant.name}>
+                        {displayName}
+                      </span>
                       <span className="ml-2 shrink-0 text-[11px] tabular-nums text-muted-foreground">Stock: {variant.stockLevel}</span>
                     </div>
                     <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
@@ -272,7 +276,7 @@ export function DetailOptionsVariants({
                     </div>
                   </div>
                   <button
-                    onClick={() => handleDeleteVariant(variant.id, variant.name || optLabel || variant.sku)}
+                    onClick={() => handleDeleteVariant(variant.id, displayName || optLabel || variant.sku)}
                     className="shrink-0 rounded p-1 text-muted-foreground hover:text-destructive"
                   >
                     <Trash2 size={12} />
