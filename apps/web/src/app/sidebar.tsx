@@ -95,6 +95,7 @@ const NAV_TOP: NavEntry[] = [
     children: [
       { label: "Stock Levels", href: "/procurement/stock-levels", match: /^\/procurement\/stock-levels/ },
       { label: "Purchase Orders", href: "/procurement/purchase-orders", match: /^\/procurement\/purchase-orders/ },
+      { label: "Transfer Orders", href: "/procurement/transfer-orders", match: /^\/procurement\/transfer-orders/ },
       { label: "Stock Adjustments", href: "/procurement/stock-adjustments", match: /^\/procurement\/stock-adjustments/ },
       { label: "Inventory Counts", href: "/procurement/inventory-counts", match: /^\/procurement\/inventory-counts/ },
       { label: "Inventory History", href: "/procurement/inventory-history", match: /^\/procurement\/inventory-history/ },
