@@ -134,6 +134,11 @@ export async function createVariant(
       category: products.category,
       categoryId: products.categoryId,
       name: products.name,
+      unitsPerCase: products.unitsPerCase,
+      packagingUnit: products.packagingUnit,
+      sellingUnit: products.sellingUnit,
+      purchaseUnit: products.purchaseUnit,
+      conversionFactor: products.conversionFactor,
     })
     .from(products)
     .where(and(eq(products.id, parentId), eq(products.orgId, orgId)));
@@ -210,6 +215,11 @@ export async function createVariant(
         costPrice: input.costPrice || "0.00",
         barcode: barcode || null,
         isVariablePrice: input.isVariablePrice || false,
+        unitsPerCase: parent.unitsPerCase,
+        packagingUnit: parent.packagingUnit,
+        sellingUnit: parent.sellingUnit,
+        purchaseUnit: parent.purchaseUnit,
+        conversionFactor: parent.conversionFactor,
         parentProductId: parentId,
         isParent: false,
       })

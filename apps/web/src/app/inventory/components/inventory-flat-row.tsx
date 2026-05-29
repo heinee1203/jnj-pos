@@ -205,6 +205,11 @@ export function FlatProductRow({
         <VariantSubRows
           parentId={p.id}
           parentName={p.name}
+          parentUnitsPerCase={p.unitsPerCase}
+          parentPackagingUnit={p.packagingUnit}
+          parentSellingUnit={p.sellingUnit}
+          parentPurchaseUnit={p.purchaseUnit}
+          parentConversionFactor={p.conversionFactor}
           token={token}
           locationId={locationId}
           showFinancials={showFinancials}

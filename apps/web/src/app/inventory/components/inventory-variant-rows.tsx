@@ -10,6 +10,11 @@ import { StockPopover } from "./inventory-stock-display";
 type VariantSubRowsProps = {
   parentId: string;
   parentName: string;
+  parentUnitsPerCase?: number;
+  parentPackagingUnit?: string | null;
+  parentSellingUnit?: string | null;
+  parentPurchaseUnit?: string | null;
+  parentConversionFactor?: string | number | null;
   token: string;
   locationId: string;
   showFinancials: boolean;
@@ -23,6 +28,11 @@ type VariantSubRowsProps = {
 export function VariantSubRows({
   parentId,
   parentName,
+  parentUnitsPerCase,
+  parentPackagingUnit,
+  parentSellingUnit,
+  parentPurchaseUnit,
+  parentConversionFactor,
   token,
   locationId,
   showFinancials,
@@ -71,12 +81,17 @@ export function VariantSubRows({
         const sell = parseFloat(v.unitPrice) || 0;
         const cost = parseFloat(v.costPrice) || 0;
         const margin = getMarginPercent(sell, cost);
+        const effectiveUnitsPerCase = warehouseStockView ? parentUnitsPerCase : v.unitsPerCase;
+        const effectivePackagingUnit = warehouseStockView ? parentPackagingUnit : v.packagingUnit;
+        const effectiveSellingUnit = warehouseStockView ? parentSellingUnit : v.sellingUnit;
+        const effectivePurchaseUnit = warehouseStockView ? parentPurchaseUnit : v.purchaseUnit;
+        const effectiveConversionFactor = warehouseStockView ? parentConversionFactor : v.conversionFactor;
         const stockContext = stockPackageContext({
-          conversionFactor: v.conversionFactor,
-          packagingUnit: v.packagingUnit,
-          purchaseUnit: v.purchaseUnit,
-          sellingUnit: v.sellingUnit,
-          unitsPerCase: v.unitsPerCase,
+          conversionFactor: effectiveConversionFactor,
+          packagingUnit: effectivePackagingUnit,
+          purchaseUnit: effectivePurchaseUnit,
+          sellingUnit: effectiveSellingUnit,
+          unitsPerCase: effectiveUnitsPerCase,
         });
         const costPerWarehouseUom = costForStockUom(cost, stockContext);
         const costUnit = stockCostUnitLabel(stockContext);
@@ -120,11 +135,11 @@ export function VariantSubRows({
                 productId={v.id}
                 stockLevel={v.stockLevel}
                 reorderPoint={0}
-                unitsPerCase={v.unitsPerCase}
-                packagingUnit={v.packagingUnit}
-                sellingUnit={v.sellingUnit}
-                purchaseUnit={v.purchaseUnit}
-                conversionFactor={v.conversionFactor}
+                unitsPerCase={effectiveUnitsPerCase}
+                packagingUnit={effectivePackagingUnit}
+                sellingUnit={effectiveSellingUnit}
+                purchaseUnit={effectivePurchaseUnit}
+                conversionFactor={effectiveConversionFactor}
                 warehouseStockView={warehouseStockView}
               />
             </td>
