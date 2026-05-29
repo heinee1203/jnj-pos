@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { useProducts } from "@/hooks/use-products";
 import { cn } from "@/lib/utils";
 import { formatPrice, getMarginPercent } from "../lib/inventory-utils";
+import { costForStockUom, formatWarehouseStock, stockCostUnitLabel, stockPackageContext } from "../lib/stock-format";
 
 type LoadingRowProps = {
   colCount: number;
@@ -31,6 +32,7 @@ type DrilldownItemsTableProps = {
   vehicleMake?: string;
   stockStatus?: string;
   showFinancials: boolean;
+  warehouseStockView: boolean;
   onSelectProduct: (id: string) => void;
   colCount: number;
   allLocations?: boolean;
@@ -44,6 +46,7 @@ export function DrilldownItemsTable({
   vehicleMake,
   stockStatus,
   showFinancials,
+  warehouseStockView,
   onSelectProduct,
   colCount,
   allLocations,
@@ -67,9 +70,13 @@ export function DrilldownItemsTable({
   const startIdx = (page - 1) * limit + 1;
   const endIdx = Math.min(page * limit, total);
 
-  const gridCols = showFinancials
-    ? "grid-cols-[1fr_70px_80px_75px_65px]"
-    : "grid-cols-[1fr_70px_80px]";
+  const gridCols = warehouseStockView
+    ? showFinancials
+      ? "grid-cols-[1fr_105px_120px]"
+      : "grid-cols-[1fr_105px]"
+    : showFinancials
+      ? "grid-cols-[1fr_70px_80px_75px_65px]"
+      : "grid-cols-[1fr_70px_80px]";
 
   if (isLoading) return <DrilldownLoadingRow colCount={colCount} />;
 
@@ -80,12 +87,16 @@ export function DrilldownItemsTable({
         <td colSpan={colCount - 1} className="py-[3px]">
           <div className={cn("grid items-center gap-1", gridCols)} style={{ paddingLeft: "96px" }}>
             <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Name</span>
-            <span className="text-right text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Stock</span>
-            <span className="text-right text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Sell</span>
+            <span className="text-right text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{warehouseStockView ? "Stock (Pkg)" : "Stock"}</span>
+            {!warehouseStockView && (
+              <span className="text-right text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Sell</span>
+            )}
             {showFinancials && (
               <>
-                <span className="text-right text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Cost</span>
-                <span className="text-right text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Margin</span>
+                <span className="text-right text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{warehouseStockView ? "Cost / UOM" : "Cost"}</span>
+                {!warehouseStockView && (
+                  <span className="text-right text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Margin</span>
+                )}
               </>
             )}
           </div>
@@ -96,6 +107,16 @@ export function DrilldownItemsTable({
         const sell = parseFloat(p.unitPrice) || 0;
         const cost = parseFloat(p.costPrice) || 0;
         const margin = getMarginPercent(sell, cost);
+        const stockContext = stockPackageContext({
+          conversionFactor: p.conversionFactor,
+          packagingUnit: p.packagingUnit,
+          purchaseUnit: p.purchaseUnit,
+          sellingUnit: p.sellingUnit,
+          unitsPerCase: p.unitsPerCase,
+        });
+        const packageStock = formatWarehouseStock(p.stockLevel, stockContext);
+        const costPerWarehouseUom = costForStockUom(cost, stockContext);
+        const costUnit = stockCostUnitLabel(stockContext);
 
         return (
           <tr
@@ -118,16 +139,24 @@ export function DrilldownItemsTable({
                           : "text-foreground",
                     )}
                   >
-                    {p.stockLevel.toLocaleString()}
+                    {warehouseStockView
+                      ? packageStock.secondary
+                        ? `${packageStock.primary} ${packageStock.secondary}`
+                        : packageStock.primary
+                      : p.stockLevel.toLocaleString()}
                   </span>
                 </span>
-                <span className="text-right text-[11px] font-medium tabular-nums">{formatPrice(sell)}</span>
+                {!warehouseStockView && (
+                  <span className="text-right text-[11px] font-medium tabular-nums">{formatPrice(sell)}</span>
+                )}
                 {showFinancials && (
                   <>
                     <span className="text-right text-[10px] text-muted-foreground tabular-nums">
-                      {cost > 0 ? formatPrice(cost) : "\u2014"}
+                      {cost > 0 ? (warehouseStockView ? `${formatPrice(costPerWarehouseUom)} / ${costUnit}` : formatPrice(cost)) : "\u2014"}
                     </span>
-                    <span className="text-right text-[10px] font-medium tabular-nums">{margin.display}</span>
+                    {!warehouseStockView && (
+                      <span className="text-right text-[10px] font-medium tabular-nums">{margin.display}</span>
+                    )}
                   </>
                 )}
               </div>

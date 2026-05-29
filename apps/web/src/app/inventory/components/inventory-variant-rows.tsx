@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react";
 import { useVariants } from "@/hooks/use-variants";
 import { cn } from "@/lib/utils";
 import { formatPrice, getMarginPercent } from "../lib/inventory-utils";
+import { costForStockUom, stockCostUnitLabel, stockPackageContext } from "../lib/stock-format";
 import { StockPopover } from "./inventory-stock-display";
 
 type VariantSubRowsProps = {
@@ -12,6 +13,7 @@ type VariantSubRowsProps = {
   locationId: string;
   showFinancials: boolean;
   colCount: number;
+  warehouseStockView?: boolean;
   selectedIds: Set<string>;
   onToggleVariantSelect: (variantId: string, parentId: string, allVariantIds: string[]) => void;
   onSelectProduct: () => void;
@@ -23,6 +25,7 @@ export function VariantSubRows({
   locationId,
   showFinancials,
   colCount,
+  warehouseStockView = false,
   selectedIds,
   onToggleVariantSelect,
   onSelectProduct,
@@ -60,6 +63,15 @@ export function VariantSubRows({
         const sell = parseFloat(v.unitPrice) || 0;
         const cost = parseFloat(v.costPrice) || 0;
         const margin = getMarginPercent(sell, cost);
+        const stockContext = stockPackageContext({
+          conversionFactor: v.conversionFactor,
+          packagingUnit: v.packagingUnit,
+          purchaseUnit: v.purchaseUnit,
+          sellingUnit: v.sellingUnit,
+          unitsPerCase: v.unitsPerCase,
+        });
+        const costPerWarehouseUom = costForStockUom(cost, stockContext);
+        const costUnit = stockCostUnitLabel(stockContext);
         const isVariantSelected = selectedIds.has(v.id);
 
         return (
@@ -104,33 +116,55 @@ export function VariantSubRows({
               </div>
             </td>
             <td className="px-2 py-[4px] text-right">
-              <StockPopover productId={v.id} stockLevel={v.stockLevel} reorderPoint={0} />
+              <StockPopover
+                productId={v.id}
+                stockLevel={v.stockLevel}
+                reorderPoint={0}
+                unitsPerCase={v.unitsPerCase}
+                packagingUnit={v.packagingUnit}
+                sellingUnit={v.sellingUnit}
+                purchaseUnit={v.purchaseUnit}
+                conversionFactor={v.conversionFactor}
+                warehouseStockView={warehouseStockView}
+              />
             </td>
-            <td className="px-3 py-[4px] text-right font-medium tabular-nums text-foreground">
-              {v.isVariablePrice ? (
-                <span className="inline-block rounded px-1.5 py-px text-[10px] font-medium leading-normal bg-amber-50/80 text-amber-600">
-                  Variable
-                </span>
-              ) : (
-                formatPrice(sell)
-              )}
-            </td>
-            <td className="px-3 py-[4px]" />
+            {!warehouseStockView && (
+              <td className="px-3 py-[4px] text-right font-medium tabular-nums text-foreground">
+                {v.isVariablePrice ? (
+                  <span className="inline-block rounded px-1.5 py-px text-[10px] font-medium leading-normal bg-amber-50/80 text-amber-600">
+                    Variable
+                  </span>
+                ) : (
+                  formatPrice(sell)
+                )}
+              </td>
+            )}
             <td className="px-3 py-[4px]" />
             <td className="px-3 py-[4px]" />
             {showFinancials && (
               <>
                 <td className="px-3 py-[4px] text-right tabular-nums text-muted-foreground">
-                  {cost > 0 ? formatPrice(cost) : "\u2014"}
+                  {cost > 0 ? (
+                    warehouseStockView ? (
+                      <span className="inline-flex flex-col items-end leading-tight">
+                        <span>{formatPrice(costPerWarehouseUom)}</span>
+                        <span className="text-[9px] font-medium uppercase text-muted-foreground/70">/ {costUnit}</span>
+                      </span>
+                    ) : (
+                      formatPrice(cost)
+                    )
+                  ) : "\u2014"}
                 </td>
-                <td
-                  className={cn(
-                    "px-3 py-[4px] text-right font-medium tabular-nums",
-                    margin.value > 0 && margin.value < 20 ? "text-destructive" : "text-muted-foreground",
-                  )}
-                >
-                  {margin.display}
-                </td>
+                {!warehouseStockView && (
+                  <td
+                    className={cn(
+                      "px-3 py-[4px] text-right font-medium tabular-nums",
+                      margin.value > 0 && margin.value < 20 ? "text-destructive" : "text-muted-foreground",
+                    )}
+                  >
+                    {margin.display}
+                  </td>
+                )}
               </>
             )}
             <td className="px-1 py-[4px]" />

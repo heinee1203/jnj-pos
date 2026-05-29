@@ -87,3 +87,11 @@ export function formatWarehouseStockText(
   const display = formatWarehouseStock(Math.abs(quantity), context);
   return `${sign}${stockDisplayText(display)}`;
 }
+
+export function costForStockUom(costPerSellingUnit: number, context: StockPackageContext) {
+  return costPerSellingUnit * Math.max(1, Math.floor(context.factor));
+}
+
+export function stockCostUnitLabel(context: StockPackageContext) {
+  return context.factor > 1 ? context.packageUnit : context.sellingUnit;
+}

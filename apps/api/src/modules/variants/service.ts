@@ -22,6 +22,11 @@ export interface VariantRow {
   isActive: boolean;
   options: Array<{ typeName: string; value: string }>;
   stockLevel: number;
+  unitsPerCase: number;
+  packagingUnit: string | null;
+  sellingUnit: string | null;
+  purchaseUnit: string | null;
+  conversionFactor: string;
 }
 
 function generateMnemonicSku(): string {
@@ -49,6 +54,11 @@ export async function listVariants(
       barcode: products.barcode,
       isVariablePrice: products.isVariablePrice,
       isActive: products.isActive,
+      unitsPerCase: products.unitsPerCase,
+      packagingUnit: products.packagingUnit,
+      sellingUnit: products.sellingUnit,
+      purchaseUnit: products.purchaseUnit,
+      conversionFactor: products.conversionFactor,
     })
     .from(products)
     .where(

@@ -73,7 +73,9 @@ export function InventoryTableShell({
   onClearFilters,
 }: InventoryTableShellProps) {
   const [expandedParents, setExpandedParents] = useState<Set<string>>(new Set());
-  const colCount = showFinancials ? 11 : 9;
+  const salesColumnCount = warehouseStockView ? 0 : 1;
+  const financialColumnCount = showFinancials ? (warehouseStockView ? 1 : 2) : 0;
+  const colCount = 7 + salesColumnCount + financialColumnCount;
   const selectableIds = useMemo(() => products.map((product) => product.id), [products]);
   const allOnPageSelected =
     selectableIds.length > 0 && selectableIds.every((id) => selectedIds.has(id));
@@ -188,9 +190,11 @@ export function InventoryTableShell({
               <th scope="col" className={cn("px-2 py-[7px] text-right", warehouseStockView ? "w-[115px]" : "w-[70px]")}>
                 <SortableHeader label={warehouseStockView ? "Stock (Pkg)" : "Stock"} field="stockLevel" activeField={sortBy} activeDir={sortDir} onSort={onSort} align="right" />
               </th>
-              <th scope="col" className="w-[85px] px-3 py-[7px] text-right">
-                <SortableHeader label="Sell" field="unitPrice" activeField={sortBy} activeDir={sortDir} onSort={onSort} align="right" />
-              </th>
+              {!warehouseStockView && (
+                <th scope="col" className="w-[85px] px-3 py-[7px] text-right">
+                  <SortableHeader label="Sell" field="unitPrice" activeField={sortBy} activeDir={sortDir} onSort={onSort} align="right" />
+                </th>
+              )}
               <th scope="col" className="w-[110px] px-3 py-[7px] text-left">
                 <SortableHeader label="Brand" field="brandName" activeField={sortBy} activeDir={sortDir} onSort={onSort} />
               </th>
@@ -199,12 +203,14 @@ export function InventoryTableShell({
               </th>
               {showFinancials && (
                 <>
-                  <th scope="col" className="w-[75px] px-3 py-[7px] text-right">
-                    <SortableHeader label="Cost" field="costPrice" activeField={sortBy} activeDir={sortDir} onSort={onSort} align="right" />
+                  <th scope="col" className={cn("px-3 py-[7px] text-right", warehouseStockView ? "w-[130px]" : "w-[75px]")}>
+                    <SortableHeader label={warehouseStockView ? "Cost / UOM" : "Cost"} field="costPrice" activeField={sortBy} activeDir={sortDir} onSort={onSort} align="right" />
                   </th>
-                  <th scope="col" className="w-[65px] px-3 py-[7px] text-right">
-                    <SortableHeader label="Margin" field="margin" activeField={sortBy} activeDir={sortDir} onSort={onSort} align="right" />
-                  </th>
+                  {!warehouseStockView && (
+                    <th scope="col" className="w-[65px] px-3 py-[7px] text-right">
+                      <SortableHeader label="Margin" field="margin" activeField={sortBy} activeDir={sortDir} onSort={onSort} align="right" />
+                    </th>
+                  )}
                 </>
               )}
               <th scope="col" className="w-[40px] px-1 py-[7px]" />
@@ -217,6 +223,7 @@ export function InventoryTableShell({
                 locationId={apiLocationId}
                 stockStatus={stockStatusFilter || undefined}
                 showFinancials={showFinancials}
+                warehouseStockView={warehouseStockView}
                 onSelectProduct={onSelectProduct}
                 categoryFilter={categoryFilter || undefined}
                 brandFilter={brandFilter || undefined}

@@ -24,8 +24,10 @@ import { SelectWithQuickAdd } from "@/components/select-with-quick-add";
 import { cn } from "@/lib/utils";
 import { getMarginPercent, formatPrice } from "../lib/inventory-utils";
 import {
+  costForStockUom,
   formatWarehouseStock,
   formatWarehouseStockText,
+  stockCostUnitLabel,
   stockDisplayText,
   stockPackageContext,
 } from "../lib/stock-format";
@@ -74,6 +76,8 @@ export function DetailDrawer({
       product.unitsPerCase,
     ],
   );
+  const warehouseCost = costForStockUom(cost, stockContext);
+  const warehouseCostUnit = stockCostUnitLabel(stockContext);
   const formatStockForDrawer = useCallback(
     (quantity: number, warehouseView = isWarehouseStockView) => {
       if (warehouseView) {
@@ -465,7 +469,7 @@ export function DetailDrawer({
                     <label className="mb-1 block text-[11px] font-medium text-muted-foreground">Barcode</label>
                     <input className={cn(inputCls, "font-mono")} value={editBarcode} onChange={(e) => setEditBarcode(e.target.value)} placeholder="Barcode or EAN-13" maxLength={50} />
                   </div>
-                  {!product.isVariablePrice && (
+                  {!product.isVariablePrice && !isWarehouseStockView && (
                     <div>
                       <label className="mb-1 block text-[11px] font-medium text-muted-foreground">Sell Price</label>
                       <input className={inputCls} type="number" step="0.01" min="0" value={editSellPrice} onChange={(e) => setEditSellPrice(e.target.value)} />
@@ -505,10 +509,12 @@ export function DetailDrawer({
                           }}
                         />
                       </div>
-                      <div className="flex justify-between py-0.5">
-                        <span className="text-[11px] text-muted-foreground">Margin</span>
-                        <span className={cn("text-sm font-medium", editMargin.value > 0 && editMargin.value < 20 ? "text-destructive" : "text-foreground")}>{editMargin.display}</span>
-                      </div>
+                      {!isWarehouseStockView && (
+                        <div className="flex justify-between py-0.5">
+                          <span className="text-[11px] text-muted-foreground">Margin</span>
+                          <span className={cn("text-sm font-medium", editMargin.value > 0 && editMargin.value < 20 ? "text-destructive" : "text-foreground")}>{editMargin.display}</span>
+                        </div>
+                      )}
                     </>
                   )}
                 </div>
@@ -517,35 +523,36 @@ export function DetailDrawer({
                   <DetailInfoRow label="Name" value={product.name} />
                   <DetailInfoRow label="SKU" value={product.sku} mono />
                   {product.barcode && <DetailInfoRow label="Barcode" value={product.barcode} mono />}
-                  {/* Sell Price — inline editable */}
-                  <div className="flex justify-between py-0.5">
-                    <span className="text-xs text-muted-foreground">Sell Price</span>
-                    {inlineEditField === "sell" ? (
-                      <div className="flex items-center gap-1">
-                        <span className="text-xs text-muted-foreground">{"\u20B1"}</span>
-                        <input type="number" min="0" step="0.01" value={inlineEditValue}
-                          onChange={(e) => setInlineEditValue(e.target.value)}
-                          onKeyDown={handleInlinePriceKeyDown}
-                          onBlur={handleInlinePriceSave}
-                          autoFocus
-                          className="h-6 w-24 rounded border border-primary/40 bg-background px-1.5 text-right text-sm tabular-nums outline-none focus:ring-1 focus:ring-primary/20 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
-                      </div>
-                    ) : product.isVariablePrice ? (
-                      <span className="text-sm font-medium text-muted-foreground italic cursor-help" title="Edit prices on individual variants">Variable</span>
-                    ) : (
-                      <span className="group cursor-pointer text-sm font-medium text-foreground hover:text-emerald-600 transition-colors"
-                        onClick={() => { setInlineEditField("sell"); setInlineEditValue(String(sell)); }}>
-                        {"\u20B1"} {formatPrice(sell)}
-                        <Pencil size={11} className="inline ml-1 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </span>
-                    )}
-                  </div>
+                  {!isWarehouseStockView && (
+                    <div className="flex justify-between py-0.5">
+                      <span className="text-xs text-muted-foreground">Sell Price</span>
+                      {inlineEditField === "sell" ? (
+                        <div className="flex items-center gap-1">
+                          <span className="text-xs text-muted-foreground">{"\u20B1"}</span>
+                          <input type="number" min="0" step="0.01" value={inlineEditValue}
+                            onChange={(e) => setInlineEditValue(e.target.value)}
+                            onKeyDown={handleInlinePriceKeyDown}
+                            onBlur={handleInlinePriceSave}
+                            autoFocus
+                            className="h-6 w-24 rounded border border-primary/40 bg-background px-1.5 text-right text-sm tabular-nums outline-none focus:ring-1 focus:ring-primary/20 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                        </div>
+                      ) : product.isVariablePrice ? (
+                        <span className="text-sm font-medium text-muted-foreground italic cursor-help" title="Edit prices on individual variants">Variable</span>
+                      ) : (
+                        <span className="group cursor-pointer text-sm font-medium text-foreground hover:text-emerald-600 transition-colors"
+                          onClick={() => { setInlineEditField("sell"); setInlineEditValue(String(sell)); }}>
+                          {"\u20B1"} {formatPrice(sell)}
+                          <Pencil size={11} className="inline ml-1 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </span>
+                      )}
+                    </div>
+                  )}
                   {showFinancials && (
                     <>
                       {/* Cost Price — inline editable */}
                       <div className="flex justify-between py-0.5">
-                        <span className="text-xs text-muted-foreground">Cost</span>
-                        {inlineEditField === "cost" ? (
+                        <span className="text-xs text-muted-foreground">{isWarehouseStockView ? `Cost / ${warehouseCostUnit}` : "Cost"}</span>
+                        {inlineEditField === "cost" && !isWarehouseStockView ? (
                           <div className="flex items-center gap-1">
                             <span className="text-xs text-muted-foreground">{"\u20B1"}</span>
                             <input type="number" min="0" step="0.01" value={inlineEditValue}
@@ -556,15 +563,21 @@ export function DetailDrawer({
                               className="h-6 w-24 rounded border border-primary/40 bg-background px-1.5 text-right text-sm tabular-nums outline-none focus:ring-1 focus:ring-primary/20 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                           </div>
                         ) : (
-                          <span className="group cursor-pointer text-sm font-medium text-foreground hover:text-emerald-600 transition-colors"
-                            onClick={handleBeginInlineCostEdit}>
-                            {cost > 0 ? `\u20B1 ${formatPrice(cost)}` : "\u2014"}
-                            <Pencil size={11} className="inline ml-1 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          <span
+                            className={cn(
+                              "text-sm font-medium text-foreground",
+                              !isWarehouseStockView && "group cursor-pointer transition-colors hover:text-emerald-600",
+                            )}
+                            onClick={isWarehouseStockView ? undefined : handleBeginInlineCostEdit}
+                          >
+                            {cost > 0 ? `\u20B1 ${formatPrice(isWarehouseStockView ? warehouseCost : cost)}` : "\u2014"}
+                            {!isWarehouseStockView && <Pencil size={11} className="inline ml-1 opacity-0 group-hover:opacity-100 transition-opacity" />}
                           </span>
                         )}
                       </div>
-                      {/* Margin — live updates during inline edit */}
-                      <DetailInfoRow label="Margin" value={inlineEditField ? liveMargin.display : getMarginPercent(sell, cost).display} />
+                      {!isWarehouseStockView && (
+                        <DetailInfoRow label="Margin" value={inlineEditField ? liveMargin.display : getMarginPercent(sell, cost).display} />
+                      )}
                     </>
                   )}
                 </div>

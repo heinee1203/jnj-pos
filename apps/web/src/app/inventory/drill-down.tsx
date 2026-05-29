@@ -11,6 +11,7 @@ interface DrillDownViewProps {
   locationId: string;
   stockStatus?: string;
   showFinancials: boolean;
+  warehouseStockView: boolean;
   onSelectProduct: (id: string) => void;
   categoryFilter?: string;
   brandFilter?: string;
@@ -23,6 +24,7 @@ export function DrillDownView({
   locationId,
   stockStatus,
   showFinancials,
+  warehouseStockView,
   onSelectProduct,
   categoryFilter,
   colCount,
@@ -70,6 +72,7 @@ export function DrillDownView({
             categoryId={categoryId}
             stockStatus={stockStatus}
             showFinancials={showFinancials}
+            warehouseStockView={warehouseStockView}
             onSelectProduct={onSelectProduct}
             colCount={colCount}
             expandedBrands={expandedBrands}

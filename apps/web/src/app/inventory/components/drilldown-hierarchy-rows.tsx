@@ -30,6 +30,7 @@ type MakeRowsProps = {
   brandKey: string;
   stockStatus?: string;
   showFinancials: boolean;
+  warehouseStockView: boolean;
   onSelectProduct: (id: string) => void;
   colCount: number;
   expandedMakes: Set<string>;
@@ -45,6 +46,7 @@ function MakeRows({
   brandKey,
   stockStatus,
   showFinancials,
+  warehouseStockView,
   onSelectProduct,
   colCount,
   expandedMakes,
@@ -98,6 +100,7 @@ function MakeRows({
             vehicleMake={row.make || undefined}
             stockStatus={stockStatus}
             showFinancials={showFinancials}
+            warehouseStockView={warehouseStockView}
             onSelectProduct={onSelectProduct}
             colCount={colCount}
             allLocations={allLocations}
@@ -120,6 +123,7 @@ type MakeRowWithItemsProps = {
   vehicleMake?: string;
   stockStatus?: string;
   showFinancials: boolean;
+  warehouseStockView: boolean;
   onSelectProduct: (id: string) => void;
   colCount: number;
   allLocations?: boolean;
@@ -137,6 +141,7 @@ function MakeRowWithItems({
   vehicleMake,
   stockStatus,
   showFinancials,
+  warehouseStockView,
   onSelectProduct,
   colCount,
   allLocations,
@@ -163,6 +168,7 @@ function MakeRowWithItems({
           vehicleMake={vehicleMake}
           stockStatus={stockStatus}
           showFinancials={showFinancials}
+          warehouseStockView={warehouseStockView}
           onSelectProduct={onSelectProduct}
           colCount={colCount}
           allLocations={allLocations}
@@ -179,6 +185,7 @@ type BrandRowsProps = {
   catKey: string;
   stockStatus?: string;
   showFinancials: boolean;
+  warehouseStockView: boolean;
   onSelectProduct: (id: string) => void;
   colCount: number;
   expandedBrands: Set<string>;
@@ -195,6 +202,7 @@ function BrandRows({
   catKey,
   stockStatus,
   showFinancials,
+  warehouseStockView,
   onSelectProduct,
   colCount,
   expandedBrands,
@@ -242,6 +250,7 @@ function BrandRows({
             brandId={brandId}
             stockStatus={stockStatus}
             showFinancials={showFinancials}
+            warehouseStockView={warehouseStockView}
             onSelectProduct={onSelectProduct}
             colCount={colCount}
             expandedMakes={expandedMakes}
@@ -267,6 +276,7 @@ type BrandRowWithChildrenProps = {
   brandId: string;
   stockStatus?: string;
   showFinancials: boolean;
+  warehouseStockView: boolean;
   onSelectProduct: (id: string) => void;
   colCount: number;
   expandedMakes: Set<string>;
@@ -287,6 +297,7 @@ function BrandRowWithChildren({
   brandId,
   stockStatus,
   showFinancials,
+  warehouseStockView,
   onSelectProduct,
   colCount,
   expandedMakes,
@@ -315,6 +326,7 @@ function BrandRowWithChildren({
           brandKey={brandKey}
           stockStatus={stockStatus}
           showFinancials={showFinancials}
+          warehouseStockView={warehouseStockView}
           onSelectProduct={onSelectProduct}
           colCount={colCount}
           expandedMakes={expandedMakes}
@@ -339,6 +351,7 @@ export type DrilldownCategoryRowProps = {
   categoryId: string;
   stockStatus?: string;
   showFinancials: boolean;
+  warehouseStockView: boolean;
   onSelectProduct: (id: string) => void;
   colCount: number;
   expandedBrands: Set<string>;
@@ -361,6 +374,7 @@ export function DrilldownCategoryRow({
   categoryId,
   stockStatus,
   showFinancials,
+  warehouseStockView,
   onSelectProduct,
   colCount,
   expandedBrands,
@@ -399,6 +413,7 @@ export function DrilldownCategoryRow({
           catKey={catKey}
           stockStatus={stockStatus}
           showFinancials={showFinancials}
+          warehouseStockView={warehouseStockView}
           onSelectProduct={onSelectProduct}
           colCount={colCount}
           expandedBrands={expandedBrands}

@@ -5,6 +5,7 @@ import { useAuth } from "@/app/auth-context";
 import type { ProductRow } from "@/hooks/use-products";
 import { cn } from "@/lib/utils";
 import { formatPrice, getMarginPercent } from "../lib/inventory-utils";
+import { costForStockUom, stockCostUnitLabel, stockPackageContext } from "../lib/stock-format";
 import { ParentAwareCheckbox } from "./inventory-selection-controls";
 import { RowActions } from "./inventory-row-actions";
 import { StockPopover } from "./inventory-stock-display";
@@ -48,6 +49,15 @@ export function FlatProductRow({
   const sell = parseFloat(p.unitPrice) || 0;
   const cost = parseFloat(p.costPrice) || 0;
   const margin = getMarginPercent(sell, cost);
+  const stockContext = stockPackageContext({
+    conversionFactor: p.conversionFactor,
+    packagingUnit: p.packagingUnit,
+    purchaseUnit: p.purchaseUnit,
+    sellingUnit: p.sellingUnit,
+    unitsPerCase: p.unitsPerCase,
+  });
+  const costPerWarehouseUom = costForStockUom(cost, stockContext);
+  const costUnit = stockCostUnitLabel(stockContext);
   const { token, locationId } = useAuth();
 
   return (
@@ -120,19 +130,21 @@ export function FlatProductRow({
             warehouseStockView={warehouseStockView}
           />
         </td>
-        <td className="px-3 py-[5px] text-right font-medium tabular-nums text-foreground">
-          {p.isParent ? (
-            <span className="inline-block rounded px-1.5 py-px text-[10px] font-medium leading-normal bg-violet-50/80 text-violet-600">
-              Variable
-            </span>
-          ) : p.isVariablePrice ? (
-            <span className="inline-block rounded px-1.5 py-px text-[10px] font-medium leading-normal bg-amber-50/80 text-amber-600">
-              Variable
-            </span>
-          ) : (
-            formatPrice(sell)
-          )}
-        </td>
+        {!warehouseStockView && (
+          <td className="px-3 py-[5px] text-right font-medium tabular-nums text-foreground">
+            {p.isParent ? (
+              <span className="inline-block rounded px-1.5 py-px text-[10px] font-medium leading-normal bg-violet-50/80 text-violet-600">
+                Variable
+              </span>
+            ) : p.isVariablePrice ? (
+              <span className="inline-block rounded px-1.5 py-px text-[10px] font-medium leading-normal bg-amber-50/80 text-amber-600">
+                Variable
+              </span>
+            ) : (
+              formatPrice(sell)
+            )}
+          </td>
+        )}
         <td className="px-3 py-[5px]">
           {p.brandName ? (
             <span className="text-[12px] text-muted-foreground truncate block max-w-[100px]" title={p.brandName}>{p.brandName}</span>
@@ -150,16 +162,31 @@ export function FlatProductRow({
         {showFinancials && (
           <>
             <td className="px-3 py-[5px] text-right tabular-nums text-muted-foreground">
-              {p.isParent ? <span className="text-muted-foreground/40">{"\u2014"}</span> : cost > 0 ? formatPrice(cost) : "\u2014"}
-            </td>
-            <td
-              className={cn(
-                "px-3 py-[5px] text-right font-medium tabular-nums",
-                !p.isParent && margin.value > 0 && margin.value < 20 ? "text-destructive" : "text-muted-foreground",
+              {p.isParent ? (
+                <span className="text-muted-foreground/40">{"\u2014"}</span>
+              ) : cost > 0 ? (
+                warehouseStockView ? (
+                  <span className="inline-flex flex-col items-end leading-tight">
+                    <span>{formatPrice(costPerWarehouseUom)}</span>
+                    <span className="text-[9px] font-medium uppercase text-muted-foreground/70">/ {costUnit}</span>
+                  </span>
+                ) : (
+                  formatPrice(cost)
+                )
+              ) : (
+                "\u2014"
               )}
-            >
-              {p.isParent ? <span className="text-muted-foreground/40">{"\u2014"}</span> : margin.display}
             </td>
+            {!warehouseStockView && (
+              <td
+                className={cn(
+                  "px-3 py-[5px] text-right font-medium tabular-nums",
+                  !p.isParent && margin.value > 0 && margin.value < 20 ? "text-destructive" : "text-muted-foreground",
+                )}
+              >
+                {p.isParent ? <span className="text-muted-foreground/40">{"\u2014"}</span> : margin.display}
+              </td>
+            )}
           </>
         )}
         <td className="px-1 py-[5px] text-center" onClick={(e) => e.stopPropagation()}>
@@ -181,6 +208,7 @@ export function FlatProductRow({
           locationId={locationId}
           showFinancials={showFinancials}
           colCount={colCount}
+          warehouseStockView={warehouseStockView}
           selectedIds={selectedIds}
           onToggleVariantSelect={onToggleVariantSelect}
           onSelectProduct={onSelectProduct}

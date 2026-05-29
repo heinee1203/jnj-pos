@@ -15,6 +15,11 @@ export interface VariantRow {
   isActive: boolean;
   options: Array<{ typeName: string; value: string }>;
   stockLevel: number;
+  unitsPerCase?: number;
+  packagingUnit?: string | null;
+  sellingUnit?: string | null;
+  purchaseUnit?: string | null;
+  conversionFactor?: string | number | null;
   specialOrder?: boolean;
   discontinued?: boolean;
 }
