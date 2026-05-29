@@ -1,6 +1,6 @@
 ﻿import { ApiError } from "./query-provider";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+const API_BASE = "/api";
 
 interface FetchOptions extends Omit<RequestInit, "body"> {
   body?: unknown;

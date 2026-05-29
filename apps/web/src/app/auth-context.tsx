@@ -68,7 +68,7 @@ interface AuthContextValue {
  * Constants
  * ───────────────────────────────────────────── */
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+const API_BASE = "/api";
 const AUTH_STORAGE_KEY = "JNJ-dev-auth";
 const LOCATION_STORAGE_KEY = "JNJ-active-location";
 
@@ -162,11 +162,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // ── Login ──
   const login = useCallback(
     async (email: string, password: string) => {
-      const res = await fetch(`${API_BASE}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      let res: Response;
+      try {
+        res = await fetch(`${API_BASE}/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+      } catch {
+        throw new Error("Cannot reach the login server. Please refresh and try again.");
+      }
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         throw new Error(

@@ -10,4 +10,4 @@ export const ABC_CONFIG: Record<string, { badge: string }> = {
   C: { badge: "bg-gray-100 text-gray-600" },
 };
 
-export const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+export const API_BASE = "/api";

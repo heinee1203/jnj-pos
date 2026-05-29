@@ -95,7 +95,7 @@ export default function CategoriesPage() {
     });
     if (!ok) return;
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/categories/remove-empty`, {
+      const res = await fetch("/api/categories/remove-empty", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}`, "X-Location-ID": locationId },
       });
