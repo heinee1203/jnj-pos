@@ -208,7 +208,7 @@ function NewPurchaseOrderInner() {
 
   const productSearchController = usePurchaseOrderProductSearch({
     token,
-    locationId: apiLocationId || locationId,
+    locationId: destinationId || apiLocationId || locationId,
   });
 
   // ── CSV state ──

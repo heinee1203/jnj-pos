@@ -56,11 +56,6 @@ export default function NewTransferOrderPage() {
   const queryClient = useQueryClient();
   const { token, locationId, apiLocationId, loading: authLoading } = useAuth();
   const locationsQuery = useLocations(token);
-  const productSearch = usePurchaseOrderProductSearch({
-    token,
-    locationId: apiLocationId || locationId,
-  });
-
   const locations = useMemo(
     () => (locationsQuery.data?.data ?? []).filter((location) => location.isActive),
     [locationsQuery.data?.data],
@@ -72,6 +67,10 @@ export default function NewTransferOrderPage() {
   const [lines, setLines] = useState<TransferLine[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const productSearch = usePurchaseOrderProductSearch({
+    token,
+    locationId: sourceLocationId || apiLocationId || locationId,
+  });
 
   const canSave =
     !!sourceLocationId &&
