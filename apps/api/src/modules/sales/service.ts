@@ -177,12 +177,21 @@ export async function createSale(
 
     for (const line of input.lines) {
       const [product] = await tx
-        .select({ unitPrice: products.unitPrice, id: products.id, isActive: products.isActive })
+        .select({
+          unitPrice: products.unitPrice,
+          id: products.id,
+          name: products.name,
+          isActive: products.isActive,
+          isParent: products.isParent,
+        })
         .from(products)
         .where(and(eq(products.id, line.productId), eq(products.orgId, orgId)))
         .limit(1);
       if (!product) throw new Error(`Product ${line.productId} not found`);
-      if (!product.isActive) throw new Error(`Product ${line.productId} is discontinued`);
+      if (!product.isActive) throw new Error(`Product "${product.name}" is inactive`);
+      if (product.isParent) {
+        throw new Error(`"${product.name}" is a parent item. Choose one of its variants for sales.`);
+      }
 
       const effectivePrice = line.overridePrice
         ? parseFloat(line.overridePrice)

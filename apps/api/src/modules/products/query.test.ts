@@ -69,6 +69,23 @@ test("buildStandardProductListConditions preserves parent-only and inactive filt
   assert.equal(cashierResult.conditions.length, adminResult.conditions.length + 1);
 });
 
+test("buildStandardProductListConditions supports transaction-only product searches", () => {
+  const regularResult = buildStandardProductListConditions({
+    q: {},
+    orgId: "org_1",
+    locationId: "loc_1",
+    role: "ADMIN",
+  });
+  const sellableResult = buildStandardProductListConditions({
+    q: { sellableOnly: "true" },
+    orgId: "org_1",
+    locationId: "loc_1",
+    role: "ADMIN",
+  });
+
+  assert.equal(sellableResult.conditions.length, regularResult.conditions.length + 1);
+});
+
 test("isUuid accepts canonical UUIDs only", () => {
   assert.equal(isUuid("123e4567-e89b-12d3-a456-426614174000"), true);
   assert.equal(isUuid("123e4567-e89b-12d3-a456-42661417400z"), false);

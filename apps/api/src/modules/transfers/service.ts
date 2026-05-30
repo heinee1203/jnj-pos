@@ -233,6 +233,7 @@ export async function createTransfer(
         sku: products.sku,
         mnemonicSku: products.mnemonicSku,
         isActive: products.isActive,
+        isParent: products.isParent,
         sellingUnit: products.sellingUnit,
         purchaseUnit: products.purchaseUnit,
         packagingUnit: products.packagingUnit,
@@ -250,6 +251,10 @@ export async function createTransfer(
     const inactiveProduct = productRows.find((product) => !product.isActive);
     if (inactiveProduct) {
       throw new Error(`Product "${inactiveProduct.name}" is inactive`);
+    }
+    const parentProduct = productRows.find((product) => product.isParent);
+    if (parentProduct) {
+      throw new Error(`"${parentProduct.name}" is a parent item. Choose one of its variants for transfer orders.`);
     }
 
     const transferNo = await generateTransferNo(tx, orgId);

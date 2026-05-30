@@ -52,7 +52,7 @@ export function usePurchaseOrderProductSearch({
       setSearchLoading(true);
       try {
         const res = await apiFetch<{ data: ProductSearchResult[] }>(
-          `/products?search=${encodeURIComponent(productSearch.trim())}&limit=10`,
+          `/products?search=${encodeURIComponent(productSearch.trim())}&limit=10&sellableOnly=true`,
           {
             token: token ?? undefined,
             locationId: locationId ?? undefined,
@@ -101,7 +101,7 @@ export function usePurchaseOrderProductSearch({
     setSearchLoading(true);
     try {
       const res = await apiFetch<{ data: ProductSearchResult[] }>(
-        `/products?search=${encodeURIComponent(query)}&limit=10`,
+        `/products?search=${encodeURIComponent(query)}&limit=10&sellableOnly=true`,
         {
           token,
           locationId,

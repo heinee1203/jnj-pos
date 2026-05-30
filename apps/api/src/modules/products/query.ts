@@ -20,6 +20,7 @@ type ProductListQueryBasics = {
   parentOnly?: string;
   parentProductId?: string;
   search?: string;
+  sellableOnly?: string;
   sortBy?: string;
   sortDir?: string;
   stockStatus?: string;
@@ -83,6 +84,10 @@ export function buildStandardProductListConditions({
   const parentOnly = q.parentOnly === "true";
   if (parentOnly) {
     conditions.push(sql`${products.parentProductId} IS NULL`);
+  }
+
+  if (q.sellableOnly === "true") {
+    conditions.push(eq(products.isParent, false));
   }
 
   if (q.parentProductId) {
@@ -198,6 +203,11 @@ function addStandardProductSearchConditions(conditions: SQL[], search: string | 
         OR ${products.oemNumber} ILIKE ${substringPattern}
         OR ${categories.name} ILIKE ${substringPattern}
         OR EXISTS (
+          SELECT 1 FROM products parent
+          WHERE parent.id = ${products.parentProductId}
+          AND parent.name ILIKE ${substringPattern}
+        )
+        OR EXISTS (
           SELECT 1 FROM products child
           WHERE child.parent_product_id = ${products.id}
           AND (child.sku ILIKE ${startPattern} OR child.sku ILIKE ${hyphenPattern}
@@ -211,7 +221,14 @@ function addStandardProductSearchConditions(conditions: SQL[], search: string | 
   const fullSearchTerm = "%" + search + "%";
   const termConditions = searchTerms.map((term: string) => {
     const pat = "%" + term + "%";
-    return sql`(${products.name} ILIKE ${pat})`;
+    return sql`(
+      ${products.name} ILIKE ${pat}
+      OR EXISTS (
+        SELECT 1 FROM products parent
+        WHERE parent.id = ${products.parentProductId}
+        AND parent.name ILIKE ${pat}
+      )
+    )`;
   });
   conditions.push(
     sql`(

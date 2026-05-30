@@ -139,6 +139,7 @@ export async function handleAllLocationsQuery(
   const activeFilter = includeInactive ? sql`` : sql`AND p.is_active = true`;
 
   const parentOnlyFilter = q.parentOnly === "true" ? sql`AND p.parent_product_id IS NULL` : sql``;
+  const sellableOnlyFilter = q.sellableOnly === "true" ? sql`AND p.is_parent = false` : sql``;
   const parentFilter = q.parentProductId ? sql`AND p.parent_product_id = ${q.parentProductId}::uuid` : sql``;
   const excludeSOFilter = q.excludeSO === "true" ? sql`AND p.special_order = false` : sql``;
   const excludeDCFilter = q.excludeDC === "true" ? sql`AND p.discontinued = false` : sql``;
@@ -204,6 +205,7 @@ export async function handleAllLocationsQuery(
       WHERE p.org_id = ${orgId}
         ${activeFilter}
         ${parentOnlyFilter}
+        ${sellableOnlyFilter}
         ${parentFilter}
         ${excludeSOFilter}
         ${excludeDCFilter}

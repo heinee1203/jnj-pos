@@ -13,6 +13,7 @@ export interface ProductSearchResult {
   conversionFactor?: number | string | null;
   parentName?: string | null;
   parentProductId?: string | null;
+  isParent?: boolean;
 }
 
 export interface POLineInput {

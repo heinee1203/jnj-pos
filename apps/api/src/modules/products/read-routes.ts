@@ -39,6 +39,15 @@ export function registerProductSearchRoutes(app: FastifyInstance) {
           ${products.name} ILIKE ${startPat}
           OR ${products.name} ILIKE ${wordPat}
           OR ${products.name} ILIKE ${hyphenPat}
+          OR EXISTS (
+            SELECT 1 FROM products parent
+            WHERE parent.id = ${products.parentProductId}
+              AND (
+                parent.name ILIKE ${startPat}
+                OR parent.name ILIKE ${wordPat}
+                OR parent.name ILIKE ${hyphenPat}
+              )
+          )
           OR ${products.sku} ILIKE ${startPat}
           OR ${products.sku} ILIKE ${hyphenPat}
           OR mnemonic_sku ILIKE ${startPat}
@@ -56,6 +65,15 @@ export function registerProductSearchRoutes(app: FastifyInstance) {
             ${products.name} ILIKE ${start}
             OR ${products.name} ILIKE ${wordBound}
             OR ${products.name} ILIKE ${hyphenBound}
+            OR EXISTS (
+              SELECT 1 FROM products parent
+              WHERE parent.id = ${products.parentProductId}
+                AND (
+                  parent.name ILIKE ${start}
+                  OR parent.name ILIKE ${wordBound}
+                  OR parent.name ILIKE ${hyphenBound}
+                )
+            )
           )`;
         });
         searchCondition = sql`(
@@ -98,6 +116,7 @@ export function registerProductSearchRoutes(app: FastifyInstance) {
         and(
           eq(products.orgId, orgId),
           eq(products.isActive, true),
+          eq(products.isParent, false),
           searchCondition,
         ),
       )
@@ -309,6 +328,7 @@ export function registerProductBarcodeRoutes(app: FastifyInstance) {
         reorderPoint: inventory.reorderPoint,
         brandId: products.brandId,
         brandName: brands.name,
+        isParent: products.isParent,
       })
       .from(products)
       .leftJoin(inventory, and(
@@ -316,7 +336,7 @@ export function registerProductBarcodeRoutes(app: FastifyInstance) {
         ...(locationId ? [eq(inventory.locationId, locationId)] : []),
       ))
       .leftJoin(brands, eq(products.brandId, brands.id))
-      .where(and(eq(products.orgId, orgId), eq(products.barcode, barcode)))
+      .where(and(eq(products.orgId, orgId), eq(products.barcode, barcode), eq(products.isParent, false)))
       .limit(1);
 
     if (!row) {

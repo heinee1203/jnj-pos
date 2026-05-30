@@ -81,6 +81,10 @@ export default function NewTransferOrderPage() {
     lines.every((line) => line.requestedQty > 0 && line.unit && line.conversionFactor > 0);
 
   const addProduct = (product: ProductSearchResult) => {
+    if (product.isParent) {
+      setError("Choose a variant. Parent items are catalog containers only.");
+      return;
+    }
     const unit = defaultUnit(product);
     const conversionFactor = defaultFactor(product, unit);
     setLines((current) => [

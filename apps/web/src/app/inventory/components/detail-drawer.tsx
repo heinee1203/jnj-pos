@@ -755,14 +755,22 @@ export function DetailDrawer({
           )}
 
           <div className="flex gap-2 border-t border-border p-4">
-            <button onClick={() => setShowPrintSection(!showPrintSection)}
-              className={cn("flex items-center justify-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium",
-                showPrintSection ? "bg-amber-600 text-white" : "bg-amber-500 text-white hover:bg-amber-600")}>
-              <Printer className="h-3.5 w-3.5" />
-              Print Label
-            </button>
-            <button onClick={onTransfer} className="flex-1 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">Transfer Stock</button>
-            <button onClick={onAdjust} className="flex-1 rounded-md border border-border px-3 py-2 text-sm font-medium hover:bg-accent">Adjust Stock</button>
+            {product.isParent ? (
+              <div className="w-full rounded-md border border-dashed border-muted-foreground/30 bg-muted/30 px-3 py-2 text-center text-xs font-medium text-muted-foreground">
+                Parent item only. Use a child variant for labels, transfers, and stock adjustments.
+              </div>
+            ) : (
+              <>
+                <button onClick={() => setShowPrintSection(!showPrintSection)}
+                  className={cn("flex items-center justify-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium",
+                    showPrintSection ? "bg-amber-600 text-white" : "bg-amber-500 text-white hover:bg-amber-600")}>
+                  <Printer className="h-3.5 w-3.5" />
+                  Print Label
+                </button>
+                <button onClick={onTransfer} className="flex-1 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">Transfer Stock</button>
+                <button onClick={onAdjust} className="flex-1 rounded-md border border-border px-3 py-2 text-sm font-medium hover:bg-accent">Adjust Stock</button>
+              </>
+            )}
           </div>
         </div>
       </div>

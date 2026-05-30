@@ -70,6 +70,9 @@ export async function createPO(
       const [product] = await tx
         .select({
           id: products.id,
+          name: products.name,
+          isActive: products.isActive,
+          isParent: products.isParent,
           sellingUnit: products.sellingUnit,
           purchaseUnit: products.purchaseUnit,
           conversionFactor: products.conversionFactor,
@@ -78,6 +81,10 @@ export async function createPO(
         .where(and(eq(products.id, line.productId), eq(products.orgId, orgId)))
         .limit(1);
       if (!product) throw new Error(`Product ${line.productId} not found`);
+      if (!product.isActive) throw new Error(`Product "${product.name}" is inactive`);
+      if (product.isParent) {
+        throw new Error(`"${product.name}" is a parent item. Choose one of its variants for purchase orders.`);
+      }
       productUomMap.set(product.id, {
         sellingUnit: product.sellingUnit,
         purchaseUnit: product.purchaseUnit,

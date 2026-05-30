@@ -150,6 +150,10 @@ function NewPurchaseOrderInner() {
           { token, locationId },
         );
         if (!product?.id) return;
+        if (product.isParent) {
+          setError("Choose a variant. Parent items are catalog containers only.");
+          return;
+        }
         const qty = Math.max(parseInt(qQty || "1", 10) || 1, 1);
         // Use unitCost from query param (last PO cost), fall back to product cost price
         const factor = purchaseFactor(product);
@@ -253,6 +257,10 @@ function NewPurchaseOrderInner() {
 
   // ── Add product to lines ──
   const addProduct = (product: ProductSearchResult) => {
+    if (product.isParent) {
+      setCsvError("Choose a variant. Parent items are catalog containers only.");
+      return;
+    }
     setCsvError(null);
     addProductLine(product);
     productSearchController.clearAndFocusSearch();
@@ -441,7 +449,7 @@ function NewPurchaseOrderInner() {
     for (let i = 0; i < preview.length; i++) {
       try {
         const res = await apiFetch<{ data: ProductSearchResult[] }>(
-          `/products?search=${encodeURIComponent(preview[i].sku)}&limit=5`,
+          `/products?search=${encodeURIComponent(preview[i].sku)}&limit=5&sellableOnly=true`,
           { token, locationId },
         );
         const exactMatch = res.data.find(

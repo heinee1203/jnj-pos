@@ -217,6 +217,22 @@ export async function createAdjustment(
       );
     }
 
+    const [product] = await tx
+      .select({
+        id: products.id,
+        name: products.name,
+        isActive: products.isActive,
+        isParent: products.isParent,
+      })
+      .from(products)
+      .where(and(eq(products.id, input.productId), eq(products.orgId, orgId)))
+      .limit(1);
+    if (!product) throw new Error("Product not found");
+    if (!product.isActive) throw new Error(`Product "${product.name}" is inactive`);
+    if (product.isParent) {
+      throw new Error(`"${product.name}" is a parent item. Adjust stock on a variant instead.`);
+    }
+
     // Lock inventory row
     const inv = await lockInventoryRow(
       tx,

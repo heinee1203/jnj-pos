@@ -175,6 +175,7 @@ export const listProductsQuerySchema = z.object({
   allLocations: boolLike.optional(),
   grouped: boolLike.optional(),
   parentOnly: boolLike.optional(),
+  sellableOnly: boolLike.optional(),
   includeInactive: boolLike.optional(),
   excludeSO: boolLike.optional(),
   excludeDC: boolLike.optional(),
