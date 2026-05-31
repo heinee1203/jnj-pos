@@ -56,6 +56,12 @@ export interface LowStockItem {
   reservedLevel: number;
   available: number;
   reorderPoint: number;
+  reorderPointUnit: string;
+  unitsPerCase: number;
+  packagingUnit: string | null;
+  sellingUnit: string;
+  purchaseUnit: string | null;
+  conversionFactor: string;
   locationName: string;
   lastSoldAt: string | null;
 }

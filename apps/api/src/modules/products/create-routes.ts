@@ -50,6 +50,7 @@ export function registerProductCreateRoutes(app: FastifyInstance) {
       barcode: inputBarcode,
       trackInventory,
       reorderPoint,
+      reorderPointUnit,
       optimalStock,
       leadTimeDays,
       initialStock,
@@ -224,6 +225,7 @@ export function registerProductCreateRoutes(app: FastifyInstance) {
                 locationId: locId,
                 stockLevel: 0,
                 reorderPoint: reorderPoint ?? 5,
+                reorderPointUnit: (reorderPointUnit ?? parsed.data.sellingUnit ?? "PIECE").toUpperCase(),
                 optimalStock: optimalStock ?? 0,
                 leadTimeDays: leadTimeDays ?? 7,
               }));
@@ -243,6 +245,7 @@ export function registerProductCreateRoutes(app: FastifyInstance) {
             locationId: locId,
             stockLevel: resolveCreateMainInventoryStockLevel(locId, locationId, initialStock),
             reorderPoint: reorderPoint ?? 5,
+            reorderPointUnit: (reorderPointUnit ?? parsed.data.sellingUnit ?? "PIECE").toUpperCase(),
             optimalStock: optimalStock ?? 0,
             leadTimeDays: leadTimeDays ?? 7,
           }));

@@ -75,6 +75,13 @@ export function buildCreateVariantProductInsertValues({
     parentProductId,
     categoryId: data.categoryId || null,
     brandId: data.brandId || null,
+    unitsPerCase: data.unitsPerCase ?? 1,
+    packagingUnit: data.packagingUnit || null,
+    sellingUnit: data.sellingUnit ?? "PIECE",
+    purchaseUnit: data.purchaseUnit || null,
+    conversionFactor: String(data.conversionFactor ?? 1),
+    primarySupplierId: data.primarySupplierId || null,
+    specialOrder: data.specialOrder ?? false,
   };
 }
 
@@ -84,6 +91,7 @@ export function buildCreateInventoryInsertValues({
   locationId,
   stockLevel,
   reorderPoint,
+  reorderPointUnit,
   optimalStock,
   leadTimeDays,
 }: {
@@ -92,6 +100,7 @@ export function buildCreateInventoryInsertValues({
   locationId: string;
   stockLevel: number;
   reorderPoint: number;
+  reorderPointUnit?: string;
   optimalStock?: number;
   leadTimeDays: number;
 }) {
@@ -101,6 +110,7 @@ export function buildCreateInventoryInsertValues({
     locationId,
     stockLevel,
     reorderPoint,
+    reorderPointUnit: (reorderPointUnit ?? "PIECE").toUpperCase(),
     optimalStock,
     leadTimeDays,
   };
@@ -113,4 +123,3 @@ export function resolveCreateMainInventoryStockLevel(
 ) {
   return targetLocationId === scopedLocationId ? (initialStock || 0) : 0;
 }
-

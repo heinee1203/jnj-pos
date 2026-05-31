@@ -165,6 +165,17 @@ function formatUnitQuantity(stockLevel: number, unit: DisplayUnitOption | undefi
   return `${whole.toLocaleString()} ${label} + ${remainder.toLocaleString()} ${baseUnit}`;
 }
 
+function formatUnitDecimal(value: number) {
+  if (!Number.isFinite(value)) return "0";
+  return Number.isInteger(value) ? String(value) : String(Number(value.toFixed(4)));
+}
+
+function formatReorderQuantity(stockLevel: number, unit: DisplayUnitOption | undefined, baseUnit: string) {
+  const primary = formatUnitQuantity(stockLevel, unit, baseUnit);
+  if (!unit || unit.quantity <= 1) return primary;
+  return `${primary} / ${Math.max(0, Math.floor(stockLevel || 0)).toLocaleString()} ${baseUnit}`;
+}
+
 export default function EditInventoryItemPage() {
   const params = useParams<{ productId: string }>();
   const productId = params?.productId ?? null;
@@ -197,6 +208,7 @@ export default function EditInventoryItemPage() {
   const [priceTiers, setPriceTiers] = useState<UnitPriceTierDraft[]>([]);
   const [barcode, setBarcode] = useState("");
   const [reorderPoint, setReorderPoint] = useState("5");
+  const [reorderPointUnit, setReorderPointUnit] = useState(DEFAULT_SELLING_UNIT);
   const [unitsPerCase, setUnitsPerCase] = useState("1");
   const [packagingUnit, setPackagingUnit] = useState("");
   const [sellingUnit, setSellingUnit] = useState(DEFAULT_SELLING_UNIT);
@@ -228,7 +240,22 @@ export default function EditInventoryItemPage() {
           ],
     );
     setBarcode(product.barcode ?? "");
-    setReorderPoint(String(product.reorderPoint ?? 5));
+    const loadedReorderUnit = normalizeUom(product.reorderPointUnit, normalizeUom(product.sellingUnit, DEFAULT_SELLING_UNIT));
+    const loadedUnitQty = (() => {
+      const unit = loadedReorderUnit.toLowerCase();
+      const base = normalizeUom(product.sellingUnit, DEFAULT_SELLING_UNIT).toLowerCase();
+      const packaging = normalizeUom(product.packagingUnit).toLowerCase();
+      const purchase = normalizeUom(product.purchaseUnit).toLowerCase();
+      if (unit === base) return 1;
+      const tier = product.priceTiers?.find((priceTier) => normalizeUom(priceTier.label).toLowerCase() === unit);
+      if (tier) return Math.max(1, tier.quantity);
+      if (unit === "dozen") return 12;
+      if (packaging && unit === packaging) return Math.max(1, product.unitsPerCase ?? 1);
+      if (purchase && unit === purchase) return Math.max(1, Math.floor(Number(product.conversionFactor) || 1));
+      return 1;
+    })();
+    setReorderPoint(formatUnitDecimal((product.reorderPoint ?? 5) / loadedUnitQty));
+    setReorderPointUnit(loadedReorderUnit);
     setUnitsPerCase(String(product.unitsPerCase ?? 1));
     setPackagingUnit(normalizeUom(product.packagingUnit));
     setSellingUnit(normalizeUom(product.sellingUnit, DEFAULT_SELLING_UNIT));
@@ -244,6 +271,9 @@ export default function EditInventoryItemPage() {
     const purchaseQty = Math.max(1, Math.floor(parseFloat(conversionFactor) || 1));
 
     addDisplayUnitOption(options, baseUnit, 1);
+    if (baseUnit !== "DOZEN") {
+      addDisplayUnitOption(options, "DOZEN", 12);
+    }
     for (const tier of priceTiers) {
       const quantity = parseInt(tier.quantity, 10);
       if (Number.isInteger(quantity) && quantity > 0) {
@@ -280,6 +310,21 @@ export default function EditInventoryItemPage() {
     () => new Map(displayUnitOptions.map((option) => [option.key, option])),
     [displayUnitOptions],
   );
+
+  const reorderUnitOptions = useMemo(
+    () => [...new Set(displayUnitOptions.map((option) => option.label))],
+    [displayUnitOptions],
+  );
+
+  const selectedReorderUnit = useMemo(() => {
+    const normalized = normalizeUom(reorderPointUnit, normalizeUom(sellingUnit, DEFAULT_SELLING_UNIT));
+    return displayUnitOptions.find((option) => option.label === normalized) ?? displayUnitOptions[0];
+  }, [displayUnitOptions, reorderPointUnit, sellingUnit]);
+
+  const reorderPointBaseQty = useMemo(() => {
+    const quantity = Math.max(0, parseFloat(reorderPoint) || 0);
+    return Math.round(quantity * Math.max(1, selectedReorderUnit?.quantity ?? 1));
+  }, [reorderPoint, selectedReorderUnit]);
 
   const margin = useMemo(() => {
     const sell = parseFloat(unitPrice) || 0;
@@ -394,6 +439,14 @@ export default function EditInventoryItemPage() {
     return rows;
   };
 
+  const handleReorderUnitChange = (nextUnit: string) => {
+    const nextNormalized = normalizeUom(nextUnit, normalizeUom(sellingUnit, DEFAULT_SELLING_UNIT));
+    const nextOption = displayUnitOptions.find((option) => option.label === nextNormalized) ?? displayUnitOptions[0];
+    const currentBaseQty = reorderPointBaseQty;
+    setReorderPointUnit(nextNormalized);
+    setReorderPoint(formatUnitDecimal(currentBaseQty / Math.max(1, nextOption?.quantity ?? 1)));
+  };
+
   const handleSave = async ({ closeAfterSave = false }: { closeAfterSave?: boolean } = {}) => {
     if (!productId || !isValid) return;
     setError(null);
@@ -417,7 +470,8 @@ export default function EditInventoryItemPage() {
         categoryId: categoryId || null,
         brandId: brandId || null,
         description: description.trim() || null,
-        reorderPoint: parseInt(reorderPoint, 10) || 0,
+        reorderPoint: reorderPointBaseQty,
+        reorderPointUnit: normalizeUom(reorderPointUnit, normalizeUom(sellingUnit, DEFAULT_SELLING_UNIT)),
         unitsPerCase: Math.max(1, parseInt(unitsPerCase, 10) || 1),
         packagingUnit: normalizeUom(packagingUnit) || null,
         sellingUnit: normalizeUom(sellingUnit, DEFAULT_SELLING_UNIT),
@@ -591,7 +645,13 @@ export default function EditInventoryItemPage() {
                 placeholder="Scan barcode or leave blank"
               />
             </div>
-            <NumberField label="Reorder Point" value={reorderPoint} onChange={setReorderPoint} />
+            <div className="col-span-2 grid grid-cols-[1fr_0.8fr] gap-2">
+              <NumberField label="Reorder Point Qty" value={reorderPoint} onChange={setReorderPoint} step="0.0001" />
+              <SelectField label="Reorder UOM" value={reorderPointUnit} onChange={handleReorderUnitChange} options={reorderUnitOptions} />
+              <p className="col-span-2 -mt-1 text-[11px] text-muted-foreground">
+                Threshold: {formatReorderQuantity(reorderPointBaseQty, selectedReorderUnit, normalizeUom(sellingUnit, DEFAULT_SELLING_UNIT))}
+              </p>
+            </div>
             <NumberField label="Units per Case" value={unitsPerCase} onChange={setUnitsPerCase} min={1} />
             <SelectField label="Selling Unit" value={sellingUnit} onChange={setSellingUnit} options={sellingUnits} />
             <SelectField label="Packaging Unit" value={packagingUnit} onChange={setPackagingUnit} options={packagingUnits} emptyLabel="None" />
@@ -834,6 +894,9 @@ function LocationInventoryTable({
             displayUnitOptions[0]?.key ||
             "";
           const unit = displayUnitByKey.get(selectedKey) ?? displayUnitOptions[0];
+          const reorderUnit =
+            displayUnitOptions.find((option) => option.label === normalizeUom(row.reorderPointUnit, baseUnit)) ??
+            unit;
           const available = Math.max(0, row.stockLevel - row.reservedLevel);
 
           return (
@@ -876,7 +939,7 @@ function LocationInventoryTable({
               </div>
               <div className="text-right">
                 <p className="text-[12px] tabular-nums text-muted-foreground">
-                  {formatUnitQuantity(row.reorderPoint, unit, baseUnit)}
+                  {formatReorderQuantity(row.reorderPoint, reorderUnit, baseUnit)}
                 </p>
                 <p className={cn(
                   "text-[10px] font-medium",
@@ -979,6 +1042,7 @@ function NumberField({
   value,
   onChange,
   min = 0,
+  step = "1",
   disabled,
 }: {
   label: string;
@@ -986,6 +1050,7 @@ function NumberField({
   value: string;
   onChange: (value: string) => void;
   min?: number;
+  step?: string;
   disabled?: boolean;
 }) {
   return (
@@ -1010,6 +1075,7 @@ function NumberField({
       <input
         type="number"
         min={min}
+        step={step}
         value={value}
         disabled={disabled}
         onChange={(event) => onChange(event.target.value)}

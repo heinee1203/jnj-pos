@@ -60,6 +60,12 @@ export interface LowStockItem {
   reservedLevel: number;
   available: number;
   reorderPoint: number;
+  reorderPointUnit: string;
+  unitsPerCase: number;
+  packagingUnit: string | null;
+  sellingUnit: string;
+  purchaseUnit: string | null;
+  conversionFactor: string;
   locationName: string;
   lastSoldAt: string | null;
 }
@@ -355,6 +361,12 @@ async function getLowStockItems(
         COALESCE(SUM(i.reserved_level), 0)::int AS "reservedLevel",
         (COALESCE(SUM(i.stock_level), 0) - COALESCE(SUM(i.reserved_level), 0))::int AS "available",
         COALESCE(MAX(i.reorder_point), 0)::int AS "reorderPoint",
+        COALESCE(MAX(i.reorder_point_unit), NULLIF(UPPER(p.selling_unit), ''), 'PIECE') AS "reorderPointUnit",
+        p.units_per_case AS "unitsPerCase",
+        p.packaging_unit AS "packagingUnit",
+        p.selling_unit AS "sellingUnit",
+        p.purchase_unit AS "purchaseUnit",
+        p.conversion_factor AS "conversionFactor",
         'All Locations' AS "locationName",
         sm.last_sale_date AS "lastSoldAt"
       FROM products p
@@ -375,7 +387,7 @@ async function getLowStockItems(
         )
         ${hideNegative ? sql`AND NOT (p.special_order = true OR p.discontinued = true)` : sql``}
         AND (p.reorder_snoozed_until IS NULL OR p.reorder_snoozed_until < CURRENT_DATE)
-      GROUP BY p.id, p.name, p.sku, p.category, cat.name, parent_p.name, p.parent_product_id, sm.last_sale_date
+      GROUP BY p.id, p.name, p.sku, p.category, cat.name, parent_p.name, p.parent_product_id, p.units_per_case, p.packaging_unit, p.selling_unit, p.purchase_unit, p.conversion_factor, sm.last_sale_date
       HAVING COALESCE(SUM(i.stock_level), 0) <= COALESCE(MAX(i.reorder_point), 0)
         ${hideNegative ? sql`AND COALESCE(SUM(i.stock_level), 0) >= 0` : sql``}
       ORDER BY sm.last_sale_date DESC NULLS LAST, p.name
@@ -420,6 +432,12 @@ async function getLowStockItems(
       reservedLevel: inventory.reservedLevel,
       available: sql<number>`(${inventory.stockLevel} - ${inventory.reservedLevel})`.as("available"),
       reorderPoint: inventory.reorderPoint,
+      reorderPointUnit: inventory.reorderPointUnit,
+      unitsPerCase: products.unitsPerCase,
+      packagingUnit: products.packagingUnit,
+      sellingUnit: products.sellingUnit,
+      purchaseUnit: products.purchaseUnit,
+      conversionFactor: products.conversionFactor,
       locationName: locations.name,
       lastSoldAt: sql<string | null>`null`.as("last_sold_at"),
     })

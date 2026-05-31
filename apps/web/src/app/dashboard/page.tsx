@@ -26,6 +26,7 @@ import {
 import { cn } from "@/lib/utils";
 import { fmtNum, fmtDateTime, timeAgo } from "@/lib/format";
 import { REF_TYPE_LABELS, REF_TYPE_COLORS, isFinancialRole, isOperationalRole } from "@/lib/constants";
+import { buildInventoryUnitOptions, findUnitOption, formatBaseQuantity, formatReorderPoint, normalizeUom } from "@/lib/inventory-uom";
 import { EmptyState, LoadingState, PageHeader, WorkspacePage } from "@/components/ui/layout";
 import { ProductReorderModal, ReorderSuccessToast, useProductReorder } from "@/components/procurement/reorder-workflow";
 import { KpiCard as HeadlineCard, WorkbenchLink as QuickAction, WorkbenchPanel as DashboardPanel } from "@/components/ui/workbench";
@@ -419,6 +420,9 @@ function LowStockRow({ item, onReorder, onSnooze, loading }: { item: LowStockIte
   const [showSnooze, setShowSnooze] = useState(false);
   const isOut = item.stockLevel === 0;
   const isLow = item.stockLevel > 0 && item.stockLevel <= item.reorderPoint;
+  const unitOptions = buildInventoryUnitOptions(item);
+  const baseUnit = normalizeUom(item.sellingUnit);
+  const reorderUnit = findUnitOption(unitOptions, item.reorderPointUnit);
 
   return (
     <tr className="hover:bg-muted/40 transition-colors">
@@ -450,10 +454,10 @@ function LowStockRow({ item, onReorder, onSnooze, loading }: { item: LowStockIte
           isOut ? "text-destructive" : item.available <= 0 ? "text-destructive" : "text-amber-600",
         )}
       >
-        {fmtNum(item.available)}
+        {formatBaseQuantity(item.available, reorderUnit, baseUnit)}
       </td>
       <td className="py-[5px] px-2 text-right tabular-nums text-muted-foreground">
-        {fmtNum(item.reorderPoint)}
+        {formatReorderPoint(item.reorderPoint, reorderUnit, baseUnit)}
       </td>
       <td
         className={cn(
@@ -461,7 +465,7 @@ function LowStockRow({ item, onReorder, onSnooze, loading }: { item: LowStockIte
           isOut ? "text-destructive" : "text-foreground",
         )}
       >
-        {fmtNum(item.stockLevel)}
+        {formatBaseQuantity(item.stockLevel, reorderUnit, baseUnit)}
       </td>
       <td className="py-[5px] px-2 text-right text-muted-foreground whitespace-nowrap">
         {item.lastSoldAt ? timeAgo(item.lastSoldAt) : "\u2014"}

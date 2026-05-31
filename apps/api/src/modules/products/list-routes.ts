@@ -101,6 +101,7 @@ export function registerProductListRoutes(app: FastifyInstance) {
             ), 0) ELSE ${inventory.stockLevel} END, 0)`.as("stock_level")
           : inventory.stockLevel,
         reorderPoint: inventory.reorderPoint,
+        reorderPointUnit: inventory.reorderPointUnit,
         categoryId: products.categoryId,
         categoryName: categories.name,
         brandId: products.brandId,

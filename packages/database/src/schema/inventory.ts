@@ -4,6 +4,7 @@ import {
   integer,
   boolean,
   timestamp,
+  varchar,
   uniqueIndex,
   index,
   check,
@@ -28,7 +29,9 @@ export const inventory = pgTable(
       .references(() => locations.id, { onDelete: "cascade" }),
     stockLevel: integer("stock_level").notNull().default(0),
     reservedLevel: integer("reserved_level").notNull().default(0),
+    /** Stored in base/selling units; reorderPointUnit keeps the user's display/input UOM. */
     reorderPoint: integer("reorder_point").notNull().default(10),
+    reorderPointUnit: varchar("reorder_point_unit", { length: 20 }).notNull().default("PIECE"),
     optimalStock: integer("optimal_stock").notNull().default(0),
     leadTimeDays: integer("lead_time_days").notNull().default(7),
     availableForSale: boolean("available_for_sale").notNull().default(true),

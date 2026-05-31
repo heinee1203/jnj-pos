@@ -13,6 +13,7 @@ export interface ProductLocationRow {
   stockLevel: number;
   reservedLevel: number;
   reorderPoint: number;
+  reorderPointUnit: string;
   optimalStock: number;
   availableForSale: boolean;
 }
@@ -47,7 +48,7 @@ export function useToggleAvailability(token: string, locationId: string) {
   return useMutation({
     mutationFn: (input: {
       productId: string;
-      updates: Array<{ locationId: string; availableForSale: boolean }>;
+      updates: Array<{ locationId: string; availableForSale?: boolean; reorderPoint?: number; reorderPointUnit?: string; optimalStock?: number }>;
     }) =>
       apiFetch<{ success: boolean }>("/inventory/stock-levels/availability", {
         method: "PATCH",

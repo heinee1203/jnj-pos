@@ -49,6 +49,7 @@ test("splitProductUpdatePayload separates inventory and variant fields from prod
       name: "Oil Filter",
       newVariants: [{ sku: "OIL-L" }],
       reorderPoint: 7,
+      reorderPointUnit: "CASE",
     }),
     {
       newVariants: [{ sku: "OIL-L" }],
@@ -57,6 +58,7 @@ test("splitProductUpdatePayload separates inventory and variant fields from prod
         name: "Oil Filter",
       },
       reorderPoint: 7,
+      reorderPointUnit: "CASE",
     },
   );
 });

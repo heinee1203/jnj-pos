@@ -23,6 +23,7 @@ export async function registerStockLevelMutationRoutes(app: FastifyInstance) {
         locationId: string;
         availableForSale?: boolean;
         reorderPoint?: number;
+        reorderPointUnit?: string;
         optimalStock?: number;
       }>;
     };
@@ -46,7 +47,7 @@ export async function registerStockLevelMutationRoutes(app: FastifyInstance) {
     }
 
     const { orgId, locationId } = request.storeContext!;
-    const body = request.body as { productId: string; reorderPoint: number };
+    const body = request.body as { productId: string; reorderPoint: number; reorderPointUnit?: string };
 
     if (!body.productId || typeof body.reorderPoint !== "number" || body.reorderPoint < 0) {
       return reply
@@ -59,6 +60,7 @@ export async function registerStockLevelMutationRoutes(app: FastifyInstance) {
       locationId ?? undefined,
       body.productId,
       body.reorderPoint,
+      body.reorderPointUnit,
     );
 
     if (!result) {

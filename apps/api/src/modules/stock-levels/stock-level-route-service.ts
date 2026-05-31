@@ -15,6 +15,7 @@ export async function updateReorderPoint(
   scopedLocationId: string | undefined,
   productId: string,
   reorderPoint: number,
+  reorderPointUnit?: string,
 ) {
   const [product] = await db
     .select({ id: products.id })
@@ -31,7 +32,10 @@ export async function updateReorderPoint(
 
   const result = await db
     .update(inventory)
-    .set({ reorderPoint })
+    .set({
+      reorderPoint,
+      ...(reorderPointUnit ? { reorderPointUnit: reorderPointUnit.toUpperCase() } : {}),
+    })
     .where(and(...conditions))
     .returning({ id: inventory.id });
 

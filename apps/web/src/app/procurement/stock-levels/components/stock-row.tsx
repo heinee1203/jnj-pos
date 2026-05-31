@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AlertTriangle, Loader2, PackageX, ShoppingCart } from "lucide-react";
 
 import type { StockLevelRow } from "@/hooks/use-stock-levels";
+import { buildInventoryUnitOptions, findUnitOption, formatBaseQuantity, formatReorderPoint, normalizeUom } from "@/lib/inventory-uom";
 import { cn } from "@/lib/utils";
 import { timeAgo } from "@/lib/format";
 import { STATUS_LABELS, STATUS_STYLES } from "../constants";
@@ -20,7 +21,9 @@ export function StockRow({ row, onReorder, reorderLoading }: StockRowProps) {
 
   const isLow = row.status === "LOW_STOCK";
   const isOut = row.status === "OUT_OF_STOCK";
-  const unitSuffix = row.sellingUnit && row.sellingUnit !== "piece" ? ` ${row.sellingUnit}` : "";
+  const unitOptions = buildInventoryUnitOptions(row);
+  const baseUnit = normalizeUom(row.sellingUnit);
+  const reorderUnit = findUnitOption(unitOptions, row.reorderPointUnit);
   const daysLeft = row.daysOfStock != null ? Math.round(row.daysOfStock) : null;
 
   return (
@@ -60,12 +63,11 @@ export function StockRow({ row, onReorder, reorderLoading }: StockRowProps) {
           isOut ? "font-semibold text-destructive" : isLow ? "font-medium text-warning" : "text-foreground"
         }`}
       >
-        {row.stockLevel.toLocaleString()}
-        {unitSuffix}
+        {formatBaseQuantity(row.stockLevel, reorderUnit, baseUnit)}
       </td>
 
       <td className="whitespace-nowrap px-4 py-1.5 text-right tabular-nums text-sm text-muted-foreground">
-        {row.reservedLevel > 0 ? `${row.reservedLevel.toLocaleString()}${unitSuffix}` : "\u2014"}
+        {row.reservedLevel > 0 ? formatBaseQuantity(row.reservedLevel, reorderUnit, baseUnit) : "\u2014"}
       </td>
 
       <td
@@ -73,13 +75,11 @@ export function StockRow({ row, onReorder, reorderLoading }: StockRowProps) {
           isOut ? "text-destructive" : isLow ? "text-warning" : "text-foreground"
         }`}
       >
-        {row.available.toLocaleString()}
-        {unitSuffix}
+        {formatBaseQuantity(row.available, reorderUnit, baseUnit)}
       </td>
 
       <td className="whitespace-nowrap px-4 py-1.5 text-right tabular-nums text-sm text-muted-foreground">
-        {row.reorderPoint.toLocaleString()}
-        {unitSuffix}
+        {formatReorderPoint(row.reorderPoint, reorderUnit, baseUnit)}
       </td>
 
       <td className="whitespace-nowrap px-4 py-1.5 text-right tabular-nums text-sm text-muted-foreground">

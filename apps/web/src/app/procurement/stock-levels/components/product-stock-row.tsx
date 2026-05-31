@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AlertTriangle, Loader2, PackageX, ShoppingCart } from "lucide-react";
 
 import type { ProductStockRow } from "@/hooks/use-stock-levels";
+import { buildInventoryUnitOptions, findUnitOption, formatBaseQuantity, formatReorderPoint, normalizeUom } from "@/lib/inventory-uom";
 import { cn } from "@/lib/utils";
 import { timeAgo } from "@/lib/format";
 import { STATUS_LABELS, STATUS_STYLES } from "../constants";
@@ -23,6 +24,9 @@ export function ProductStockTableRow({
   const isLow = row.status === "LOW_STOCK";
   const statusStyle = STATUS_STYLES[row.status] ?? "bg-muted text-muted-foreground";
   const daysLeft = row.daysOfStock != null ? Math.round(row.daysOfStock) : null;
+  const unitOptions = buildInventoryUnitOptions(row);
+  const baseUnit = normalizeUom(row.sellingUnit);
+  const reorderUnit = findUnitOption(unitOptions, row.reorderPointUnit);
 
   return (
     <tr
@@ -51,10 +55,10 @@ export function ProductStockTableRow({
           isOut ? "font-semibold text-destructive" : isLow ? "font-medium text-warning" : "text-foreground"
         }`}
       >
-        {row.totalStock.toLocaleString()}
+        {formatBaseQuantity(row.totalStock, reorderUnit, baseUnit)}
       </td>
       <td className="whitespace-nowrap px-4 py-1.5 text-right tabular-nums text-sm text-muted-foreground">
-        {row.reorderPoint.toLocaleString()}
+        {formatReorderPoint(row.reorderPoint, reorderUnit, baseUnit)}
       </td>
       <td className="whitespace-nowrap px-4 py-1.5 text-right tabular-nums text-sm text-muted-foreground">
         {row.sold1m > 0 ? `${row.sold1m} /mo` : "\u2014"}

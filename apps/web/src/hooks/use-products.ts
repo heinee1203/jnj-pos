@@ -20,6 +20,7 @@ export interface ProductRow {
   vehicleModel: string | null;
   stockLevel: number;
   reorderPoint: number;
+  reorderPointUnit?: string | null;
   categoryId: string | null;
   categoryName: string | null;
   brandId: string | null;
@@ -185,6 +186,7 @@ export interface CreateProductPayload {
   description?: string;
   trackInventory?: boolean;
   reorderPoint?: number;
+  reorderPointUnit?: string;
   optimalStock?: number;
   leadTimeDays?: number;
   initialStock?: number;
@@ -246,6 +248,7 @@ export interface UpdateProductPayload {
   brandId?: string | null;
   description?: string | null;
   reorderPoint?: number;
+  reorderPointUnit?: string;
   unitsPerCase?: number;
   packagingUnit?: string | null;
   sellingUnit?: string;

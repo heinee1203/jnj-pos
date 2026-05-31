@@ -34,6 +34,7 @@ export function buildVariantProductName(parentName: string, suffix: string) {
 export function splitProductUpdatePayload<T extends Record<string, any>>(updates: T) {
   const {
     reorderPoint,
+    reorderPointUnit,
     newVariants,
     priceTiers,
     conversionFactor: rawConversionFactor,
@@ -48,9 +49,11 @@ export function splitProductUpdatePayload<T extends Record<string, any>>(updates
     priceTiers?: typeof priceTiers;
     productUpdates: typeof productUpdates;
     reorderPoint: typeof reorderPoint;
+    reorderPointUnit: typeof reorderPointUnit;
   } = {
     productUpdates,
     reorderPoint,
+    reorderPointUnit,
   };
 
   if (newVariants !== undefined) result.newVariants = newVariants;

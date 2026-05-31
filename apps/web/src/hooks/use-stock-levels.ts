@@ -19,8 +19,11 @@ export interface StockLevelRow {
   reservedLevel: number;
   available: number;
   reorderPoint: number;
+  reorderPointUnit: string;
   optimalStock: number;
   leadTimeDays: number;
+  unitsPerCase: number;
+  packagingUnit: string | null;
   sellingUnit: string;
   purchaseUnit: string | null;
   conversionFactor: string;
@@ -150,7 +153,10 @@ export interface ProductStockRow {
   stockedLocations: number;
   availableLocations: number;
   reorderPoint: number;
+  reorderPointUnit: string;
   optimalStock: number;
+  unitsPerCase: number;
+  packagingUnit: string | null;
   sellingUnit: string;
   purchaseUnit: string | null;
   conversionFactor: string;

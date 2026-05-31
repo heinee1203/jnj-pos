@@ -62,6 +62,7 @@ export function registerProductUpdateRoutes(app: FastifyInstance) {
     // Build product update set (excluding fields handled separately)
     const {
       reorderPoint,
+      reorderPointUnit,
       productUpdates,
       newVariants: rawNewVariants,
       priceTiers: rawPriceTiersUntyped,
@@ -112,10 +113,13 @@ export function registerProductUpdateRoutes(app: FastifyInstance) {
       }
 
       // Update reorder point in inventory (only when a specific location is selected)
-      if (reorderPoint !== undefined && locationId) {
+      if ((reorderPoint !== undefined || reorderPointUnit !== undefined) && locationId) {
+        const inventoryUpdates: Record<string, any> = {};
+        if (reorderPoint !== undefined) inventoryUpdates.reorderPoint = reorderPoint;
+        if (reorderPointUnit !== undefined) inventoryUpdates.reorderPointUnit = reorderPointUnit.toUpperCase();
         await tx
           .update(inventory)
-          .set({ reorderPoint })
+          .set(inventoryUpdates)
           .where(and(eq(inventory.productId, id), eq(inventory.locationId, locationId)));
       }
 
@@ -185,6 +189,13 @@ export function registerProductUpdateRoutes(app: FastifyInstance) {
                 parentProductId: id,
                 categoryId: parent.categoryId || null,
                 brandId: parent.brandId || null,
+                unitsPerCase: parent.unitsPerCase ?? 1,
+                packagingUnit: parent.packagingUnit || null,
+                sellingUnit: parent.sellingUnit ?? "PIECE",
+                purchaseUnit: parent.purchaseUnit || null,
+                conversionFactor: parent.conversionFactor ?? "1",
+                primarySupplierId: parent.primarySupplierId || null,
+                specialOrder: parent.specialOrder ?? false,
               })
               .returning();
 
@@ -198,6 +209,7 @@ export function registerProductUpdateRoutes(app: FastifyInstance) {
                 locationId,
                 stockLevel: 0,
                 reorderPoint: 5,
+                reorderPointUnit: (parent.sellingUnit ?? "PIECE").toUpperCase(),
                 leadTimeDays: 7,
               });
             }
@@ -222,6 +234,7 @@ export function registerProductUpdateRoutes(app: FastifyInstance) {
           isParent: products.isParent,
           stockLevel: inventory.stockLevel,
           reorderPoint: inventory.reorderPoint,
+          reorderPointUnit: inventory.reorderPointUnit,
           categoryId: products.categoryId,
           categoryName: categories.name,
           brandId: products.brandId,

@@ -189,6 +189,7 @@ export async function handleAllLocationsQuery(
           WHERE p2.parent_product_id = p.id
         ), 0) ELSE COALESCE(SUM(i.stock_level), 0) END, 0)::int AS stock_level,
         COALESCE(MAX(i.reorder_point), 0)::int AS reorder_point,
+        COALESCE(MAX(i.reorder_point_unit), NULLIF(UPPER(p.selling_unit), ''), 'PIECE') AS reorder_point_unit,
         p.category_id, cat.name AS category_name,
         p.brand_id, b.name AS brand_name,
         p.parent_product_id, p.is_parent,
@@ -244,6 +245,7 @@ export async function handleAllLocationsQuery(
     isVariablePrice: row.is_variable_price,
     stockLevel: row.stock_level,
     reorderPoint: row.reorder_point,
+    reorderPointUnit: row.reorder_point_unit,
     categoryId: row.category_id,
     categoryName: row.category_name,
     brandId: row.brand_id,

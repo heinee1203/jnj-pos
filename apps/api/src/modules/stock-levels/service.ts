@@ -34,9 +34,12 @@ export interface StockLevelRow {
   reservedLevel: number;
   available: number;
   reorderPoint: number;
+  reorderPointUnit: string;
   optimalStock: number;
   leadTimeDays: number;
   availableForSale: boolean;
+  unitsPerCase: number;
+  packagingUnit: string | null;
   sellingUnit: string;
   purchaseUnit: string | null;
   conversionFactor: string;
@@ -282,9 +285,12 @@ export async function queryStockLevels(
         reservedLevel: inventory.reservedLevel,
         available: availableCol,
         reorderPoint: inventory.reorderPoint,
+        reorderPointUnit: inventory.reorderPointUnit,
         optimalStock: inventory.optimalStock,
         leadTimeDays: inventory.leadTimeDays,
         availableForSale: inventory.availableForSale,
+        unitsPerCase: products.unitsPerCase,
+        packagingUnit: products.packagingUnit,
         sellingUnit: products.sellingUnit,
         purchaseUnit: products.purchaseUnit,
         conversionFactor: products.conversionFactor,
@@ -349,9 +355,12 @@ export async function queryStockLevels(
     reservedLevel: row.reservedLevel,
     available: row.available,
     reorderPoint: row.reorderPoint,
+    reorderPointUnit: row.reorderPointUnit,
     optimalStock: row.optimalStock,
     leadTimeDays: row.leadTimeDays,
     availableForSale: row.availableForSale,
+    unitsPerCase: row.unitsPerCase,
+    packagingUnit: row.packagingUnit,
     sellingUnit: row.sellingUnit,
     purchaseUnit: row.purchaseUnit,
     conversionFactor: row.conversionFactor,
@@ -400,7 +409,10 @@ export interface ProductStockRow {
   stockedLocations: number;
   availableLocations: number;
   reorderPoint: number;
+  reorderPointUnit: string;
   optimalStock: number;
+  unitsPerCase: number;
+  packagingUnit: string | null;
   sellingUnit: string;
   purchaseUnit: string | null;
   conversionFactor: string;
@@ -481,7 +493,10 @@ export async function queryProductStockLevels(
       stockedLocations: sql<number>`count(distinct case when ${inventory.stockLevel} > 0 then ${inventory.locationId} end)::int`.as("stocked_locations"),
       availableLocations: sql<number>`count(distinct ${inventory.locationId})::int`.as("available_locations"),
       reorderPoint: sql<number>`coalesce(max(${inventory.reorderPoint}), 0)::int`.as("max_reorder_point"),
+      reorderPointUnit: sql<string>`coalesce(max(${inventory.reorderPointUnit}), nullif(upper(${products.sellingUnit}), ''), 'PIECE')`.as("reorder_point_unit"),
       optimalStock: sql<number>`coalesce(max(${inventory.optimalStock}), 0)::int`.as("max_optimal_stock"),
+      unitsPerCase: products.unitsPerCase,
+      packagingUnit: products.packagingUnit,
       sellingUnit: products.sellingUnit,
       purchaseUnit: products.purchaseUnit,
       conversionFactor: products.conversionFactor,
@@ -511,6 +526,8 @@ export async function queryProductStockLevels(
       products.parentProductId,
       products.sku,
       categories.name,
+      products.unitsPerCase,
+      products.packagingUnit,
       products.sellingUnit,
       products.purchaseUnit,
       products.conversionFactor,
@@ -578,7 +595,10 @@ export async function queryProductStockLevels(
       stockedLocations: row.stockedLocations,
       availableLocations: row.availableLocations,
       reorderPoint,
+      reorderPointUnit: row.reorderPointUnit,
       optimalStock: row.optimalStock,
+      unitsPerCase: row.unitsPerCase,
+      packagingUnit: row.packagingUnit,
       sellingUnit: row.sellingUnit,
       purchaseUnit: row.purchaseUnit,
       conversionFactor: row.conversionFactor,
@@ -672,6 +692,7 @@ export interface ProductLocationRow {
   stockLevel: number;
   reservedLevel: number;
   reorderPoint: number;
+  reorderPointUnit: string;
   optimalStock: number;
   availableForSale: boolean;
 }
@@ -697,6 +718,7 @@ export async function getProductLocations(
         COALESCE(SUM(i.stock_level), 0)::int AS stock_level,
         COALESCE(SUM(i.reserved_level), 0)::int AS reserved_level,
         COALESCE(MAX(i.reorder_point), 10)::int AS reorder_point,
+        COALESCE(MAX(i.reorder_point_unit), 'PIECE') AS reorder_point_unit,
         COALESCE(MAX(i.optimal_stock), 0)::int AS optimal_stock,
         BOOL_OR(COALESCE(i.available_for_sale, false)) AS available_for_sale
       FROM locations loc
@@ -715,6 +737,7 @@ export async function getProductLocations(
       stockLevel: r.stock_level,
       reservedLevel: r.reserved_level,
       reorderPoint: r.reorder_point,
+      reorderPointUnit: r.reorder_point_unit,
       optimalStock: r.optimal_stock,
       availableForSale: r.available_for_sale ?? false,
     }));
@@ -730,6 +753,7 @@ export async function getProductLocations(
       stockLevel: inventory.stockLevel,
       reservedLevel: inventory.reservedLevel,
       reorderPoint: inventory.reorderPoint,
+      reorderPointUnit: inventory.reorderPointUnit,
       optimalStock: inventory.optimalStock,
       availableForSale: inventory.availableForSale,
     })
@@ -752,6 +776,7 @@ export async function getProductLocations(
     stockLevel: r.stockLevel ?? 0,
     reservedLevel: r.reservedLevel ?? 0,
     reorderPoint: r.reorderPoint ?? 10,
+    reorderPointUnit: r.reorderPointUnit ?? "PIECE",
     optimalStock: r.optimalStock ?? 0,
     availableForSale: r.availableForSale ?? false,
   }));
@@ -763,6 +788,7 @@ export interface AvailabilityUpdate {
   locationId: string;
   availableForSale?: boolean;
   reorderPoint?: number;
+  reorderPointUnit?: string;
   optimalStock?: number;
 }
 
@@ -796,6 +822,7 @@ export async function updateAvailability(
         const setFields: Record<string, any> = {};
         if (update.availableForSale !== undefined) setFields.availableForSale = update.availableForSale;
         if (update.reorderPoint !== undefined) setFields.reorderPoint = update.reorderPoint;
+        if (update.reorderPointUnit !== undefined) setFields.reorderPointUnit = update.reorderPointUnit.toUpperCase();
         if (update.optimalStock !== undefined) setFields.optimalStock = update.optimalStock;
 
         // Upsert: create inventory row if it doesn't exist
@@ -808,6 +835,7 @@ export async function updateAvailability(
             stockLevel: 0,
             reservedLevel: 0,
             reorderPoint: update.reorderPoint ?? 10,
+            reorderPointUnit: update.reorderPointUnit?.toUpperCase() ?? "PIECE",
             optimalStock: update.optimalStock ?? 0,
             availableForSale: update.availableForSale ?? true,
           })
